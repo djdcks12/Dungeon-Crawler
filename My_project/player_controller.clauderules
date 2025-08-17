@@ -1,0 +1,107 @@
+[Player] Controller 구현 - 하드코어 던전 크롤러 탑다운 2D 이동 및 기본 공격 시스템
+
+**컨텍스트**:
+- 관련 시스템: Combat(추후), Stats(추후), Network, Input
+- 데이터 구조: PlayerStats ScriptableObject (추후 생성), Race enum
+- 네트워킹: NetworkBehaviour 상속 필수 (Unity Netcode for GameObjects)
+- 템플릿: Unity 6 Small Size Multi Complete 기반
+- 게임 타입: 2D 탑다운 뷰 로그라이크 던전 크롤러
+
+**요구사항**:
+1. **이동 시스템**:
+   - WASD 키로 8방향 부드러운 이동
+   - 기본 이동속도 5.0f (추후 AGI 스탯 연동 예정)
+   - 대각선 이동 시 속도 정규화 (√2로 나누지 않고 동일한 속도 유지)
+   - Rigidbody2D 기반 물리 이동
+
+2. **회전 시스템**:
+   - 마우스 월드 좌표 기준으로 플레이어 회전
+   - 부드러운 회전 (즉시 회전이 아닌 보간)
+   - Z축 회전만 사용 (2D)
+
+3. **기본 공격 시스템**:
+   - 좌클릭으로 기본 공격 발동
+   - 공격 쿨다운: 0.5초
+   - 공격 사거리: 2.0f 유닛
+   - 공격 중에도 이동 가능
+   - 공격 방향은 마우스 방향
+
+4. **스킬 슬롯**:
+   - 우클릭으로 스킬 사용 (현재는 Debug.Log만, 추후 확장)
+   - 스킬 쿨다운 시스템 기반 구조 준비
+
+5. **네트워크 동기화**:
+   - 위치, 회전, 애니메이션 상태 동기화
+   - 클라이언트 예측 이동 (Client Authority)
+   - 공격 액션은 서버 검증 필요
+
+6. **애니메이션 연동 준비**:
+   - Animator Controller 연동 구조 (Idle, Walk, Attack 상태)
+   - 이동 방향별 애니메이션 파라미터 설정
+
+**제약조건**:
+- 60fps 기준 부드러운 움직임 보장
+- 16명 멀티플레이어 환경에서 안정적 동작
+- 메모리 사용량 최소화 (Object Pooling 고려)
+- 네트워크 패킷 최적화 (불필요한 동기화 방지)
+- 공격 중에도 이동 가능하되, 이동속도 감소 없음
+- 월드 경계 체크 시스템 포함
+
+**필수 컴포넌트**:
+- NetworkBehaviour (상속)
+- Rigidbody2D
+- Collider2D (Circle 또는 Capsule)
+- Animator (선택적, 준비만)
+- SpriteRenderer
+
+**네트워크 변수**:
+- NetworkVariable<Vector2> networkPosition
+- NetworkVariable<float> networkRotation
+- NetworkVariable<bool> isAttacking
+
+**공용 메서드**:
+- SetMoveSpeed(float speed) - 추후 스탯 시스템 연동용
+- TakeDamage(float damage) - 추후 전투 시스템 연동용
+- GetCurrentStats() - 추후 스탯 조회용
+
+**테스트 케이스**:
+1. **단일 플레이어 테스트**:
+   - WASD 이동이 8방향으로 정확히 작동
+   - 마우스 방향으로 캐릭터가 자연스럽게 회전
+   - 좌클릭 공격이 0.5초 쿨다운으로 동작
+   - 우클릭 시 "Skill activated" 로그 출력
+
+2. **멀티플레이어 테스트**:
+   - 2-4명 클라이언트가 동시 접속하여 이동
+   - 각 클라이언트에서 다른 플레이어 위치가 정확히 동기화
+   - 네트워크 지연 상황에서도 부드러운 이동
+   - 공격 애니메이션이 모든 클라이언트에 표시
+
+3. **성능 테스트**:
+   - 16명 동시 접속 시 60fps 유지
+   - 메모리 사용량 모니터링
+   - 네트워크 트래픽 측정
+
+4. **경계 테스트**:
+   - 맵 경계에서 캐릭터 이동 제한
+   - 공격 사거리 밖의 목표에 대한 공격 무효화
+
+**파일 구조**:
+```
+Scripts/Player/
+├── PlayerController.cs        # 메인 컨트롤러
+├── PlayerInput.cs            # 입력 처리
+├── PlayerNetwork.cs          # 네트워크 동기화
+└── PlayerAnimator.cs         # 애니메이션 제어 (선택적)
+```
+
+**추가 고려사항**:
+- 추후 4종족 시스템과 연동 가능한 구조
+- 7종 기본 스탯(STR, AGI, VIT, INT, DEF, MDEF, LUK) 반영 준비
+- 영혼/인챈트 시스템과의 스탯 보너스 적용 구조
+- 던전 층별 환경 변화에 대응 가능한 확장성
+
+**디버그 기능**:
+- 현재 이동속도 실시간 표시
+- 공격 쿨다운 상태 시각화
+- 네트워크 상태 모니터링 (Ping, 패킷 손실률)

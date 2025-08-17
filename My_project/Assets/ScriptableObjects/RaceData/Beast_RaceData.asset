@@ -1,0 +1,48 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 33698dae12dc03d4682f30c422f8b081, type: 3}
+  m_Name: Beast_RaceData
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.RaceData
+  raceType: 0
+  raceName: 
+  description: 
+  raceIcon: {fileID: 0}
+  baseStats:
+    strength: 15
+    agility: 13
+    vitality: 12
+    intelligence: 6
+    defense: 6
+    magicDefense: 3
+    luck: 7
+  statGrowth:
+    strengthGrowth: 3
+    agilityGrowth: 2.5
+    vitalityGrowth: 2
+    intelligenceGrowth: 1
+    defenseGrowth: 1.5
+    magicDefenseGrowth: 0.5
+    luckGrowth: 1.5
+  elementalAffinity:
+    fireAttack: 0
+    fireResist: 0
+    iceAttack: 0
+    iceResist: 0
+    lightningAttack: 0
+    lightningResist: 0
+    poisonAttack: 0
+    poisonResist: 0
+    darkAttack: 0
+    darkResist: 0
+    holyAttack: 0
+    holyResist: 0
+  specialties: []
