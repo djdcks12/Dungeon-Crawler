@@ -244,8 +244,10 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
     {
         None,       // 없음 (기본값)
         Sword,      // 검
-        Blunt,      // 둔기
+        Blunt,      // 둔기 (Mace로도 사용)
         Dagger,     // 단검
+        Axe,        // 도끼
+        Mace,       // 메이스
         Bow,        // 활
         Staff,      // 지팡이
         Wand,       // 완드

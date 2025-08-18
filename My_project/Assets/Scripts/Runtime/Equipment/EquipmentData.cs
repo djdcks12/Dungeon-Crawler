@@ -182,7 +182,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             {
                 if (item?.ItemData != null)
                 {
-                    totalStats = totalStats.Add(item.ItemData.statBonuses);
+                    totalStats = totalStats + item.ItemData.StatBonuses;
                 }
             }
             
@@ -269,7 +269,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             {
                 if (kvp.Value != null)
                 {
-                    Debug.Log($"{kvp.Key}: {kvp.Value.ItemData.itemName} (Grade: {kvp.Value.ItemData.Grade})");
+                    Debug.Log($"{kvp.Key}: {kvp.Value.ItemData.ItemName} (Grade: {kvp.Value.ItemData.Grade})");
                 }
                 else
                 {

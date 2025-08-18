@@ -1,6 +1,7 @@
 using UnityEngine;
 using Unity.Netcode;
 using System;
+using System.Collections.Generic;
 
 namespace Unity.Template.Multiplayer.NGO.Runtime
 {
@@ -88,6 +89,20 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         public CombatStats CombatStats => combatStats;
         public WeaponData EquippedWeapon => equippedWeapon;
         public long Gold => gold;
+        
+        // 캐릭터 이름
+        [SerializeField] private string characterName = "Unknown";
+        public string CharacterName => characterName;
+        
+        // 캐릭터 이름 설정 메서드
+        public void SetCharacterName(string name)
+        {
+            characterName = !string.IsNullOrEmpty(name) ? name.Replace("(Clone)", "") : "Unknown";
+        }
+        
+        // 장착된 영혼 ID 목록 (영혼 시스템용)
+        [SerializeField] private List<ulong> equippedSoulIds = new List<ulong>();
+        public List<ulong> EquippedSoulIds => equippedSoulIds;
         
         // 종족 설정 (캐릭터 생성 시에만)
         public void SetRace(Race race, RaceData data)
@@ -292,7 +307,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         // 골드 변경
         public void ChangeGold(long amount)
         {
-            gold = Mathf.Max(0, gold + amount);
+            gold = Math.Max(0L, gold + amount);
             OnStatsChanged?.Invoke(this);
         }
         

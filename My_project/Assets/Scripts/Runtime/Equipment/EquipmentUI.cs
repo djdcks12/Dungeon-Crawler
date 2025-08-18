@@ -96,7 +96,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         {
             if (item?.ItemData == null) return;
             
-            Debug.Log($"Item {item.ItemData.itemName} dropped to {slot} slot");
+            Debug.Log($"Item {item.ItemData.ItemName} dropped to {slot} slot");
         }
         
         /// <summary>
@@ -106,7 +106,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         {
             if (item?.ItemData == null) return;
             
-            Debug.Log($"Showing tooltip for: {item.ItemData.itemName}");
+            Debug.Log($"Showing tooltip for: {item.ItemData.ItemName}");
         }
         
         /// <summary>

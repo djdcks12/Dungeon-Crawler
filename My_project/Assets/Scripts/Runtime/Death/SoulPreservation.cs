@@ -144,8 +144,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             if (statsManager?.CurrentStats == null) return;
             
             // 현재 장착된 영혼 ID들 가져오기
-            // TODO: EquippedSoulIds 프로퍼티가 PlayerStats에 구현되지 않음 - 임시로 빈 배열 사용
-            var equippedSoulIds = new System.Collections.Generic.List<ulong>();
+            var equippedSoulIds = statsManager.CurrentStats.EquippedSoulIds;
             
             if (equippedSoulIds == null || equippedSoulIds.Count == 0)
             {
@@ -205,8 +204,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         {
             if (statsManager?.CurrentStats != null)
             {
-                // TODO: CharacterName 프로퍼티가 PlayerStats에 구현되지 않음 - 임시로 게임 오브젝트 이름 사용
-                return statsManager.gameObject.name;
+                return statsManager.CurrentStats.CharacterName;
             }
             
             return gameObject.name.Replace("(Clone)", "");
