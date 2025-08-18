@@ -13,7 +13,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         public string weaponName;
         public WeaponType weaponType;
         public WeaponCategory category;
-        public ItemRarity rarity = ItemRarity.Common;
+        public ItemGrade rarity = ItemGrade.Common;
         [TextArea(2, 4)]
         public string description;
         public Sprite weaponIcon;
@@ -39,7 +39,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         // 프로퍼티들
         public WeaponType Type => weaponType;
         public WeaponCategory Category => category;
-        public ItemRarity Rarity => rarity;
+        public ItemGrade Rarity => rarity;
         public StatBlock StatBonuses => statBonuses;
         public float AttackSpeed => attackSpeed;
         public float AttackRange => attackRange;
@@ -101,25 +101,25 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             
             switch (rarity)
             {
-                case ItemRarity.Common:     // 일반 (White)
+                case ItemGrade.Common:     // 일반 (White)
                     rarityMinPercent = Random.Range(80f, 90f);
                     rarityMaxPercent = Random.Range(110f, 120f);
                     break;
-                case ItemRarity.Rare:       // 희귀 (Blue)
+                case ItemGrade.Uncommon:   // 고급 (Green)
+                    rarityMinPercent = Random.Range(78f, 88f);
+                    rarityMaxPercent = Random.Range(112f, 122f);
+                    break;
+                case ItemGrade.Rare:       // 희귀 (Blue)
                     rarityMinPercent = Random.Range(75f, 85f);
                     rarityMaxPercent = Random.Range(115f, 125f);
                     break;
-                case ItemRarity.Epic:       // 영웅 (Purple)
+                case ItemGrade.Epic:       // 영웅 (Purple)
                     rarityMinPercent = Random.Range(70f, 80f);
                     rarityMaxPercent = Random.Range(120f, 130f);
                     break;
-                case ItemRarity.Legendary:  // 전설 (Orange)
+                case ItemGrade.Legendary:  // 전설 (Orange)
                     rarityMinPercent = Random.Range(60f, 75f);
                     rarityMaxPercent = Random.Range(125f, 140f);
-                    break;
-                case ItemRarity.Mythic:     // 신화 (Red)
-                    rarityMinPercent = Random.Range(50f, 70f);
-                    rarityMaxPercent = Random.Range(130f, 150f);
                     break;
                 default:
                     rarityMinPercent = 80f;
@@ -242,6 +242,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
     /// </summary>
     public enum WeaponCategory
     {
+        None,       // 없음 (기본값)
         Sword,      // 검
         Blunt,      // 둔기
         Dagger,     // 단검
@@ -252,17 +253,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         Fists       // 맨손
     }
     
-    /// <summary>
-    /// 아이템 등급
-    /// </summary>
-    public enum ItemRarity
-    {
-        Common,     // 일반 (White)
-        Rare,       // 희귀 (Blue)
-        Epic,       // 영웅 (Purple)
-        Legendary,  // 전설 (Orange)
-        Mythic      // 신화 (Red)
-    }
+    // ItemGrade는 ItemData.cs에서 정의됨 (통합된 아이템 등급 시스템)
     
     /// <summary>
     /// 무기 특수 효과

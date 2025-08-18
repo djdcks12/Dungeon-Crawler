@@ -262,6 +262,34 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             );
         }
         
+        /// <summary>
+        /// 스탯 중 하나라도 0이 아닌지 확인
+        /// </summary>
+        public bool HasAnyStats()
+        {
+            return strength != 0 || agility != 0 || vitality != 0 || intelligence != 0 ||
+                   defense != 0 || magicDefense != 0 || luck != 0 || stability != 0;
+        }
+        
+        /// <summary>
+        /// 스탯 정보를 텍스트로 반환
+        /// </summary>
+        public string GetStatsText()
+        {
+            var statTexts = new System.Collections.Generic.List<string>();
+            
+            if (strength != 0) statTexts.Add($"STR: {strength:+0;-0}");
+            if (agility != 0) statTexts.Add($"AGI: {agility:+0;-0}");
+            if (vitality != 0) statTexts.Add($"VIT: {vitality:+0;-0}");
+            if (intelligence != 0) statTexts.Add($"INT: {intelligence:+0;-0}");
+            if (defense != 0) statTexts.Add($"DEF: {defense:+0;-0}");
+            if (magicDefense != 0) statTexts.Add($"MDEF: {magicDefense:+0;-0}");
+            if (luck != 0) statTexts.Add($"LUK: {luck:+0;-0}");
+            if (stability != 0) statTexts.Add($"STAB: {stability:+0;-0}");
+            
+            return string.Join("\n", statTexts);
+        }
+        
         public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
         {
             serializer.SerializeValue(ref strength);

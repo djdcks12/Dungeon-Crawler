@@ -31,6 +31,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         // 스탯 변경 이벤트
         public System.Action<PlayerStats> OnStatsUpdated;
         public System.Action<float, float> OnHealthChanged;
+        public System.Action OnPlayerDeath; // 사망 이벤트
         public System.Action<int> OnLevelChanged;
         
         public PlayerStats CurrentStats => currentStats;
@@ -82,27 +83,104 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         
         private void InitializeStats()
         {
-            if (defaultStats != null)
+            // ScriptableObject 기반이 아닌 직접 데이터 초기화
+            currentStats = ScriptableObject.CreateInstance<PlayerStats>();
+            
+            // 기본 종족 설정 (추후 캐릭터 생성 시 올바른 종족으로 설정)
+            var humanRaceData = RaceDataCreator.CreateHumanRaceData();
+            currentStats.SetRace(Race.Human, humanRaceData);
+            currentStats.Initialize();
+            
+            // 네트워크 변수 초기화
+            UpdateNetworkVariables();
+            
+            // PlayerController에 스탯 반영
+            ApplyStatsToController();
+            
+            Debug.Log($"PlayerStatsManager initialized for {gameObject.name}");
+        }
+        
+        /// <summary>
+        /// 캐릭터 데이터로 스탯 설정 (캐릭터 생성/로드 시 사용)
+        /// </summary>
+        public void InitializeFromCharacterData(CharacterData characterData)
+        {
+            if (currentStats == null)
             {
-                // ScriptableObject 복사본 생성
                 currentStats = ScriptableObject.CreateInstance<PlayerStats>();
-                CopyStatsFrom(defaultStats);
-                currentStats.Initialize();
-                
-                // 네트워크 변수 초기화
+            }
+            
+            // 종족 데이터 가져오기
+            RaceData raceData = GetRaceDataByType(characterData.race);
+            if (raceData != null)
+            {
+                currentStats.SetRace(characterData.race, raceData);
+            }
+            
+            // 캐릭터 데이터로 초기화
+            SetLevel(characterData.level);
+            SetExperience(characterData.experience);
+            
+            // 영혼 보너스 스탯 적용
+            currentStats.AddSoulBonusStats(characterData.soulBonusStats);
+            
+            // 네트워크 변수 업데이트
+            if (IsOwner)
+            {
                 UpdateNetworkVariables();
-                
-                // PlayerController에 스탯 반영
-                ApplyStatsToController();
+            }
+            
+            ApplyStatsToController();
+            
+            Debug.Log($"PlayerStatsManager initialized from character data: {characterData.characterName}");
+        }
+        
+        /// <summary>
+        /// 종족 타입으로 RaceData 가져오기
+        /// </summary>
+        private RaceData GetRaceDataByType(Race raceType)
+        {
+            switch (raceType)
+            {
+                case Race.Human:
+                    return RaceDataCreator.CreateHumanRaceData();
+                case Race.Elf:
+                    return RaceDataCreator.CreateElfRaceData();
+                case Race.Beast:
+                    return RaceDataCreator.CreateBeastRaceData();
+                case Race.Machina:
+                    return RaceDataCreator.CreateMachinaRaceData();
+                default:
+                    return RaceDataCreator.CreateHumanRaceData();
             }
         }
         
-        private void CopyStatsFrom(PlayerStats source)
+        /// <summary>
+        /// 레벨 직접 설정 (로드 시 사용)
+        /// </summary>
+        private void SetLevel(int level)
         {
-            if (source == null || currentStats == null) return;
+            if (currentStats == null) return;
             
-            // 기본값들을 복사 (리플렉션 대신 직접 할당)
-            currentStats.Initialize();
+            // 리플렉션을 사용하여 private 필드 설정
+            var levelField = typeof(PlayerStats).GetField("currentLevel", 
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            levelField?.SetValue(currentStats, level);
+            
+            currentStats.RecalculateStats();
+        }
+        
+        /// <summary>
+        /// 경험치 직접 설정 (로드 시 사용)
+        /// </summary>
+        private void SetExperience(long experience)
+        {
+            if (currentStats == null) return;
+            
+            // 리플렉션을 사용하여 private 필드 설정
+            var expField = typeof(PlayerStats).GetField("currentExp", 
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            expField?.SetValue(currentStats, experience);
         }
         
         // 경험치 추가 (로컬)
@@ -140,7 +218,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             // 죽음 처리
             if (currentStats.IsDead())
             {
-                OnPlayerDeath();
+                OnPlayerDeath?.Invoke();
             }
             
             return actualDamage;
@@ -165,6 +243,29 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             if (currentStats == null) return;
             
             currentStats.ChangeMP(amount);
+        }
+        
+        // MP 소모
+        public void ChangeMP(float amount)
+        {
+            if (currentStats == null) return;
+            
+            currentStats.ChangeMP(amount);
+            
+            if (IsOwner)
+            {
+                UpdateNetworkVariables();
+            }
+        }
+        
+        // 골드 변경
+        public void ChangeGold(long amount)
+        {
+            if (currentStats == null) return;
+            
+            currentStats.ChangeGold(amount);
+            
+            Debug.Log($"Gold changed by {amount}. Current gold: {currentStats?.Gold ?? 0}");
         }
         
         // 영혼 보너스 스탯 추가
@@ -248,7 +349,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         }
         
         // 플레이어 죽음 처리
-        private void OnPlayerDeath()
+        private void HandlePlayerDeathInternal()
         {
             Debug.Log($"Player {gameObject.name} died!");
             

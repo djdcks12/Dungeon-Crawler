@@ -42,6 +42,9 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         [SerializeField] private float criticalChance = 0.05f;
         [SerializeField] private float criticalDamage = 1.5f;
         
+        [Header("재화")]
+        [SerializeField] private long gold = 0;
+        
         [Header("전투 스탯 (민댐/맥댐 시스템)")]
         [SerializeField] private CombatStats combatStats;
         [SerializeField] private WeaponData equippedWeapon;
@@ -84,6 +87,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         public float CriticalDamage => criticalDamage;
         public CombatStats CombatStats => combatStats;
         public WeaponData EquippedWeapon => equippedWeapon;
+        public long Gold => gold;
         
         // 종족 설정 (캐릭터 생성 시에만)
         public void SetRace(Race race, RaceData data)
@@ -285,6 +289,13 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             }
         }
         
+        // 골드 변경
+        public void ChangeGold(long amount)
+        {
+            gold = Mathf.Max(0, gold + amount);
+            OnStatsChanged?.Invoke(this);
+        }
+        
         /// <summary>
         /// 새로운 민댐/맥댐 시스템으로 공격 데미지 계산
         /// </summary>
@@ -444,6 +455,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             currentLevel = 1;
             currentExp = 0;
             expToNextLevel = CalculateExpForLevel(2);
+            gold = 1000; // 시작 골드
             
             // 종족별 기본 스탯 설정
             if (raceData != null)
@@ -492,6 +504,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
     {
         Physical,   // 물리 데미지
         Magical,    // 마법 데미지
-        True        // 고정 데미지 (방어력 무시)
+        True,       // 고정 데미지 (방어력 무시)
+        Holy        // 신성 데미지 (언데드에게 효과적)
     }
 }

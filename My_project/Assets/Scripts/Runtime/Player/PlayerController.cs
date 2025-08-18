@@ -22,7 +22,11 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         private PlayerInput playerInput;
         private PlayerNetwork playerNetwork;
         private PlayerStatsManager statsManager;
+        private CombatSystem combatSystem;
+        private PlayerVisualManager visualManager;
         private Animator animator;
+        private DeathManager deathManager;
+        private SkillManager skillManager;
         
         // 계산된 값들 (스탯 반영)
         private float currentMoveSpeed;
@@ -40,7 +44,13 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             playerInput = GetComponent<PlayerInput>();
             playerNetwork = GetComponent<PlayerNetwork>();
             statsManager = GetComponent<PlayerStatsManager>();
+            combatSystem = GetComponent<CombatSystem>();
+            visualManager = GetComponent<PlayerVisualManager>();
             animator = GetComponent<Animator>();
+            skillManager = GetComponent<SkillManager>();
+            
+            // Death 시스템 컴포넌트들 자동 추가
+            SetupDeathSystem();
             
             // 초기 스탯 적용
             InitializeStats();
@@ -116,7 +126,21 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 playerNetwork.UpdatePosition(transform.position);
             }
             
-            // 애니메이션 파라미터 설정
+            // 비주얼 매니저 애니메이션 업데이트 (이동 애니메이션만)
+            if (visualManager != null)
+            {
+                // 이동 애니메이션 설정
+                if (moveInput.magnitude > 0.1f)
+                {
+                    visualManager.SetAnimation(PlayerAnimationType.Walk);
+                }
+                else
+                {
+                    visualManager.SetAnimation(PlayerAnimationType.Idle);
+                }
+            }
+            
+            // 애니메이션 파라미터 설정 (기존 애니메이터와 호환)
             if (animator != null)
             {
                 animator.SetFloat("Speed", moveInput.magnitude);
@@ -146,6 +170,12 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             {
                 playerNetwork.UpdateRotation(newAngle);
             }
+            
+            // 마우스 방향에 따른 비주얼 업데이트 (바라보는 방향만)
+            if (visualManager != null)
+            {
+                visualManager.SetDirectionFromMouse(direction);
+            }
         }
         
         private void HandleAttack()
@@ -167,10 +197,22 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         {
             lastAttackTime = Time.time;
             
-            // 공격 애니메이션 트리거
+            // 비주얼 매니저를 통한 공격 애니메이션
+            if (visualManager != null)
+            {
+                visualManager.TriggerAttackAnimation();
+            }
+            
+            // 기존 애니메이터와 호환
             if (animator != null)
             {
                 animator.SetTrigger("Attack");
+            }
+            
+            // CombatSystem을 통한 실제 공격 처리
+            if (combatSystem != null)
+            {
+                combatSystem.PerformBasicAttack();
             }
             
             // 네트워크를 통해 다른 클라이언트에 공격 알림
@@ -194,8 +236,86 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         
         private void ActivateSkill()
         {
+            if (skillManager != null && playerCamera != null)
+            {
+                // 마우스 위치를 월드 좌표로 변환하여 스킬 대상 위치로 사용
+                Vector2 mousePosition = playerInput.GetMousePosition();
+                Vector3 worldMousePosition = playerCamera.ScreenToWorldPoint(new Vector3(mousePosition.x, mousePosition.y, playerCamera.nearClipPlane));
+                worldMousePosition.z = 0f;
+                
+                // 기본 스킬 사용 (첫 번째 학습한 스킬 사용)
+                var learnedSkills = skillManager.GetLearnedSkills();
+                if (learnedSkills.Count > 0)
+                {
+                    skillManager.UseSkill(learnedSkills[0], worldMousePosition);
+                }
+                else
+                {
+                    Debug.Log("No skills learned yet!");
+                }
+            }
+            
             Debug.Log("Skill activated");
-            // 추후 스킬 시스템 확장 예정
+        }
+        
+        /// <summary>
+        /// Death 시스템 컴포넌트 설정
+        /// </summary>
+        private void SetupDeathSystem()
+        {
+            // DeathManager 추가
+            if (GetComponent<DeathManager>() == null)
+            {
+                deathManager = gameObject.AddComponent<DeathManager>();
+            }
+            else
+            {
+                deathManager = GetComponent<DeathManager>();
+            }
+            
+            // CharacterDeletion 추가
+            if (GetComponent<CharacterDeletion>() == null)
+            {
+                gameObject.AddComponent<CharacterDeletion>();
+            }
+            
+            // ItemScatter 추가
+            if (GetComponent<ItemScatter>() == null)
+            {
+                gameObject.AddComponent<ItemScatter>();
+            }
+            
+            // SoulPreservation 추가
+            if (GetComponent<SoulPreservation>() == null)
+            {
+                gameObject.AddComponent<SoulPreservation>();
+            }
+            
+            // SoulDropSystem 추가
+            if (GetComponent<SoulDropSystem>() == null)
+            {
+                gameObject.AddComponent<SoulDropSystem>();
+            }
+            
+            // SkillManager 추가
+            if (GetComponent<SkillManager>() == null)
+            {
+                gameObject.AddComponent<SkillManager>();
+            }
+            
+            // ItemDropSystem 추가
+            if (GetComponent<ItemDropSystem>() == null)
+            {
+                gameObject.AddComponent<ItemDropSystem>();
+            }
+            
+            // InventoryManager 추가
+            if (GetComponent<InventoryManager>() == null)
+            {
+                gameObject.AddComponent<InventoryManager>();
+            }
+            
+            Debug.Log("Death system components setup completed");
         }
         
         // 스탯 시스템 연동 메서드들
@@ -228,7 +348,9 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             // AGI에 따른 공격속도 적용 (공격 쿨다운 감소)
             currentAttackCooldown = baseAttackCooldown / stats.AttackSpeed;
             
-            Debug.Log($"Stats Applied - MoveSpeed: {currentMoveSpeed:F2}, AttackCooldown: {currentAttackCooldown:F2}");
+            Debug.Log($"Stats Applied - Race: {stats.CharacterRace}, Level: {stats.CurrentLevel}");
+            Debug.Log($"  MoveSpeed: {currentMoveSpeed:F2}, AttackCooldown: {currentAttackCooldown:F2}");
+            Debug.Log($"  STR: {stats.TotalSTR:F1}, AGI: {stats.TotalAGI:F1}, VIT: {stats.TotalVIT:F1}, INT: {stats.TotalINT:F1}");
         }
         
         public void SetMoveSpeed(float speed)
@@ -262,19 +384,18 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         
         private void OnPlayerDeath()
         {
-            Debug.Log($"Player {gameObject.name} died!");
+            Debug.Log($"💀 Player {gameObject.name} died! Death penalty system will handle this.");
             
-            // 플레이어 컨트롤 비활성화
-            if (IsLocalPlayer)
-            {
-                enabled = false;
-            }
+            // DeathManager가 이제 모든 사망 처리를 담당하므로
+            // 여기서는 최소한의 처리만 수행
             
-            // 죽음 애니메이션 또는 이펙트 재생
+            // 애니메이션 트리거 (DeathManager에서도 처리하지만 즉시 반응을 위해)
             if (animator != null)
             {
                 animator.SetTrigger("Death");
             }
+            
+            // DeathManager가 플레이어 컨트롤 비활성화를 처리함
         }
         
         // 경험치 획득 (적 처치 시 호출)
