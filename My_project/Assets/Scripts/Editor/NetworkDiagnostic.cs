@@ -242,8 +242,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime.Editor
             // 디버그 로그 활성화
             networkManager.LogLevel = LogLevel.Developer;
             
-            // NetworkConnectionUI 추가
-            var connectionUI = nmObject.AddComponent<NetworkConnectionUI>();
             
             Debug.Log("✅ 디버그용 NetworkManager 생성 완료");
             
