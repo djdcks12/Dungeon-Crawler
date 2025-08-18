@@ -553,7 +553,29 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         
         public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
         {
-            serializer.SerializeValue(ref skillIds);
+            // string[] 직렬화 - Unity Netcode가 지원하지 않으므로 수동 처리
+            if (serializer.IsReader)
+            {
+                int skillCount = 0;
+                serializer.SerializeValue(ref skillCount);
+                skillIds = new string[skillCount];
+                for (int i = 0; i < skillCount; i++)
+                {
+                    serializer.SerializeValue(ref skillIds[i]);
+                }
+            }
+            else
+            {
+                int skillCount = skillIds?.Length ?? 0;
+                serializer.SerializeValue(ref skillCount);
+                if (skillIds != null)
+                {
+                    for (int i = 0; i < skillCount; i++)
+                    {
+                        serializer.SerializeValue(ref skillIds[i]);
+                    }
+                }
+            }
         }
     }
 }

@@ -335,22 +335,29 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         {
             var equippedItems = new List<ItemInstance>();
             
-            // TODO: EquipmentManager 컴파일 에러 임시 해결 - 컴포넌트 탐색을 문자열로 우회
-            var equipmentManagerComp = GetComponent("EquipmentManager");
-            if (equipmentManagerComp != null)
+            // 장비 아이템 가져오기 (NetworkBehaviour 기반 컴포넌트 탐색)
+            var allComponents = GetComponents<NetworkBehaviour>();
+            bool foundEquipmentManager = false;
+            
+            foreach (var component in allComponents)
             {
-                // 리플렉션으로 메서드 호출 (컴파일 에러 방지)
-                var method = equipmentManagerComp.GetType().GetMethod("GetAllEquippedItems");
-                if (method != null)
+                if (component.GetType().Name == "EquipmentManager")
                 {
-                    var result = method.Invoke(equipmentManagerComp, null);
-                    if (result is IEnumerable<ItemInstance> items)
+                    var getAllEquippedItemsMethod = component.GetType().GetMethod("GetAllEquippedItems");
+                    if (getAllEquippedItemsMethod != null)
                     {
-                        equippedItems.AddRange(items);
+                        var result = getAllEquippedItemsMethod.Invoke(component, null);
+                        if (result is List<ItemInstance> items)
+                        {
+                            equippedItems.AddRange(items);
+                        }
                     }
+                    foundEquipmentManager = true;
+                    break;
                 }
             }
-            else
+            
+            if (!foundEquipmentManager)
             {
                 // EquipmentManager가 없는 경우 빈 리스트 반환
                 Debug.LogWarning("EquipmentManager not found on player - no equipped items to scatter");

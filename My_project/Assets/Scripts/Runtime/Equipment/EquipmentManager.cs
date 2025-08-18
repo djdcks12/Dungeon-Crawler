@@ -38,7 +38,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             
             if (!item.ItemData.IsEquippable)
             {
-                Debug.LogWarning($"Cannot equip {item.ItemData.itemName}: Not an equippable item");
+                Debug.LogWarning($"Cannot equip {item.ItemData.ItemName}: Not an equippable item");
                 return false;
             }
             
@@ -46,7 +46,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             EquipmentSlot targetSlot = GetBasicEquipmentSlot(item);
             if (targetSlot == EquipmentSlot.None)
             {
-                Debug.LogWarning($"Cannot equip {item.ItemData.itemName}: No suitable equipment slot");
+                Debug.LogWarning($"Cannot equip {item.ItemData.ItemName}: No suitable equipment slot");
                 return false;
             }
             
@@ -54,7 +54,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             equipmentData.SetEquippedItem(targetSlot, item);
             OnEquipmentChanged?.Invoke(targetSlot, item);
             
-            Debug.Log($"⚔️ Equipped {item.ItemData.itemName} to {targetSlot}");
+            Debug.Log($"⚔️ Equipped {item.ItemData.ItemName} to {targetSlot}");
             return true;
         }
         
@@ -71,7 +71,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             equipmentData.SetEquippedItem(slot, null);
             OnEquipmentChanged?.Invoke(slot, null);
             
-            Debug.Log($"🛡️ Unequipped {equippedItem.ItemData.itemName} from {slot}");
+            Debug.Log($"🛡️ Unequipped {equippedItem.ItemData.ItemName} from {slot}");
             return true;
         }
         
