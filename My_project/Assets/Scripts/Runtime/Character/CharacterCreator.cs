@@ -49,51 +49,321 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 return;
             }
             
-            Debug.Log("Character creation started");
-            // UI 활성화는 별도 UI 컨트롤러에서 처리
+            // 마지막 선택 영혼이 있는지 확인
+            CheckAndShowSoulInheritanceOption();
         }
         
         /// <summary>
-        /// 캐릭터 생성 요청 (서버 RPC)
+        /// 영혼 상속 옵션 표시
+        /// </summary>
+        private void CheckAndShowSoulInheritanceOption()
+        {
+            // SoulInheritance 시스템에서 보존된 영혼 확인
+            var soulInheritance = FindObjectOfType<SoulInheritance>();
+            if (soulInheritance == null)
+            {
+                Debug.LogError("SoulInheritance system not found! Creating fresh character.");
+                ShowRaceSelection();
+                return;
+            }
+            
+            var preservedSoul = soulInheritance.GetPreservedSoul();
+            if (preservedSoul == null)
+            {
+                Debug.Log("🆕 No preserved soul found. Creating fresh character.");
+                ShowRaceSelection();
+                return;
+            }
+            
+            Debug.Log($"🔮 Preserved soul found: {preservedSoul.Value.soulName}");
+            ShowSoulInheritanceUI(preservedSoul.Value);
+        }
+        
+        /// <summary>
+        /// 영혼 상속 UI 표시
+        /// </summary>
+        private void ShowSoulInheritanceUI(SoulData availableSoul)
+        {
+            var soulInheritanceUI = FindObjectOfType<SoulInheritanceUI>();
+            if (soulInheritanceUI == null)
+            {
+                Debug.LogError("SoulInheritanceUI not found! Creating fallback decision...");
+                // 폴백: 사용자에게 콘솔로 선택 요청
+                Debug.Log($"💫 Soul '{availableSoul.soulName}' is available for inheritance.");
+                Debug.Log("Creating character with soul inheritance (fallback behavior)");
+                CreateCharacterWithSoul(availableSoul);
+                return;
+            }
+            
+            Debug.Log($"🔮 Showing soul inheritance UI for: {availableSoul.soulName}");
+            
+            soulInheritanceUI.ShowInheritanceOption(
+                availableSoul,
+                (inheritDecision) => OnSoulInheritanceDecision(inheritDecision, availableSoul)
+            );
+        }
+
+        /// <summary>
+        /// 영혼 상속 결정 처리
+        /// </summary>
+        private void OnSoulInheritanceDecision(bool inheritSoul, SoulData availableSoul)
+        {
+            if (inheritSoul)
+            {
+                Debug.Log($"✅ User chose to inherit soul: {availableSoul.soulName}");
+                CreateCharacterWithSoul(availableSoul);
+            }
+            else
+            {
+                Debug.Log($"❌ User declined soul inheritance: {availableSoul.soulName}");
+                // 영혼을 거부하면 완전히 삭제
+                var soulInheritance = FindObjectOfType<SoulInheritance>();
+                soulInheritance?.ConsumePreservedSoul();
+                
+                ShowRaceSelection();
+            }
+        }
+        
+        /// <summary>
+        /// 영혼과 함께 캐릭터 생성
+        /// </summary>
+        private void CreateCharacterWithSoul(SoulData inheritedSoul)
+        {
+            Debug.Log($"✨ Creating character with inherited soul: {inheritedSoul.soulName}");
+            
+            // 영혼 상속 시에도 종족 선택 허용 (영혼 출처와 무관하게)
+            ShowRaceSelectionWithSoul(inheritedSoul);
+        }
+
+        /// <summary>
+        /// 영혼 상속과 함께 종족 선택 UI 표시
+        /// </summary>
+        private void ShowRaceSelectionWithSoul(SoulData inheritedSoul)
+        {
+            Debug.Log("🎭 Select your race (with soul inheritance):");
+            Debug.Log("1. Human - Balanced stats");
+            Debug.Log("2. Elf - Magic focused");
+            Debug.Log("3. Beast - Physical focused");
+            Debug.Log("4. Machina - Defense focused");
+            Debug.Log($"✨ You will inherit: {inheritedSoul.soulName} (+{GetSoulBonusText(inheritedSoul.statBonus)})");
+            
+            // 기본값으로 인간 선택하여 캐릭터 생성
+            CreateCharacterWithInheritedSoul(Race.Human, "Soul Inheritor", inheritedSoul);
+        }
+
+        /// <summary>
+        /// 영혼 상속과 함께 캐릭터 생성 실행
+        /// </summary>
+        private void CreateCharacterWithInheritedSoul(Race selectedRace, string characterName, SoulData inheritedSoul)
+        {
+            Debug.Log($"🎭 Creating {selectedRace} character with inherited soul: {inheritedSoul.soulName}");
+            
+            if (IsServer)
+            {
+                // 서버에서 직접 생성
+                CreateCharacterWithSoulInternal(characterName, selectedRace, inheritedSoul);
+            }
+            else
+            {
+                // 클라이언트에서 서버로 요청
+                string soulJson = JsonUtility.ToJson(inheritedSoul);
+                CreateCharacterWithSoulServerRpc(characterName, selectedRace, soulJson);
+            }
+        }
+        
+        /// <summary>
+        /// 영혼 설명에서 종족 추출
+        /// </summary>
+        private Race GetRaceFromSoulDescription(string description)
+        {
+            if (description.Contains("Human")) return Race.Human;
+            if (description.Contains("Elf")) return Race.Elf;
+            if (description.Contains("Beast")) return Race.Beast;
+            if (description.Contains("Machina")) return Race.Machina;
+            
+            return Race.Human; // 기본값
+        }
+        
+        /// <summary>
+        /// 종족 선택 UI 표시 (영혼 없이 새 캐릭터)
+        /// </summary>
+        private void ShowRaceSelection()
+        {
+            Debug.Log("🎭 Select your race:");
+            Debug.Log("1. Human - Balanced stats");
+            Debug.Log("2. Elf - Magic focused");
+            Debug.Log("3. Beast - Physical focused");
+            Debug.Log("4. Machina - Defense focused");
+            
+            // 임시로 인간 자동 선택
+            CreateCharacter(Race.Human, "New Adventurer", null);
+        }
+        
+        /// <summary>
+        /// 캐릭터 생성 (로컬 메서드)
+        /// </summary>
+        private void CreateCharacter(Race race, string characterName, SoulData? inheritedSoul)
+        {
+            Debug.Log($"🎭 Creating character: {characterName} ({race}) with soul: {inheritedSoul?.soulName ?? "None"}");
+            
+            if (IsServer)
+            {
+                // 서버에서 직접 생성
+                CreateCharacterInternal(characterName, race, inheritedSoul ?? default(SoulData));
+            }
+            else
+            {
+                // 클라이언트에서 서버로 요청
+                CreateCharacterWithSoulServerRpc(characterName, race, inheritedSoul?.ToJson() ?? "");
+            }
+        }
+        
+        /// <summary>
+        /// 영혼 상속 캐릭터 생성 요청 (서버 RPC)
+        /// </summary>
+        [ServerRpc(RequireOwnership = false)]
+        public void CreateCharacterWithSoulServerRpc(string characterName, Race selectedRace, string inheritedSoulJson, ServerRpcParams rpcParams = default)
+        {
+            var clientId = rpcParams.Receive.SenderClientId;
+            
+            SoulData inheritedSoul = default(SoulData);
+            if (!string.IsNullOrEmpty(inheritedSoulJson))
+            {
+                try
+                {
+                    inheritedSoul = JsonUtility.FromJson<SoulData>(inheritedSoulJson);
+                }
+                catch (System.Exception e)
+                {
+                    Debug.LogError($"Failed to parse inherited soul: {e.Message}");
+                }
+            }
+            
+            CreateCharacterInternal(characterName, selectedRace, inheritedSoul, clientId);
+        }
+        
+        /// <summary>
+        /// 캐릭터 생성 요청 (구 서버 RPC - 영혼 없이)
         /// </summary>
         [ServerRpc(RequireOwnership = false)]
         public void CreateCharacterServerRpc(string characterName, Race selectedRace, ServerRpcParams rpcParams = default)
         {
             var clientId = rpcParams.Receive.SenderClientId;
-            
+            CreateCharacterInternal(characterName, selectedRace, default(SoulData), clientId);
+        }
+        
+        /// <summary>
+        /// 영혼 상속 캐릭터 생성 내부 메서드
+        /// </summary>
+        private void CreateCharacterWithSoulInternal(string characterName, Race selectedRace, SoulData inheritedSoul, ulong? clientId = null)
+        {
             // 캐릭터 이름 중복 확인
             if (IsCharacterNameTaken(characterName))
             {
-                CreateCharacterFailedClientRpc("이미 사용중인 캐릭터 이름입니다.", new ClientRpcParams
+                if (clientId.HasValue)
                 {
-                    Send = new ClientRpcSendParams { TargetClientIds = new[] { clientId } }
-                });
+                    CreateCharacterFailedClientRpc("이미 사용중인 캐릭터 이름입니다.", new ClientRpcParams
+                    {
+                        Send = new ClientRpcSendParams { TargetClientIds = new[] { clientId.Value } }
+                    });
+                }
                 return;
             }
             
             // 슬롯 확인
             if (characterSlots.GetAvailableSlots() <= 0)
             {
-                CreateCharacterFailedClientRpc("캐릭터 슬롯이 모두 찼습니다.", new ClientRpcParams
+                if (clientId.HasValue)
                 {
-                    Send = new ClientRpcSendParams { TargetClientIds = new[] { clientId } }
-                });
+                    CreateCharacterFailedClientRpc("캐릭터 슬롯이 모두 찼습니다.", new ClientRpcParams
+                    {
+                        Send = new ClientRpcSendParams { TargetClientIds = new[] { clientId.Value } }
+                    });
+                }
                 return;
             }
             
-            // 새 캐릭터는 영혼 없이 시작 (영혼은 캐릭터 귀속)
+            // 영혼 상속과 함께 캐릭터 데이터 생성
+            var characterData = CreateNewCharacterData(characterName, selectedRace, clientId ?? 0, inheritedSoul);
             
-            // 캐릭터 데이터 생성
-            var characterData = CreateNewCharacterData(characterName, selectedRace, clientId);
+            // SoulInheritance 시스템에 영혼 적용
+            var soulInheritance = FindObjectOfType<SoulInheritance>();
+            if (soulInheritance != null && inheritedSoul.soulId != 0)
+            {
+                soulInheritance.ApplyPreservedSoulToCharacter(characterData.characterId, inheritedSoul);
+                soulInheritance.ConsumePreservedSoul(); // 보존된 영혼 삭제
+            }
             
             // 캐릭터 슬롯에 저장
-            int slotIndex = characterSlots.AssignCharacterToSlot(clientId, characterData);
+            int slotIndex = characterSlots.AssignCharacterToSlot(clientId ?? 0, characterData);
             
             if (slotIndex >= 0)
             {
                 CreateCharacterSuccessClientRpc(characterData, slotIndex, new ClientRpcParams
                 {
-                    Send = new ClientRpcSendParams { TargetClientIds = new[] { clientId } }
+                    Send = new ClientRpcSendParams { TargetClientIds = new[] { clientId ?? 0 } }
+                });
+                
+                Debug.Log($"✨ Character '{characterName}' created with soul inheritance for client {clientId} in slot {slotIndex}");
+            }
+            else
+            {
+                CreateCharacterFailedClientRpc("캐릭터 생성에 실패했습니다.", new ClientRpcParams
+                {
+                    Send = new ClientRpcSendParams { TargetClientIds = new[] { clientId ?? 0 } }
+                });
+            }
+        }
+
+        /// <summary>
+        /// 캐릭터 생성 내부 메서드 (영혼 없이)
+        /// </summary>
+        private void CreateCharacterInternal(string characterName, Race selectedRace, SoulData inheritedSoul, ulong? clientId = null)
+        {
+            // 영혼이 있으면 영혼 포함 생성으로 리다이렉트
+            if (inheritedSoul.soulId != 0)
+            {
+                CreateCharacterWithSoulInternal(characterName, selectedRace, inheritedSoul, clientId);
+                return;
+            }
+
+            // 캐릭터 이름 중복 확인
+            if (IsCharacterNameTaken(characterName))
+            {
+                if (clientId.HasValue)
+                {
+                    CreateCharacterFailedClientRpc("이미 사용중인 캐릭터 이름입니다.", new ClientRpcParams
+                    {
+                        Send = new ClientRpcSendParams { TargetClientIds = new[] { clientId.Value } }
+                    });
+                }
+                return;
+            }
+            
+            // 슬롯 확인
+            if (characterSlots.GetAvailableSlots() <= 0)
+            {
+                if (clientId.HasValue)
+                {
+                    CreateCharacterFailedClientRpc("캐릭터 슬롯이 모두 찼습니다.", new ClientRpcParams
+                    {
+                        Send = new ClientRpcSendParams { TargetClientIds = new[] { clientId.Value } }
+                    });
+                }
+                return;
+            }
+            
+            // 캐릭터 데이터 생성 (영혼 없이)
+            var characterData = CreateNewCharacterData(characterName, selectedRace, clientId ?? 0);
+            
+            // 캐릭터 슬롯에 저장
+            int slotIndex = characterSlots.AssignCharacterToSlot(clientId ?? 0, characterData);
+            
+            if (slotIndex >= 0)
+            {
+                CreateCharacterSuccessClientRpc(characterData, slotIndex, new ClientRpcParams
+                {
+                    Send = new ClientRpcSendParams { TargetClientIds = new[] { clientId ?? 0 } }
                 });
                 
                 Debug.Log($"Character '{characterName}' created for client {clientId} in slot {slotIndex}");
@@ -102,9 +372,24 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             {
                 CreateCharacterFailedClientRpc("캐릭터 생성에 실패했습니다.", new ClientRpcParams
                 {
-                    Send = new ClientRpcSendParams { TargetClientIds = new[] { clientId } }
+                    Send = new ClientRpcSendParams { TargetClientIds = new[] { clientId ?? 0 } }
                 });
             }
+        }
+
+        /// <summary>
+        /// 영혼 보너스 텍스트 반환
+        /// </summary>
+        private string GetSoulBonusText(StatBlock statBonus)
+        {
+            var bonuses = new System.Collections.Generic.List<string>();
+            
+            if (statBonus.strength > 0) bonuses.Add($"STR+{statBonus.strength}");
+            if (statBonus.agility > 0) bonuses.Add($"AGI+{statBonus.agility}");
+            if (statBonus.vitality > 0) bonuses.Add($"VIT+{statBonus.vitality}");
+            if (statBonus.intelligence > 0) bonuses.Add($"INT+{statBonus.intelligence}");
+            
+            return bonuses.Count > 0 ? string.Join(", ", bonuses) : "No bonuses";
         }
         
         /// <summary>
@@ -128,9 +413,9 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         }
         
         /// <summary>
-        /// 새 캐릭터 데이터 생성
+        /// 새 캐릭터 데이터 생성 (영혼 상속 포함)
         /// </summary>
-        private CharacterData CreateNewCharacterData(string characterName, Race selectedRace, ulong clientId)
+        private CharacterData CreateNewCharacterData(string characterName, Race selectedRace, ulong clientId, SoulData inheritedSoul = default)
         {
             var characterData = new CharacterData
             {
@@ -152,9 +437,21 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 characterData.baseStats = raceData.CalculateStatsAtLevel(1);
             }
             
-            // 새 캐릭터는 영혼 없이 시작
-            characterData.equippedSoulIds = new ulong[0];
-            characterData.soulBonusStats = new StatBlock();
+            // 영혼 상속 처리
+            if (inheritedSoul.soulId != 0)
+            {
+                // 상속된 영혼 적용
+                characterData.equippedSoulIds = new ulong[] { inheritedSoul.soulId };
+                characterData.soulBonusStats = inheritedSoul.statBonus;
+                Debug.Log($"✨ Character created with inherited soul: {inheritedSoul.soulName}");
+            }
+            else
+            {
+                // 영혼 없이 시작
+                characterData.equippedSoulIds = new ulong[0];
+                characterData.soulBonusStats = new StatBlock();
+                Debug.Log($"🆕 Character created without soul inheritance");
+            }
             
             // 기본 장비 지급
             characterData.startingItems = CreateStartingItems(selectedRace);

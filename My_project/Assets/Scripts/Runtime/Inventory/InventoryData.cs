@@ -2,6 +2,7 @@ using UnityEngine;
 using Unity.Netcode;
 using System.Collections.Generic;
 using System.Linq;
+using System;
 
 namespace Unity.Template.Multiplayer.NGO.Runtime
 {
@@ -10,7 +11,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
     /// 아이템 슬롯, 스택, 정렬 등을 처리
     /// </summary>
     [System.Serializable]
-    public class InventoryData : INetworkSerializable
+    public class InventoryData : INetworkSerializable, IEquatable<InventoryData>
     {
         [Header("인벤토리 설정")]
         [SerializeField] private int maxSlots = 30;
@@ -372,6 +373,84 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                     }
                 }
             }
+        }
+        
+        /// <summary>
+        /// 사용 가능한 빈 슬롯 개수 반환
+        /// </summary>
+        public int GetAvailableSlots()
+        {
+            return EmptySlots;
+        }
+        
+        /// <summary>
+        /// IEquatable<InventoryData> 구현
+        /// </summary>
+        public bool Equals(InventoryData other)
+        {
+            if (other == null) return false;
+            if (ReferenceEquals(this, other)) return true;
+            
+            // 기본 설정 비교
+            if (maxSlots != other.maxSlots || 
+                allowStacking != other.allowStacking || 
+                autoSort != other.autoSort)
+                return false;
+            
+            // 슬롯 개수 비교
+            if (slots.Count != other.slots.Count)
+                return false;
+            
+            // 각 슬롯의 아이템 비교
+            for (int i = 0; i < slots.Count; i++)
+            {
+                var thisSlot = slots[i];
+                var otherSlot = other.slots[i];
+                
+                // 둘 다 비어있으면 통과
+                if (thisSlot.IsEmpty && otherSlot.IsEmpty)
+                    continue;
+                
+                // 하나만 비어있으면 다름
+                if (thisSlot.IsEmpty != otherSlot.IsEmpty)
+                    return false;
+                
+                // 아이템 비교 (InstanceId 기준)
+                if (thisSlot.Item?.InstanceId != otherSlot.Item?.InstanceId)
+                    return false;
+            }
+            
+            return true;
+        }
+        
+        /// <summary>
+        /// Object.Equals 오버라이드
+        /// </summary>
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as InventoryData);
+        }
+        
+        /// <summary>
+        /// GetHashCode 오버라이드
+        /// </summary>
+        public override int GetHashCode()
+        {
+            int hash = 17;
+            hash = hash * 23 + maxSlots.GetHashCode();
+            hash = hash * 23 + allowStacking.GetHashCode();
+            hash = hash * 23 + autoSort.GetHashCode();
+            
+            // 비어있지 않은 슬롯들의 해시코드 포함
+            foreach (var slot in slots)
+            {
+                if (!slot.IsEmpty && slot.Item != null)
+                {
+                    hash = hash * 23 + slot.Item.InstanceId.GetHashCode();
+                }
+            }
+            
+            return hash;
         }
     }
     

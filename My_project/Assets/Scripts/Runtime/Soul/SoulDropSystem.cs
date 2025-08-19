@@ -67,8 +67,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             if (!IsServer || !enableSoulDrop || playerStats == null) return;
             
             // 플레이어 사망 시 100% 확률로 영혼 드롭 (0.1% 드롭률은 몬스터용)
-            // TODO: PlayerStats.CharacterName 프로퍼티가 없음 - 임시로 기본값 사용
-            string playerName = "Player Soul";
+            string playerName = playerStats.CharacterName + " Soul";
             int playerLevel = playerStats.CurrentLevel;
             
             Debug.Log($"💀 Creating player soul drop from {playerName} (Level {playerLevel})");

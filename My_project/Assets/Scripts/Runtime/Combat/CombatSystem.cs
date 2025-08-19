@@ -23,6 +23,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         // 컴포넌트 참조
         private PlayerController playerController;
         private PlayerStatsManager statsManager;
+        private EnchantManager enchantManager;
         
         // 공격 상태
         private bool isAttacking = false;
@@ -35,6 +36,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             
             playerController = GetComponent<PlayerController>();
             statsManager = GetComponent<PlayerStatsManager>();
+            enchantManager = GetComponent<EnchantManager>();
         }
         
         /// <summary>
@@ -153,10 +155,32 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 // 민댐/맥댐 시스템으로 데미지 계산
                 attackDamage = stats.CalculateAttackDamage(DamageType.Physical);
                 
-                // 치명타 판정은 CalculateAttackDamage 내부에서 처리됨
-                // 추가로 치명타 여부를 확인하고 싶다면:
-                float baseDamage = (stats.CombatStats.physicalDamage.minDamage + stats.CombatStats.physicalDamage.maxDamage) * 0.5f;
-                isCritical = attackDamage > baseDamage * 1.5f; // 기본 데미지의 1.5배 이상이면 치명타로 간주
+                // 인챈트 효과 적용
+                if (enchantManager != null)
+                {
+                    // 예리함 인챈트 - 공격력 증가
+                    float sharpnessBonus = enchantManager.GetEnchantEffect(EnchantType.Sharpness);
+                    if (sharpnessBonus > 0)
+                    {
+                        attackDamage *= (1f + sharpnessBonus / 100f);
+                    }
+                    
+                    // 치명타 인챈트 - 치명타 확률 증가
+                    float criticalBonus = enchantManager.GetEnchantEffect(EnchantType.CriticalHit);
+                    float baseCritChance = stats.CriticalChance + (criticalBonus / 100f);
+                    
+                    if (Random.value < baseCritChance)
+                    {
+                        isCritical = true;
+                        attackDamage *= stats.CriticalDamage;
+                    }
+                }
+                else
+                {
+                    // 인챈트 매니저가 없을 때 기본 치명타 판정
+                    float baseDamage = (stats.CombatStats.physicalDamage.minDamage + stats.CombatStats.physicalDamage.maxDamage) * 0.5f;
+                    isCritical = attackDamage > baseDamage * 1.5f;
+                }
             }
             
             // 타겟이 플레이어인 경우
@@ -217,6 +241,19 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         private void ApplyDamageToMonster(MonsterHealth targetMonster, float damage, DamageType damageType, bool isCritical, Vector2 attackPosition)
         {
             targetMonster.TakeDamage(damage, playerController);
+            
+            // 인챈트 효과 적용
+            if (enchantManager != null && statsManager != null)
+            {
+                // 흡혈 인챈트 - 가한 데미지의 일정 비율만큼 체력 회복
+                float lifeStealBonus = enchantManager.GetEnchantEffect(EnchantType.LifeSteal);
+                if (lifeStealBonus > 0)
+                {
+                    float healAmount = damage * (lifeStealBonus / 100f);
+                    statsManager.Heal(healAmount);
+                    Debug.Log($"💚 Life steal: Healed {healAmount:F1} HP ({lifeStealBonus}%)");
+                }
+            }
             
             string critText = isCritical ? " (CRITICAL)" : "";
             Debug.Log($"Hit monster {targetMonster.name} for {damage:F1} damage{critText}");
@@ -378,6 +415,10 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 GiveExperienceReward();
                 TriggerItemDrop();
                 TriggerSoulDrop();
+                TriggerEnchantDrop();
+                
+                // 던전 시스템에 몬스터 처치 알림
+                NotifyDungeonManager();
             }
             
             // 몬스터 오브젝트 제거
@@ -425,6 +466,18 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         }
         
         /// <summary>
+        /// 인챈트 북 드롭 트리거 (1% 확률)
+        /// </summary>
+        private void TriggerEnchantDrop()
+        {
+            var enchantDropSystem = FindObjectOfType<EnchantDropSystem>();
+            if (enchantDropSystem != null)
+            {
+                enchantDropSystem.CheckEnchantDrop(transform.position, monsterLevel, monsterName, lastAttacker);
+            }
+        }
+        
+        /// <summary>
         /// 몬스터 정보 설정 (동적 생성 시 사용)
         /// </summary>
         public void SetMonsterInfo(string name, int level, string type, float health, long exp)
@@ -453,6 +506,25 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         public float GetHealthPercentage()
         {
             return maxHealth > 0 ? currentHealth / maxHealth : 0f;
+        }
+        
+        /// <summary>
+        /// 던전 매니저에게 몬스터 처치 알림
+        /// </summary>
+        private void NotifyDungeonManager()
+        {
+            // 던전이 활성화된 상태에서만 알림
+            var dungeonManager = FindObjectOfType<DungeonManager>();
+            if (dungeonManager != null && dungeonManager.IsActive && lastAttacker != null)
+            {
+                // 공격자의 클라이언트 ID 가져오기
+                var playerNetwork = lastAttacker.GetComponent<NetworkBehaviour>();
+                if (playerNetwork != null)
+                {
+                    dungeonManager.OnMonsterKilled(playerNetwork.OwnerClientId);
+                    Debug.Log($"🏰 Notified DungeonManager: {monsterName} killed by client {playerNetwork.OwnerClientId}");
+                }
+            }
         }
     }
 }

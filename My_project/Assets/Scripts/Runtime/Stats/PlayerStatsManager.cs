@@ -444,6 +444,28 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             if (currentStats == null) return 0f;
             return currentStats.CurrentMP / currentStats.MaxMP;
         }
+        /// <summary>
+        /// 장비 스탯 업데이트
+        /// </summary>
+        public void UpdateEquipmentStats(StatBlock equipmentStats)
+        {
+            if (currentStats == null) return;
+            
+            // 장비 스탯을 플레이어 스탯에 적용
+            currentStats.SetEquipmentBonusStats(equipmentStats);
+            
+            // 네트워크 변수 업데이트
+            if (IsOwner)
+            {
+                networkCurrentHP.Value = currentStats.CurrentHP;
+                networkMaxHP.Value = currentStats.MaxHP;
+            }
+            
+            // 스탯 변경 이벤트 발생
+            OnStatsUpdated?.Invoke(currentStats);
+            
+            Debug.Log($"📊 Equipment stats updated");
+        }
     }
     
     // 스탯 정보 구조체

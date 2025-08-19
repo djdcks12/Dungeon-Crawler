@@ -24,7 +24,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         private PlayerController playerController;
         private CharacterDeletion characterDeletion;
         private ItemScatter itemScatter;
-        private SoulPreservation soulPreservation;
+        private SoulInheritance soulInheritance;
         private SoulDropSystem soulDropSystem;
         
         // 사망 상태
@@ -42,7 +42,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             // Death 시스템 컴포넌트들
             characterDeletion = GetComponent<CharacterDeletion>();
             itemScatter = GetComponent<ItemScatter>();
-            soulPreservation = GetComponent<SoulPreservation>();
+            soulInheritance = FindObjectOfType<SoulInheritance>();
             soulDropSystem = GetComponent<SoulDropSystem>();
             
             // 사망 이벤트 구독
@@ -123,16 +123,20 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             // 3. 잠시 대기 (사망 애니메이션 등)
             yield return new WaitForSeconds(deathProcessDelay);
             
-            // 4. 플레이어 영혼 드롭 생성 (다른 플레이어가 수집 가능)
+            // 4. 영혼 선택 처리 - 플레이어가 보유한 영혼 중 하나를 선택하여 보존
+            if (soulInheritance != null && statsManager?.CurrentStats != null)
+            {
+                ulong characterId = (ulong)statsManager.CurrentStats.CharacterName.GetHashCode();
+                soulInheritance.HandleDeathSoulSelection(characterId);
+                
+                // 영혼 선택이 완료될 때까지 잠시 대기
+                yield return new WaitForSeconds(1f);
+            }
+            
+            // 5. 플레이어 영혼 드롭 (다른 플레이어가 주울 수 있는 영혼)
             if (soulDropSystem != null && statsManager?.CurrentStats != null)
             {
                 soulDropSystem.CreatePlayerSoulDrop(transform.position, statsManager.CurrentStats);
-            }
-            
-            // 5. 영혼 보존 처리 (계정에 저장)
-            if (soulPreservation != null)
-            {
-                soulPreservation.PreserveSouls();
             }
             
             // 6. 아이템 드롭 처리
@@ -189,8 +193,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         {
             var deathInfo = new DeathInfo
             {
-                // TODO: PlayerStats.CharacterName 프로퍼티가 없음 - 게임 오브젝트 이름으로 대체
-                characterId = statsManager?.gameObject?.name ?? "Unknown",
+                characterId = statsManager?.CurrentStats?.CharacterName ?? "Unknown",
                 level = statsManager?.CurrentStats?.CurrentLevel ?? 1,
                 race = statsManager?.CurrentStats?.CharacterRace ?? Race.Human,
                 deathTime = System.DateTime.Now.ToBinary(),

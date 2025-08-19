@@ -85,6 +85,46 @@
 
 ---
 
+## ⚔️ 장비 시스템
+
+### EquipmentManager
+- **파일**: `Assets/Scripts/Runtime/Equipment/EquipmentManager.cs`
+- **상속**: `NetworkBehaviour`
+- **핵심 기능**: 11개 장비 슬롯 관리 및 인벤토리 연동
+- **주요 메서드**:
+  - `TryEquipItem(ItemInstance, bool)` - 아이템 착용 시도
+  - `UnequipItem(EquipmentSlot, bool)` - 장비 해제
+  - `GetAllEquippedItems()` - 착용 중인 모든 장비 반환
+  - `RecalculateEquipmentStats()` - 장비 스탯 재계산
+- **연동 시스템**: InventoryManager, PlayerStatsManager, ItemScatter
+
+### EquipmentData
+- **파일**: `Assets/Scripts/Runtime/Equipment/EquipmentData.cs`
+- **상속**: `INetworkSerializable`
+- **핵심 기능**: 장비 착용 데이터 저장 및 네트워크 동기화
+- **주요 메서드**:
+  - `SetEquippedItem(EquipmentSlot, ItemInstance)` - 장비 착용
+  - `GetEquippedItem(EquipmentSlot)` - 착용 장비 조회
+  - `CalculateTotalStatBonus()` - 장비 스탯 보너스 계산
+  - `IsItemEquipped(ItemInstance)` - 아이템 착용 여부 확인
+
+### EquipmentTypes
+- **파일**: `Assets/Scripts/Runtime/Equipment/EquipmentTypes.cs`
+- **핵심 기능**: 장비 슬롯 및 데이터 타입 정의
+- **장비 슬롯**: Head, Chest, Legs, Feet, Hands, MainHand, OffHand, TwoHand, Ring1, Ring2, Necklace
+- **네트워크 지원**: EquipmentSlotData 구조체로 직렬화
+
+### Equipment System 특징
+- **11개 장비 슬롯**: 머리, 가슴, 다리, 발, 손, 주무기, 보조무기, 양손무기, 반지1, 반지2, 목걸이
+- **지능형 슬롯 배치**: 아이템명과 카테고리 기반 자동 슬롯 결정
+- **인벤토리 연동**: 장비 교체 시 자동 인벤토리 이동
+- **스탯 적용**: 장비 변경 시 PlayerStatsManager 자동 업데이트
+- **종족 제한**: 종족별 장비 착용 제한 지원
+- **네트워크 동기화**: 멀티플레이어 장비 상태 실시간 동기화
+- **ItemScatter 연동**: 사망 시 착용 장비 자동 드롭
+
+---
+
 ## 🤖 몬스터 AI 시스템
 
 ### MonsterAI
@@ -566,6 +606,288 @@ EquipmentUI (장비창 인터페이스)
 
 ---
 
+## 🔮 Enchant System 구현 완료 (2025-08-19)
+
+### 새로 구현된 Enchant System
+- **EnchantTypes.cs**: 인챈트 타입, 희귀도, 데이터 구조 정의
+- **EnchantDropSystem.cs**: 1% 확률 인챈트 북 드롭 시스템
+- **EnchantManager.cs**: 아이템 인챈트 적용 및 효과 관리
+
+### Enchant System 구조
+```
+EnchantDropSystem (몬스터 처치 시 드롭)
+├── CheckEnchantDrop() - 1% 기본 드롭률 + LUK 보너스
+├── GenerateRandomEnchant() - 몬스터 레벨 기반 인챈트 생성
+├── CreateEnchantBookItem() - 인챈트 북 아이템 생성
+└── 희귀도별 드롭률: 전설 1%, 영웅 9%, 희귀 30%, 일반 60%
+
+EnchantManager (플레이어당 1개)
+├── ApplyEnchantToItem() - 인챈트 북으로 장비에 인챈트 적용
+├── RecalculateEnchantEffects() - 착용 장비의 인챈트 효과 계산
+├── GetEnchantEffect() - 특정 인챈트 효과 값 조회
+└── 80% 성공률, 아이템당 최대 3개 인챈트
+
+EnchantTypes (인챈트 정의)
+├── 10가지 인챈트 타입 지원
+├── 4단계 희귀도 시스템
+├── 네트워크 직렬화 지원
+└── 인챈트별 색상 및 설명 시스템
+```
+
+### 인챈트 타입 시스템 (10종)
+```
+공격 관련:
+├── Sharpness (예리함) - 공격력 +5% per level
+├── CriticalHit (치명타) - 치명타 확률 +2% per level
+└── LifeSteal (흡혈) - 데미지의 3% 체력 흡수 per level
+
+방어 관련:
+├── Protection (보호) - 방어력 +4% per level
+├── Thorns (가시) - 반격 데미지 10% per level
+└── Regeneration (재생) - 체력 재생 +2/초 per level
+
+유틸리티:
+├── Fortune (행운) - 드롭률 +8% per level
+├── Speed (신속) - 이동속도 +6% per level
+├── MagicBoost (마력 증폭) - 마법 공격력 +7% per level
+└── Durability (내구성) - 아이템 내구도 +15% per level
+```
+
+### 인챈트 희귀도 시스템
+```
+희귀도별 특성:
+├── Common (일반) - 60% 확률, 1-2레벨, 1.0배 효과
+├── Rare (희귀) - 30% 확률, 2-3레벨, 1.3배 효과
+├── Epic (영웅) - 9% 확률, 3-4레벨, 1.6배 효과
+└── Legendary (전설) - 1% 확률, 4-5레벨, 2.0배 효과
+```
+
+### 핵심 연동 기능
+1. **전투 시스템 연동**: 실시간 인챈트 효과 적용 (공격력, 치명타, 흡혈)
+2. **장비 시스템 연동**: 착용/해제 시 인챈트 효과 자동 재계산
+3. **스탯 시스템 연동**: 인챈트 보너스가 총 스탯에 반영
+4. **몬스터 AI 연동**: 몬스터 처치 시 자동 인챈트 북 드롭 체크
+5. **아이템 시스템 연동**: 인챈트 북 아이템 생성 및 관리
+6. **네트워크 동기화**: 모든 인챈트 효과가 멀티플레이어에서 동기화
+
+### 인챈트 적용 규칙
+- **호환성 검사**: 무기 전용, 방어구 전용, 범용 인챈트 구분
+- **최대 인챈트 수**: 아이템당 최대 3개까지 적용 가능
+- **중복 방지**: 동일한 인챈트 타입 중복 적용 차단
+- **성공률**: 80% 기본 성공률 (실패 시 인챈트 북만 소모)
+
+---
+
+## 🏰 던전 시스템 (고급 시간 관리 완료)
+
+### DungeonManager
+- **파일**: `Assets/Scripts/Runtime/Dungeon/DungeonManager.cs`
+- **상속**: `NetworkBehaviour`
+- **핵심 기능**: 던전 시스템 총괄 관리자 - 층별 제한시간, 강제 방출, 몬스터 관리
+- **주요 메서드**:
+  - `StartDungeonServerRpc(int dungeonDataIndex)` - 던전 시작 및 시간 할당
+  - `AdvanceToNextFloorServerRpc()` - 다음 층으로 이동 (시간 이월 포함)
+  - `ForceEjectAllPlayersServerRpc(string reason)` - 모든 플레이어 강제 방출
+  - `ForceEjectPlayerServerRpc(ulong clientId, string reason)` - 개별 플레이어 방출
+  - `CalculateFloorTimeAllocations(DungeonData)` - 층별 시간 할당 계산
+  - `LoadFloor(int floorNumber, DungeonData)` - 층 로드 및 몬스터 스폰
+- **네트워크 동기화**:
+  - `NetworkVariable<DungeonInfo>` - 현재 던전 정보
+  - `NetworkVariable<DungeonState>` - 던전 상태
+  - `NetworkVariable<float> currentFloorRemainingTime` - 현재 층 남은 시간
+  - `NetworkVariable<float> totalRemainingTime` - 총 남은 시간
+  - `NetworkList<DungeonPlayer>` - 던전 참가자 목록
+
+### DungeonData
+- **파일**: `Assets/Scripts/Runtime/Dungeon/DungeonData.cs`
+- **상속**: `ScriptableObject`
+- **핵심 기능**: 던전 정의 및 설정, 고급 시간 관리 시스템
+- **시간 관리 기능**:
+  - `CalculateFloorTimeLimit(int floorNumber)` - 층별 제한시간 계산
+  - `CalculateTotalEstimatedTime()` - 모든 층의 총 예상 시간
+  - `GetTimeManagementInfo()` - 시간 관리 정보 텍스트
+  - `DungeonTimeMode TimeMode` - 시간 관리 모드 (PerFloor/Total/Custom)
+- **주요 프로퍼티**:
+  - `float baseFloorTime` - 기본 층별 시간 (기본 10분)
+  - `float timeIncreasePerFloor` - 층당 시간 증가량 (기본 2분)
+  - `AnimationCurve floorTimeCurve` - 층별 시간 배율 곡선
+
+### DungeonTypes
+- **파일**: `Assets/Scripts/Runtime/Dungeon/DungeonTypes.cs`
+- **핵심 기능**: 던전 시스템 데이터 구조, 해시 기반 문자열 저장
+- **네트워크 호환 구조체들**:
+  - `DungeonInfo` - 던전 기본 정보 (dungeonNameHash 사용)
+  - `DungeonPlayer` - 플레이어 정보 (playerNameHash 사용)
+  - `DungeonFloor` - 층 정보 (floorNameHash 사용)
+- **해시 헬퍼 메서드들**:
+  - `GetDungeonName()` - dungeonNameHash → 던전명 변환
+  - `GetPlayerName()` - playerNameHash → 플레이어명 변환
+  - `GetFloorName()` - floorNameHash → 층명 변환
+
+### DungeonNameRegistry
+- **파일**: `Assets/Scripts/Runtime/Dungeon/DungeonNameRegistry.cs`
+- **타입**: `Static Class`
+- **핵심 기능**: 네트워크 직렬화를 위한 해시 기반 문자열 관리 시스템
+- **주요 메서드**:
+  - `RegisterName(string name)` - 문자열을 해시값으로 등록
+  - `GetNameFromHash(int hash)` - 해시값에서 문자열 조회
+  - `PreregisterCommonNames()` - 자주 사용되는 이름들 미리 등록
+- **해결한 문제**: NetworkList<T> 요구사항 (non-nullable value types)
+
+### 던전 시간 관리 시스템 특징
+```
+3가지 시간 관리 모드:
+├── PerFloor (층별 개별) - 기본시간 + 층당 증가량 × 곡선배율
+├── Total (총 제한시간) - 총 시간을 층수로 균등 분할
+└── Custom (커스텀) - FloorConfiguration에서 층별 개별 설정
+
+시간 이월 시스템:
+├── 현재 층에서 남은 시간을 다음 층으로 이월
+├── 빠른 클리어 시 더 많은 시간 확보 가능
+└── 총 던전 시간과 층별 시간 모두 체크
+
+강제 방출 시스템:
+├── 층별 시간 초과 시 모든 플레이어 강제 방출
+├── 총 던전 시간 초과 시 강제 방출
+├── 개별 플레이어 방출 기능 (관리자)
+└── 방출 시 마을 스폰 위치로 자동 이동
+```
+
+### 던전 진입 및 나가는 방법
+- **진입**: F키로 던전 입구 상호작용
+- **퇴장 방법** (2가지만):
+  1. **시간 초과**: 층별 또는 총 제한시간 초과로 강제 방출
+  2. **사망**: 모든 플레이어가 사망하면 던전 실패
+- **긴급 탈출 없음**: 던전에 갇히면 위 2가지 방법으로만 나갈 수 있음
+
+### 던전 출구 발견 시스템
+- **몬스터 처치 선택사항**: 모든 몬스터를 처치하지 않아도 출구 발견 시 다음 층 이동 가능
+- **출구 활성화**: 몬스터 처치와 관계없이 출구는 항상 상호작용 가능
+- **F키 상호작용**: 출구 근처에서 F키로 다음 층 이동
+
+### DungeonExit
+- **파일**: `Assets/Scripts/Runtime/Dungeon/DungeonExit.cs`
+- **상속**: `NetworkBehaviour`
+- **핵심 기능**: 던전 층 출구 시스템 - 플레이어 감지 및 층 이동
+- **주요 메서드**:
+  - `Initialize(DungeonManager)` - 던전 매니저 연결
+  - `UseExitServerRpc()` - 출구 사용 (다음 층 이동)
+  - `CheckPlayersInRange()` - 플레이어 범위 내 체크
+  - `CheckExitActivationConditions()` - 출구 활성화 조건 확인
+- **활성화 조건**: 모든 몬스터 처치 완료 + 플레이어 근접
+
+### DungeonUI
+- **파일**: `Assets/Scripts/Runtime/Dungeon/DungeonUI.cs`
+- **상속**: `MonoBehaviour`
+- **핵심 기능**: 던전 진행 상황 UI 표시
+- **UI 요소들**:
+  - 던전 이름, 현재 층수, 남은 시간 표시
+  - 생존 플레이어 수, 진행 상황 표시
+  - 던전 완료 시 보상 UI 표시
+- **주요 메서드**:
+  - `OnDungeonStarted(DungeonInfo)` - 던전 시작 UI 활성화
+  - `OnFloorChanged(int)` - 층 변경 UI 업데이트
+  - `ShowRewardUI(DungeonReward)` - 완료 보상 표시
+
+### DungeonController
+- **파일**: `Assets/Scripts/Runtime/Dungeon/DungeonController.cs`
+- **상속**: `NetworkBehaviour`
+- **핵심 기능**: 던전 시스템 통합 컨트롤러 - 플레이어 상호작용 및 시스템 연결
+- **주요 기능**:
+  - 던전 입구 근접 감지 (F키로 입장)
+  - UI 토글 기능 (Tab키)
+  - 테스트 모드 지원
+- **키 바인딩**:
+  - `F키`: 던전 입장
+  - `Tab키`: 던전 UI 토글
+  - `T키`: 테스트 던전 시작 (개발자 모드)
+
+### DungeonCreator
+- **파일**: `Assets/Scripts/Runtime/Dungeon/DungeonCreator.cs`
+- **타입**: `Static Class`
+- **핵심 기능**: 프로그래매틱 던전 생성 유틸리티
+- **주요 메서드**:
+  - `CreateBeginnerDungeon()` - 초보자 동굴 (3층, 쉬움)
+  - `CreateIntermediateDungeon()` - 어둠의 숲 (5층, 보통)
+  - `CreateAdvancedDungeon()` - 고대의 유적 (7층, 어려움)
+  - `CreateNightmareDungeon()` - 지옥의 문 (10층, 악몽)
+  - `CreatePvPDungeon()` - 투기장 (5층, PvP)
+
+### DungeonTypes
+- **파일**: `Assets/Scripts/Runtime/Dungeon/DungeonTypes.cs`
+- **핵심 기능**: 던전 시스템 전용 데이터 구조체 및 열거형
+- **주요 구조체들**:
+  - `DungeonInfo` - 네트워크 직렬화 가능한 던전 정보
+  - `DungeonPlayer` - 던전 참가 플레이어 정보
+  - `DungeonReward` - 던전 완료 보상 정보
+  - `FloorConfiguration` - 층별 구성 정보
+
+---
+
+## 🏰 던전 시스템 구조
+
+### 던전 타입 시스템
+```
+DungeonType:
+├── Normal - 일반 던전 (기본 몬스터, 안전한 난이도)
+├── Elite - 엘리트 던전 (강화된 몬스터, 높은 보상)
+├── Boss - 보스 던전 (강력한 보스 몬스터)
+├── Challenge - 도전 던전 (특수 규칙, 극한 난이도)
+└── PvP - PvP 던전 (플레이어 간 전투 허용)
+
+DungeonDifficulty:
+├── Easy (1-3층 추천) - 1.0x 보상
+├── Normal (4-6층 추천) - 1.3x 보상  
+├── Hard (7-9층 추천) - 1.6x 보상
+└── Nightmare (10층 추천) - 2.0x 보상
+```
+
+### 던전 진행 플로우
+```
+1. 던전 입장 (DungeonController F키)
+   ↓
+2. 던전 시작 (DungeonManager.StartDungeon)
+   ↓
+3. 층별 진행 (1층 → 10층)
+   ├── 몬스터 스폰 (MonsterSpawner 연동)
+   ├── 플레이어 전투 (CombatSystem 연동)
+   ├── 층 클리어 조건 체크
+   └── 출구 활성화 (DungeonExit)
+   ↓
+4. 던전 완료 또는 실패
+   ├── 보상 계산 및 지급
+   ├── 경험치/골드 지급 (PlayerStatsManager 연동)
+   └── 마을로 복귀
+```
+
+### 층별 동적 스케일링
+```
+각 층별 난이도 증가:
+├── 몬스터 수: 기본 + (층수 × 2)
+├── 엘리트 몬스터: 1 + (층수 / 3)
+├── 보스 등장: 5층, 10층 (또는 마지막 층)
+├── 경험치 보상: 기본 × (1.2 ^ 층수)
+└── 골드 보상: 기본 × (1.1 ^ 층수)
+```
+
+### 네트워크 동기화
+```
+서버 관리 요소:
+├── 던전 상태 (대기/진행/완료/실패)
+├── 현재 층 정보 및 몬스터 상태
+├── 참가자 생존 여부 및 위치
+├── 시간 제한 및 남은 시간
+└── 보상 계산 및 분배
+
+클라이언트 동기화:
+├── UI 업데이트 (층수, 시간, 생존자)
+├── 시각 효과 (출구 활성화, 층 이동)
+├── 플레이어 위치 이동
+└── 보상 수령 알림
+```
+
+---
+
 ## 🛠️ 코어 시스템
 
 ### CharacterCreator
@@ -653,15 +975,24 @@ Common: ±10%, Rare: ±20%, Epic: ±30%, Legendary: ±40%, Mythic: ±50%
 11. **Monster Spawner System** - 동적 몬스터 스폰 관리
 12. **Inventory System** - 완전한 인벤토리 관리 시스템
 
+## ✅ 추가 완료된 시스템들 (2025-08-19 세션 4)
+13. **Soul Inheritance System** - 하드코어 영혼 상속 시스템
+14. **Equipment System** - 11슬롯 장비 착용/해제 시스템
+15. **Enchant System** - 1% 드롭률 인챈트 시스템 (10종 인챈트, 4단계 희귀도)
+16. **Dungeon System** - 10층 던전 시스템 (완전한 던전 관리)
+17. **Advanced Dungeon Features** - 층별 제한시간, 강제 방출, 출구 발견 시스템 ✅
+
+## ✅ 추가 완료된 시스템들 (2025-08-19 계속 세션)
+18. **Dungeon Time Management System** - 3가지 시간 관리 모드 (PerFloor/Total/Custom)
+19. **Dungeon Forced Ejection System** - 시간 초과 시 강제 마을 이동
+20. **Network String Hash System** - DungeonNameRegistry를 통한 NetworkList 호환성
+
 ## 🔴 미구현 시스템들 (우선순위순)
-1. **Equipment System** - 장비 착용/해제 시스템
-2. **Enchant System** - 1% 드롭률 인챈트
-3. **Dungeon System** - 10층 던전
-4. **PvP System** - 던전 내 PvP
-5. **Party System** - 16명 파티
-6. **UI System** - 게임 UI 확장
-7. **Economy System** - 골드 경제
-8. **Save System** - 데이터 저장
+1. **PvP System** - 던전 내 PvP
+2. **Party System** - 16명 파티
+3. **UI System** - 게임 UI 확장
+4. **Economy System** - 골드 경제
+5. **Save System** - 데이터 저장
 
 ---
 
@@ -715,6 +1046,24 @@ Assets/Scripts/Runtime/
 │   ├── InventoryManager.cs
 │   ├── InventoryUI.cs
 │   └── InventorySlotUI.cs
+├── Equipment/           # 장비 시스템
+│   ├── EquipmentData.cs
+│   ├── EquipmentManager.cs
+│   ├── EquipmentUI.cs
+│   └── EquipmentSlotUI.cs
+├── Enchant/             # 인챈트 시스템
+│   ├── EnchantData.cs
+│   ├── EnchantManager.cs
+│   ├── EnchantDropSystem.cs
+│   └── EnchantTypes.cs
+├── Dungeon/             # 던전 시스템
+│   ├── DungeonManager.cs
+│   ├── DungeonData.cs
+│   ├── DungeonTypes.cs
+│   ├── DungeonExit.cs
+│   ├── DungeonUI.cs
+│   ├── DungeonController.cs
+│   └── DungeonCreator.cs
 ├── AI/                  # 몬스터 AI 시스템
 │   ├── MonsterAI.cs
 │   ├── MonsterSpawner.cs
@@ -924,8 +1273,34 @@ namespace Unity.Template.Multiplayer.NGO.Runtime.Player      // PlayerController
    - DroppedItem 물리적 아이템 표현 및 자동 픽업
    - 네트워크 동기화 및 서버 검증
 
+## 2025-08-18 세션 계속 (컴파일 에러 해결) ✅
+7. **대규모 컴파일 에러 수정 (30+ 개 에러)**
+   - SkillCategory enum 확장: Engineering, Energy, Defense, Hacking, Wild, ShapeShift, Hunt, Combat, Nature, Archery, Stealth, Spirit 추가
+   - StatusType enum 확장: Enhancement, Root, Invisibility 추가
+   - StatBlock 필드 이름 수정: .STR/.AGI/.VIT → .strength/.agility/.vitality
+   - Unity Netcode 호환성: string[] 네트워크 직렬화 문제 해결
+   - 타입 접근 문제: ItemData.itemName → ItemName 프로퍼티 사용
+   - WeaponCategory 확장: Axe, Mace 추가
+   - DamageType 확장: Holy 추가
+   - PlayerStats 확장: CharacterName, EquippedSoulIds 프로퍼티 추가
+8. **프로젝트 문서화 업데이트**
+   - COMPILE_ERROR_RESOLUTION_RULES.md 새롭 생성
+   - PROJECT_REFERENCE_INDEX.md 업데이트
+   - PROJECT_INDEX.md 업데이트
+   - CLAUDE.md 업데이트
+
+## 2025-08-19 세션 4 ✅
+9. **Enchant System 완전 구현**
+   - EnchantTypes.cs: 10종 인챈트 타입, 4단계 희귀도 시스템
+   - EnchantDropSystem.cs: 1% 기본 드롭률 + LUK 보너스 시스템
+   - EnchantManager.cs: 인챈트 적용, 효과 계산, 장비 연동
+   - CombatSystem 연동: 실시간 인챈트 효과 적용 (예리함, 치명타, 흡혈)
+   - PlayerStats 확장: 인챈트 보너스 스탯 지원
+   - MonsterHealth 연동: 몬스터 처치 시 인챈트 북 드롭
+   - ItemDatabase 확장: 인챈트 북 아이템 추가
+
 ## 다음 우선순위
-1. **Inventory System** - 아이템 관리 UI/UX
+1. **Dungeon System** - 10층 던전 시스템
 
 ---
 

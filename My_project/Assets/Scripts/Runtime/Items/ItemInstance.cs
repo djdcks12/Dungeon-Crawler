@@ -1,6 +1,7 @@
 using UnityEngine;
 using Unity.Netcode;
 using System;
+using System.Collections.Generic;
 
 namespace Unity.Template.Multiplayer.NGO.Runtime
 {
@@ -20,6 +21,9 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         // 인챈트 시스템용 (추후 구현)
         [SerializeField] private string[] enchantments = new string[0];
         
+        // 커스텀 데이터 (인챈트 북 등에 사용)
+        [SerializeField] private Dictionary<string, string> customData = new Dictionary<string, string>();
+        
         // 캐시된 ItemData (네트워크 직렬화하지 않음)
         private ItemData cachedItemData;
         
@@ -30,6 +34,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         public int CurrentDurability => currentDurability;
         public long AcquisitionTime => acquisitionTime;
         public string[] Enchantments => enchantments;
+        public Dictionary<string, string> CustomData => customData;
         
         /// <summary>
         /// ItemData 참조 (캐시됨)
@@ -53,6 +58,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         {
             instanceId = System.Guid.NewGuid().ToString();
             acquisitionTime = System.DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            customData = new Dictionary<string, string>();
         }
         
         /// <summary>
@@ -62,6 +68,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         {
             this.itemId = itemData.ItemId;
             this.instanceId = System.Guid.NewGuid().ToString();
+            this.customData = new Dictionary<string, string>();
             this.quantity = Mathf.Max(1, quantity);
             this.currentDurability = itemData.MaxDurability;
             this.acquisitionTime = System.DateTimeOffset.UtcNow.ToUnixTimeSeconds();
@@ -426,6 +433,37 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                     for (int i = 0; i < enchantmentCount; i++)
                     {
                         serializer.SerializeValue(ref enchantments[i]);
+                    }
+                }
+            }
+            
+            // Dictionary<string, string> 직렬화
+            if (serializer.IsReader)
+            {
+                int customDataCount = 0;
+                serializer.SerializeValue(ref customDataCount);
+                customData = new Dictionary<string, string>();
+                for (int i = 0; i < customDataCount; i++)
+                {
+                    string key = "";
+                    string value = "";
+                    serializer.SerializeValue(ref key);
+                    serializer.SerializeValue(ref value);
+                    customData[key] = value;
+                }
+            }
+            else
+            {
+                int customDataCount = customData?.Count ?? 0;
+                serializer.SerializeValue(ref customDataCount);
+                if (customData != null)
+                {
+                    foreach (var kvp in customData)
+                    {
+                        string key = kvp.Key;
+                        string value = kvp.Value;
+                        serializer.SerializeValue(ref key);
+                        serializer.SerializeValue(ref value);
                     }
                 }
             }
