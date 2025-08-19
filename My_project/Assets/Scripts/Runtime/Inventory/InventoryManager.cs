@@ -416,6 +416,73 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         }
         
         /// <summary>
+        /// 사용 가능한 인벤토리 슬롯 개수
+        /// </summary>
+        public int GetAvailableSlots()
+        {
+            return inventory?.GetAvailableSlots() ?? 0;
+        }
+        
+        /// <summary>
+        /// 아이템을 인벤토리에 추가 (Equipment System 연동용)
+        /// </summary>
+        public bool AddItemToInventory(ItemInstance item)
+        {
+            if (item == null || inventory == null) return false;
+            
+            int remainder;
+            bool success = inventory.TryAddItem(item, out remainder);
+            
+            if (success)
+            {
+                OnItemAdded?.Invoke(item, item.Quantity - remainder);
+                OnInventoryUpdated?.Invoke();
+                
+                // 네트워크 동기화
+                if (IsOwner)
+                {
+                    networkInventory.Value = inventory;
+                }
+                
+                Debug.Log($"📦 Added {item.ItemData.ItemName} to inventory");
+            }
+            
+            return success;
+        }
+        
+        /// <summary>
+        /// 인벤토리에서 아이템 제거 (Equipment System 연동용)
+        /// </summary>
+        public bool RemoveItemFromInventory(ItemInstance item)
+        {
+            if (item == null || inventory == null) return false;
+            
+            // 인벤토리에서 해당 아이템 찾아서 제거
+            for (int i = 0; i < inventory.MaxSlots; i++)
+            {
+                var slotItem = inventory.GetItem(i);
+                if (slotItem != null && slotItem.InstanceId == item.InstanceId)
+                {
+                    inventory.RemoveItem(i, item.Quantity);
+                    
+                    OnItemRemoved?.Invoke(item, item.Quantity);
+                    OnInventoryUpdated?.Invoke();
+                    
+                    // 네트워크 동기화
+                    if (IsOwner)
+                    {
+                        networkInventory.Value = inventory;
+                    }
+                    
+                    Debug.Log($"📦 Removed {item.ItemData.ItemName} from inventory");
+                    return true;
+                }
+            }
+            
+            return false;
+        }
+        
+        /// <summary>
         /// 기즈모 그리기
         /// </summary>
         private void OnDrawGizmosSelected()

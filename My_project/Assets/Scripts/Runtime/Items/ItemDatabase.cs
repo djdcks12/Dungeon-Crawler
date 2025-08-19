@@ -159,6 +159,12 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 ItemType.Material, ItemGrade.Rare, EquipmentSlot.None, WeaponCategory.None,
                 new StatBlock(), new DamageRange(0, 0, 0), 100);
             magicStone.GetType().GetField("stackSize", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.SetValue(magicStone, 50);
+            
+            // 인챈트 북 (1% 드롭률 아이템)
+            var enchantBook = CreateItem("enchant_book", "인챈트 북", "장비에 마법적 효과를 부여할 수 있는 신비한 책이다.", 
+                ItemType.Other, ItemGrade.Rare, EquipmentSlot.None, WeaponCategory.None,
+                new StatBlock(), new DamageRange(0, 0, 0), 5000);
+            enchantBook.GetType().GetField("stackSize", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.SetValue(enchantBook, 10);
         }
         
         /// <summary>

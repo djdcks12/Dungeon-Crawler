@@ -310,15 +310,187 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         }
         
         /// <summary>
-        /// 캐릭터 사망 시 모든 영혼 삭제
+        /// 캐릭터 사망 시 영혼 하나 선택 처리 시작 (하드코어 시스템)
         /// </summary>
-        public void DeleteAllSoulsOnDeath(ulong characterId)
+        public void HandleDeathSoulSelection(ulong characterId)
         {
-            if (characterSoulCollections.ContainsKey(characterId))
+            if (!characterSoulCollections.ContainsKey(characterId))
             {
-                characterSoulCollections.Remove(characterId);
-                Debug.Log($"All souls deleted for character {characterId} due to death");
+                Debug.Log($"💀 No souls to preserve for character {characterId}");
+                // 영혼이 없으면 바로 완전 사망 처리
+                ProcessCompleteDeath(characterId);
+                return;
             }
+
+            var souls = characterSoulCollections[characterId];
+            if (souls.Count == 0)
+            {
+                Debug.Log($"💀 Character {characterId} has no souls to preserve");
+                characterSoulCollections.Remove(characterId);
+                ProcessCompleteDeath(characterId);
+                return;
+            }
+
+            // 영혼 선택 UI 표시
+            ShowSoulSelectionUI(characterId, souls);
+        }
+
+        /// <summary>
+        /// 영혼 선택 UI 표시
+        /// </summary>
+        private void ShowSoulSelectionUI(ulong characterId, List<SoulData> souls)
+        {
+            var soulSelectionUI = FindObjectOfType<SoulSelectionUI>();
+            if (soulSelectionUI == null)
+            {
+                Debug.LogError("SoulSelectionUI not found! Creating fallback selection...");
+                // 폴백: 첫 번째 영혼 자동 선택
+                var selectedSoul = souls[0];
+                OnSoulSelected(characterId, selectedSoul);
+                return;
+            }
+
+            Debug.Log($"🔮 Showing soul selection UI for character {characterId} with {souls.Count} souls");
+            
+            soulSelectionUI.ShowSoulSelection(
+                souls,
+                (selectedSoul) => OnSoulSelected(characterId, selectedSoul),
+                () => OnSoulSelectionSkipped(characterId)
+            );
+        }
+
+        /// <summary>
+        /// 영혼 선택 완료 처리
+        /// </summary>
+        private void OnSoulSelected(ulong characterId, SoulData selectedSoul)
+        {
+            Debug.Log($"✅ Soul selected for preservation: {selectedSoul.soulName}");
+            
+            // 선택된 영혼을 계정에 보존
+            PreserveSingleSoul(selectedSoul);
+            
+            // 캐릭터의 모든 영혼 삭제
+            characterSoulCollections.Remove(characterId);
+            
+            // 사망 처리 완료
+            ProcessCompleteDeath(characterId);
+        }
+
+        /// <summary>
+        /// 영혼 선택 건너뛰기 처리
+        /// </summary>
+        private void OnSoulSelectionSkipped(ulong characterId)
+        {
+            Debug.Log($"❌ Soul selection skipped for character {characterId} - all souls deleted");
+            
+            // 모든 영혼 삭제
+            characterSoulCollections.Remove(characterId);
+            
+            // 사망 처리 완료
+            ProcessCompleteDeath(characterId);
+        }
+
+        /// <summary>
+        /// 선택된 하나의 영혼만 계정에 보존
+        /// </summary>
+        private void PreserveSingleSoul(SoulData preservedSoul)
+        {
+            string accountId = GetAccountId();
+            
+            // 기존 보존된 영혼이 있다면 덮어쓰기 (하나만 보존)
+            string soulJson = JsonUtility.ToJson(preservedSoul);
+            PlayerPrefs.SetString($"PreservedSoul_{accountId}", soulJson);
+            PlayerPrefs.Save();
+            
+            Debug.Log($"💾 Soul '{preservedSoul.soulName}' preserved for account {accountId}");
+        }
+
+        /// <summary>
+        /// 계정에 보존된 영혼 로드
+        /// </summary>
+        public SoulData? GetPreservedSoul()
+        {
+            string accountId = GetAccountId();
+            string soulJson = PlayerPrefs.GetString($"PreservedSoul_{accountId}", "");
+            
+            if (string.IsNullOrEmpty(soulJson))
+            {
+                Debug.Log($"No preserved soul found for account {accountId}");
+                return null;
+            }
+            
+            try
+            {
+                var soul = JsonUtility.FromJson<SoulData>(soulJson);
+                Debug.Log($"📖 Loaded preserved soul: {soul.soulName} for account {accountId}");
+                return soul;
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"Failed to load preserved soul: {e.Message}");
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// 보존된 영혼 사용 (새 캐릭터에 적용 후 삭제)
+        /// </summary>
+        public void ConsumePreservedSoul()
+        {
+            string accountId = GetAccountId();
+            PlayerPrefs.DeleteKey($"PreservedSoul_{accountId}");
+            PlayerPrefs.Save();
+            Debug.Log($"🔥 Preserved soul consumed for new character");
+        }
+
+        /// <summary>
+        /// 보존된 영혼을 새 캐릭터에 추가
+        /// </summary>
+        public void ApplyPreservedSoulToCharacter(ulong characterId, SoulData preservedSoul)
+        {
+            if (!characterSoulCollections.ContainsKey(characterId))
+            {
+                characterSoulCollections[characterId] = new List<SoulData>();
+            }
+            
+            characterSoulCollections[characterId].Add(preservedSoul);
+            SaveSoulCollection(characterId);
+            
+            Debug.Log($"✨ Preserved soul '{preservedSoul.soulName}' applied to new character {characterId}");
+        }
+
+        /// <summary>
+        /// 완전한 사망 처리
+        /// </summary>
+        private void ProcessCompleteDeath(ulong characterId)
+        {
+            Debug.Log($"⚰️ Processing complete death for character {characterId}");
+            
+            // DeathManager에게 사망 처리 완료 알림
+            var deathManager = FindObjectOfType<DeathManager>();
+            if (deathManager != null)
+            {
+                // DeathManager가 나머지 사망 처리 담당 (아이템 드롭, 캐릭터 삭제 등)
+                Debug.Log("✅ Soul selection completed - continuing with death processing");
+            }
+        }
+
+        /// <summary>
+        /// 계정 ID 가져오기
+        /// </summary>
+        private string GetAccountId()
+        {
+            // 실제 계정 시스템이 있다면 연동, 없으면 기본값 사용
+            string accountId = PlayerPrefs.GetString("AccountId", "");
+            if (string.IsNullOrEmpty(accountId))
+            {
+                // 고유한 계정 ID 생성
+                accountId = "account_" + System.Guid.NewGuid().ToString("N")[..8];
+                PlayerPrefs.SetString("AccountId", accountId);
+                PlayerPrefs.Save();
+                Debug.Log($"🆔 Generated new account ID: {accountId}");
+            }
+            return accountId;
         }
         
         /// <summary>
@@ -403,6 +575,14 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         public System.DateTime GetAcquiredDateTime()
         {
             return System.DateTime.FromBinary(acquiredTime);
+        }
+        
+        /// <summary>
+        /// JSON 문자열로 직렬화
+        /// </summary>
+        public string ToJson()
+        {
+            return JsonUtility.ToJson(this);
         }
     }
     

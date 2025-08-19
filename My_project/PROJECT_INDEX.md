@@ -3,16 +3,23 @@
 > 클래스별, 함수별 완전 분석 - 단계적 구축
 
 ## 📋 작업 진행 상황
-- [ ] SkillData.cs 완전 분석
-- [ ] MachinaSkills.cs 완전 분석  
-- [ ] BeastSkills.cs 완전 분석
-- [ ] (추가 파일들은 작업 중 확장)
+- [x] SkillData.cs 완전 분석 
+- [x] MachinaSkills.cs 완전 분석
+- [x] BeastSkills.cs 완전 분석
+- [x] 컴파일 에러 30+ 개 수정 완료
+- [x] PROJECT_REFERENCE_INDEX.md 업데이트
+- [x] COMPILE_ERROR_RESOLUTION_RULES.md 생성
 
-## 🎯 현재 컴파일 에러 분석
-### 첫 번째 에러: SkillCategory.Engineering 누락
-**에러 위치**: MachinaSkills.cs:41,43
-**원인**: SkillData.cs의 SkillCategory enum에 Engineering 값이 없음
-**영향받는 파일들**: MachinaSkills.cs, BeastSkills.cs
+## ✅ 컴파일 에러 해결 완료
+### 주요 해결 사항들:
+1. **SkillCategory enum 확장**: Engineering, Energy, Defense, Hacking, Wild, ShapeShift, Hunt, Combat, Nature, Archery, Stealth, Spirit 추가
+2. **StatusType enum 확장**: Enhancement, Root, Invisibility 추가  
+3. **StatBlock 필드 이름 통일**: .STR/.AGI/.VIT → .strength/.agility/.vitality
+4. **Unity Netcode 호환성**: string[] 네트워크 직렬화 문제 해결
+5. **타입 접근 문제**: ItemData.itemName → ItemName 프로퍼티 사용
+6. **WeaponCategory 확장**: Axe, Mace 추가
+7. **DamageType 확장**: Holy 추가
+8. **PlayerStats 확장**: CharacterName, EquippedSoulIds 프로퍼티 추가
 
 ---
 
@@ -89,28 +96,35 @@ public AudioClip hitSound;
 - **로직**: 물리/마법 판별 → STR/INT 기반 스케일링 → 민댐/맥댐 적용
 - **호출위치**: CombatSystem.cs에서 사용
 
-#### 📋 열거형: SkillCategory
+#### 📋 열거형: SkillCategory (확장됨)
 **현재 정의된 값들**:
 ```csharp
-// 인간
+// 인간 (4개)
 Warrior, Paladin, Rogue, Archer,
-// 엘프  
-ElementalMage, PureMage, NatureMage, PsychicMage,
-// 수인
+// 엘프 (5개) 
+ElementalMage, PureMage, NatureMage, PsychicMage, Nature,
+// 수인 (8개)
 Berserker, Hunter, Assassin, Beast,
-// 기계족
-HeavyArmor, Engineer, Artillery, Nanotech
+Wild, ShapeShift, Hunt, Combat,
+// 기계족 (8개)
+HeavyArmor, Engineer, Artillery, Nanotech,
+Engineering, Energy, Defense, Hacking,
+// 기타 (3개)
+Archery, Stealth, Spirit
 ```
+**토탈**: 28개 카테고리
 
 
-#### 📋 열거형: StatusType  
+#### 📋 열거형: StatusType (확장됨)
 **현재 정의된 값들**:
 ```csharp
-// 디버프
-Poison, Burn, Freeze, Stun, Slow, Weakness,
-// 버프
-Strength, Speed, Regeneration, Shield, Blessing, Berserk, Enhancement
+// 디버프 (7개)
+Poison, Burn, Freeze, Stun, Slow, Weakness, Root,
+// 버프 (8개)
+Strength, Speed, Regeneration, Shield, Blessing, Berserk, 
+Enhancement, Invisibility
 ```
+**토탈**: 15개 상태 효과
 
 
 #### 📋 사용 관계

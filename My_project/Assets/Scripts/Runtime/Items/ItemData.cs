@@ -296,6 +296,22 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 _ => "기타"
             };
         }
+        
+        /// <summary>
+        /// 플레이어가 이 아이템을 착용할 수 있는지 확인
+        /// </summary>
+        public bool CanPlayerEquip(Race playerRace)
+        {
+            // 장비 아이템만 착용 가능
+            if (itemType != ItemType.Equipment)
+            {
+                return false;
+            }
+            
+            // 모든 종족이 착용 가능한 경우 (기본적으로 모든 아이템은 모든 종족이 착용 가능)
+            // 추후 종족 제한이 필요한 경우 여기에 로직 추가
+            return true;
+        }
     }
     
     /// <summary>

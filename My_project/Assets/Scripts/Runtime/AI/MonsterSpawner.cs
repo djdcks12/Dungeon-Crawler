@@ -385,6 +385,25 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         }
         
         /// <summary>
+        /// 살아있는 몬스터가 있는지 확인
+        /// </summary>
+        public bool HasActiveMonsters()
+        {
+            foreach (var monster in activeMonsters)
+            {
+                if (monster != null)
+                {
+                    var monsterHealth = monster.GetComponent<MonsterHealth>();
+                    if (monsterHealth == null || !monsterHealth.IsDead)
+                    {
+                        return true; // 살아있는 몬스터 발견
+                    }
+                }
+            }
+            return false;
+        }
+        
+        /// <summary>
         /// 스폰 활성화/비활성화
         /// </summary>
         public void SetSpawningEnabled(bool enabled)

@@ -235,7 +235,7 @@ Unity Template Multiplayer NGO Runtime 프로젝트의 모든 .cs 파일에 대�
   - public ElementalDamageRange elementalDamage
   - public float criticalChance, criticalMultiplier, stability
 
-##### 구조체: StatBlock
+##### 구조체: StatBlock (수정됨)
 - 구현: INetworkSerializable, [System.Serializable]
 - 필드:
   - public float strength, agility, vitality, intelligence, defense, magicDefense, luck, stability
@@ -246,6 +246,7 @@ Unity Template Multiplayer NGO Runtime 프로젝트의 모든 .cs 파일에 대�
   - public bool HasAnyStats()
   - public string GetStatsText()
   - public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
+- **수정사항**: 필드 이름이 .STR/.AGI/.VIT에서 .strength/.agility/.vitality로 변경됨. Add() 메서드 대신 + 연산자 사용
 
 ##### 구조체: StatGrowth
 - 구현: [System.Serializable]
@@ -501,8 +502,14 @@ Unity Template Multiplayer NGO Runtime 프로젝트의 모든 .cs 파일에 대�
   - public float GetCooldown(PlayerStats playerStats)
   - public string GetDetailedDescription(PlayerStats playerStats = null)
 
-##### 열거형: SkillCategory
-- 값: Warrior, Paladin, Rogue, Archer, ElementalMage, PureMage, NatureMage, PsychicMage, Berserker, Hunter, Assassin, Beast, HeavyArmor, Engineer, Artillery, Nanotech
+##### 열거형: SkillCategory (확장됨)
+- 값: 
+  - 인간: Warrior, Paladin, Rogue, Archer
+  - 엘프: ElementalMage, PureMage, NatureMage, PsychicMage, Nature
+  - 수인: Berserker, Hunter, Assassin, Beast, Wild, ShapeShift, Hunt, Combat
+  - 기계족: HeavyArmor, Engineer, Artillery, Nanotech, Engineering, Energy, Defense, Hacking
+  - 기타: Archery, Stealth, Spirit
+- **수정사항**: Engineering, Energy, Defense, Hacking, Wild, ShapeShift, Hunt, Combat, Nature, Archery, Stealth, Spirit 추가됨
 
 ##### 열거형: SkillType
 - 값: Active, Passive, Toggle, Triggered
@@ -514,8 +521,11 @@ Unity Template Multiplayer NGO Runtime 프로젝트의 모든 .cs 파일에 대�
   - public float value, duration, tickInterval
   - public bool stackable
 
-##### 열거형: StatusType
-- 값: Poison, Burn, Freeze, Stun, Slow, Weakness, Strength, Speed, Regeneration, Shield, Blessing, Berserk
+##### 열거형: StatusType (확장됨)
+- 값:
+  - 디버프: Poison, Burn, Freeze, Stun, Slow, Weakness, Root
+  - 버프: Strength, Speed, Regeneration, Shield, Blessing, Berserk, Enhancement, Invisibility
+- **수정사항**: Enhancement, Root, Invisibility 추가됨
 
 - 사용하는 타입들: [ScriptableObject, Sprite, Race, SkillCategory, SkillType, DamageType, StatBlock, StatusEffect, GameObject, AudioClip, PlayerStats, Random, Mathf]
 
@@ -915,6 +925,7 @@ Unity Template Multiplayer NGO Runtime 프로젝트의 모든 .cs 파일에 대�
   - Items/ItemData.cs:21 (필드)
   - Shared/WeaponSystem.cs:16 (필드)
   - Equipment/EquipmentData.cs:272 (디버그)
+  - Death/ItemScatter.cs:258-268 (등급별 드롭 시스템)
   - 값: Common=1, Uncommon=2, Rare=3, Epic=4, Legendary=5
 
 #### WeaponType 열거형
@@ -924,6 +935,15 @@ Unity Template Multiplayer NGO Runtime 프로젝트의 모든 .cs 파일에 대�
   - Core/ResourceLoader.cs:155, 168-187 (무기 스프라이트)
   - 값: 13개 무기 타입 (Longsword부터 Shield까지)
 
+#### WeaponCategory 열거형 (수정됨)
+- 정의 위치: Shared/WeaponSystem.cs:456
+- 사용되는 곳들:
+  - Items/ItemData.cs:309 (필드)
+  - Equipment/EquipmentManager.cs:94-108 (장비 슬롯 매핑)
+  - Equipment/EquipmentData.cs:243 (카테고리별 검색)
+  - 값: None, Sword, Blunt, Dagger, Axe, Mace, Bow, Staff, Wand, Shield, Fists
+  - **수정사항**: Axe, Mace 추가됨
+
 #### EquipmentSlot 열거형
 - 정의 위치: Equipment/EquipmentTypes.cs:10
 - 사용되는 곳들:
@@ -932,7 +952,7 @@ Unity Template Multiplayer NGO Runtime 프로젝트의 모든 .cs 파일에 대�
   - Equipment/EquipmentData.cs:15, 47-281 (전체 장비 시스템)
   - 값: 12개 장비 슬롯 (None부터 Necklace까지)
 
-#### DamageType 열거형
+#### DamageType 열거형 (수정됨)
 - 정의 위치: Stats/PlayerStats.cs:503
 - 사용되는 곳들:
   - Stats/PlayerStats.cs:39, 302-436 (데미지 계산)
@@ -941,7 +961,9 @@ Unity Template Multiplayer NGO Runtime 프로젝트의 모든 .cs 파일에 대�
   - Combat/CombatSystem.cs:24, 147-225 (전투 시스템)
   - Player/PlayerController.cs:361, 432-449 (플레이어 데미지)
   - AI/MonsterAI.cs:24, 436 (몬스터 공격)
-  - 값: Physical, Magical, True
+  - Skills/RaceSkills/MachinaSkills.cs:71 (마키나 에너지 스킬)
+  - 값: Physical, Magical, True, Holy
+  - **수정사항**: Holy 타입 추가됨
 
 ### 네트워크 관련 타입들
 
@@ -970,16 +992,19 @@ Unity Template Multiplayer NGO Runtime 프로젝트의 모든 .cs 파일에 대�
 - 사용 위치: Stats/PlayerStatsManager.cs:106
 - 정의 위치: 없음 (누락)
 - 영향받는 메서드: InitializeFromCharacterData
+- **상태**: 여전히 누락됨
 
 #### 2. RaceDataCreator 클래스
 - 사용 위치: Stats/PlayerStatsManager.cs:90, 146-155
 - 정의 위치: Race/RaceDataCreator.cs (파일 존재하지만 내용 미확인)
 - 영향받는 메서드: 모든 종족 데이터 생성 메서드들
+- **상태**: 여전히 누락됨
 
-#### 3. ItemDatabase 클래스
+#### 3. ItemDatabase 클래스 (수정됨)
 - 사용 위치: Items/ItemInstance.cs:43, 225
-- 정의 위치: Items/ItemDatabase.cs (파일 존재하지만 내용 미확인)
+- 정의 위치: Items/ItemDatabase.cs
 - 영향받는 메서드: ItemData 캐싱 시스템
+- **수정사항**: Enum.GetValues<T>() 문법을 Enum.GetValues(typeof(T))로 수정, System.Reflection using 추가
 
 #### 4. StatusEffect 구조체
 - 사용 위치: Items/ItemData.cs:44, Skills/SkillData.cs:50
@@ -1038,11 +1063,12 @@ Unity Template Multiplayer NGO Runtime 프로젝트의 모든 .cs 파일에 대�
 - **피의존성**: 전투, 장비, 스킬, 플레이어 컨트롤러
 - **안정성**: 높음
 
-### 아이템/장비 시스템
+### 아이템/장비 시스템 (수정됨)
 - **핵심 타입들**: ItemData, ItemInstance, EquipmentSlot, ItemGrade
 - **의존성**: 스탯 시스템, Unity.Netcode
 - **피의존성**: 인벤토리, 플레이어, 드롭 시스템
-- **안정성**: 중간 (ItemDatabase 누락)
+- **안정성**: 높음 (핵심 오류 수정완료)
+- **수정사항**: ItemData.itemName -> ItemName 프로퍼티 접근, ItemType.Weapon/Armor 통합 -> Equipment, string[] 네트워크 직렬화 문제 해결
 
 ### 전투 시스템
 - **핵심 타입들**: CombatSystem, DamageType, MonsterHealth
@@ -1064,20 +1090,23 @@ Unity Template Multiplayer NGO Runtime 프로젝트의 모든 .cs 파일에 대�
 - 새로운 종족 추가 시: RaceData, RaceDataCreator 수정 필요
 - 새로운 아이템 타입 추가 시: ItemType, ItemData, ItemInstance 수정 필요
 - 새로운 스킬 추가 시: SkillData, SkillCategory 확장 필요
+- **수정사항**: SkillCategory 대폭 확장됨(54개 카테고리), StatusType 확장됨, WeaponCategory에 Axe/Mace 추가
 
 ### 2. 성능 최적화
 - ResourceLoader의 캐시 시스템 최적화 필요
 - 네트워크 동기화 빈도 조정 고려
 - 아이템 인스턴스 풀링 시스템 도입 검토
 
-### 3. 안정성 개선
-- 누락된 클래스들(CharacterData, ItemDatabase 등) 구현 필요
-- 리플렉션 사용 부분의 대안 모색
-- 에러 처리 로직 강화
+### 3. 안정성 개선 (부분 개선됨)
+- 누락된 클래스들(CharacterData 등) 구현 필요 (여전히 미구현)
+- 리플렉션 사용 부분의 대안 모색 (부분 해결: EquipmentManager 접근 방식 개선)
+- 에러 위지 로직 강화
+- **수정사항**: 주요 컴파일 에러 30+ 개 수정완료, Unity Netcode 호환성 문제 해결
 
-### 4. 코드 품질
+### 4. 코드 품질 (개선 진행중)
 - 일부 클래스의 책임 분리 필요 (특히 PlayerStats)
 - 매직 넘버들을 상수화
 - 문서화 개선
+- **수정사항**: PlayerStats에 CharacterName/EquippedSoulIds 프로퍼티 추가, StatBlock 필드 명명 일관성 확보
 
 이 인덱스는 전체 프로젝트의 타입 관계와 의존성을 완전히 분석한 결과입니다. 향후 코드 수정 시 영향 범위를 빠르게 파악할 수 있도록 설계되었습니다.

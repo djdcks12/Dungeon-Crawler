@@ -161,16 +161,37 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         private void AddSoulToPlayer(PlayerController player)
         {
-            var soulPreservation = player.GetComponent<SoulPreservation>();
-            if (soulPreservation != null)
+            var soulInheritance = FindObjectOfType<SoulInheritance>();
+            if (soulInheritance != null)
             {
-                // 영혼을 계정에 추가
-                AddSoulToAccount(player, soulData);
+                // 플레이어 캐릭터 ID 가져오기
+                ulong characterId = GetCharacterIdFromPlayer(player);
+                
+                // 영혼을 SoulInheritance 시스템에 추가
+                soulInheritance.AcquireSoulServerRpc(characterId, soulData);
             }
             else
             {
-                Debug.LogError("SoulPreservation component not found on player!");
+                Debug.LogError("SoulInheritance system not found! Fallback to account storage.");
+                // 폴백: 직접 계정에 저장
+                AddSoulToAccount(player, soulData);
             }
+        }
+        
+        /// <summary>
+        /// 플레이어에서 캐릭터 ID 가져오기
+        /// </summary>
+        private ulong GetCharacterIdFromPlayer(PlayerController player)
+        {
+            var statsManager = player.GetComponent<PlayerStatsManager>();
+            if (statsManager?.CurrentStats != null)
+            {
+                // CharacterName을 해시로 변환하여 캐릭터 ID 생성
+                return (ulong)statsManager.CurrentStats.CharacterName.GetHashCode();
+            }
+            
+            // 폴백: 플레이어 네트워크 ID 사용
+            return player.NetworkObjectId;
         }
         
         /// <summary>
@@ -364,5 +385,14 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             Gizmos.color = Color.yellow;
             Gizmos.DrawWireSphere(transform.position, autoPickupRange);
         }
+    }
+    
+    /// <summary>
+    /// 영혼 데이터 배열 래퍼 (JSON 직렬화용)
+    /// </summary>
+    [System.Serializable]
+    public class SoulDataWrapper
+    {
+        public SoulData[] souls;
     }
 }

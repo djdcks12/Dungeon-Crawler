@@ -31,6 +31,9 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         [Header("장비 보너스 스탯")]
         [SerializeField] private StatBlock equipmentBonusStats;
         
+        [Header("인챈트 보너스 스탯")]
+        [SerializeField] private StatBlock enchantBonusStats;
+        
         [Header("계산된 능력치")]
         [SerializeField] private float maxHP = 100f;
         [SerializeField] private float currentHP = 100f;
@@ -61,15 +64,15 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         public RaceData RaceData => raceData;
         public StatBlock CurrentStats => currentStats;
         
-        // 총 스탯 (종족 + 영혼 + 장비)
-        public float TotalSTR => currentStats.strength + soulBonusStats.strength + equipmentBonusStats.strength;
-        public float TotalAGI => currentStats.agility + soulBonusStats.agility + equipmentBonusStats.agility;
-        public float TotalVIT => currentStats.vitality + soulBonusStats.vitality + equipmentBonusStats.vitality;
-        public float TotalINT => currentStats.intelligence + soulBonusStats.intelligence + equipmentBonusStats.intelligence;
-        public float TotalDEF => currentStats.defense + soulBonusStats.defense + equipmentBonusStats.defense;
-        public float TotalMDEF => currentStats.magicDefense + soulBonusStats.magicDefense + equipmentBonusStats.magicDefense;
-        public float TotalLUK => currentStats.luck + soulBonusStats.luck + equipmentBonusStats.luck;
-        public float TotalSTAB => currentStats.stability + soulBonusStats.stability + equipmentBonusStats.stability;
+        // 총 스탯 (종족 + 영혼 + 장비 + 인챈트)
+        public float TotalSTR => currentStats.strength + soulBonusStats.strength + equipmentBonusStats.strength + enchantBonusStats.strength;
+        public float TotalAGI => currentStats.agility + soulBonusStats.agility + equipmentBonusStats.agility + enchantBonusStats.agility;
+        public float TotalVIT => currentStats.vitality + soulBonusStats.vitality + equipmentBonusStats.vitality + enchantBonusStats.vitality;
+        public float TotalINT => currentStats.intelligence + soulBonusStats.intelligence + equipmentBonusStats.intelligence + enchantBonusStats.intelligence;
+        public float TotalDEF => currentStats.defense + soulBonusStats.defense + equipmentBonusStats.defense + enchantBonusStats.defense;
+        public float TotalMDEF => currentStats.magicDefense + soulBonusStats.magicDefense + equipmentBonusStats.magicDefense + enchantBonusStats.magicDefense;
+        public float TotalLUK => currentStats.luck + soulBonusStats.luck + equipmentBonusStats.luck + enchantBonusStats.luck;
+        public float TotalSTAB => currentStats.stability + soulBonusStats.stability + equipmentBonusStats.stability + enchantBonusStats.stability;
         
         public int CurrentLevel => currentLevel;
         public long CurrentExp => currentExp;
@@ -464,6 +467,51 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             OnStatsChanged?.Invoke(this);
         }
         
+        /// <summary>
+        /// 인챈트 보너스 스탯 설정
+        /// </summary>
+        public void SetEnchantBonusStats(StatBlock enchantStats)
+        {
+            enchantBonusStats = enchantStats;
+            RecalculateStats();
+            OnStatsChanged?.Invoke(this);
+        }
+        
+        /// <summary>
+        /// 현재 인챈트 보너스 스탯 가져오기
+        /// </summary>
+        public StatBlock GetEnchantBonusStats()
+        {
+            return enchantBonusStats;
+        }
+        
+        /// <summary>
+        /// 인챈트 보너스 스탯 리셋
+        /// </summary>
+        public void ResetEnchantBonusStats()
+        {
+            enchantBonusStats = new StatBlock();
+            RecalculateStats();
+            OnStatsChanged?.Invoke(this);
+        }
+        
+        /// <summary>
+        /// 총 장비 스탯 반환 (장비 + 인챈트)
+        /// </summary>
+        public StatBlock GetTotalEquipmentStats()
+        {
+            StatBlock totalStats = new StatBlock();
+            totalStats.strength = equipmentBonusStats.strength + enchantBonusStats.strength;
+            totalStats.agility = equipmentBonusStats.agility + enchantBonusStats.agility;
+            totalStats.vitality = equipmentBonusStats.vitality + enchantBonusStats.vitality;
+            totalStats.intelligence = equipmentBonusStats.intelligence + enchantBonusStats.intelligence;
+            totalStats.defense = equipmentBonusStats.defense + enchantBonusStats.defense;
+            totalStats.magicDefense = equipmentBonusStats.magicDefense + enchantBonusStats.magicDefense;
+            totalStats.luck = equipmentBonusStats.luck + enchantBonusStats.luck;
+            totalStats.stability = equipmentBonusStats.stability + enchantBonusStats.stability;
+            return totalStats;
+        }
+        
         // 초기화 (새 캐릭터 생성 시)
         public void Initialize()
         {
@@ -481,6 +529,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             // 보너스 스탯 초기화
             soulBonusStats = new StatBlock();
             equipmentBonusStats = new StatBlock();
+            enchantBonusStats = new StatBlock();
             
             RecalculateStats();
             currentHP = maxHP;

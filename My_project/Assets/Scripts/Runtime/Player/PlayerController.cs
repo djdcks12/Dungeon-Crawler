@@ -285,16 +285,18 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 gameObject.AddComponent<ItemScatter>();
             }
             
-            // SoulPreservation 추가
-            if (GetComponent<SoulPreservation>() == null)
-            {
-                gameObject.AddComponent<SoulPreservation>();
-            }
+            // SoulInheritance는 전역 단일 인스턴스로 관리되므로 여기서 추가하지 않음
             
             // SoulDropSystem 추가
             if (GetComponent<SoulDropSystem>() == null)
             {
                 gameObject.AddComponent<SoulDropSystem>();
+            }
+            
+            // EquipmentManager 추가
+            if (GetComponent<EquipmentManager>() == null)
+            {
+                gameObject.AddComponent<EquipmentManager>();
             }
             
             // SkillManager 추가
@@ -313,6 +315,12 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             if (GetComponent<InventoryManager>() == null)
             {
                 gameObject.AddComponent<InventoryManager>();
+            }
+            
+            // EnchantManager 추가
+            if (GetComponent<EnchantManager>() == null)
+            {
+                gameObject.AddComponent<EnchantManager>();
             }
             
             Debug.Log("Death system components setup completed");
@@ -386,6 +394,9 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         {
             Debug.Log($"💀 Player {gameObject.name} died! Death penalty system will handle this.");
             
+            // 던전 시스템에 플레이어 사망 알림
+            NotifyDungeonManagerOfDeath();
+            
             // DeathManager가 이제 모든 사망 처리를 담당하므로
             // 여기서는 최소한의 처리만 수행
             
@@ -446,6 +457,22 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             }
             
             return 15f; // 기본 스킬 데미지
+        }
+        
+        /// <summary>
+        /// 던전 매니저에게 플레이어 사망 알림
+        /// </summary>
+        private void NotifyDungeonManagerOfDeath()
+        {
+            if (IsOwner) // 플레이어 소유자만 던전 매니저에 알림
+            {
+                var dungeonManager = FindObjectOfType<DungeonManager>();
+                if (dungeonManager != null && dungeonManager.IsActive)
+                {
+                    dungeonManager.OnPlayerDied(OwnerClientId);
+                    Debug.Log($"🏰 Notified DungeonManager: Player {OwnerClientId} died");
+                }
+            }
         }
         
         // 디버그 기능
