@@ -11,17 +11,17 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
     public class MonsterAI : NetworkBehaviour
     {
         [Header("AI 설정")]
-        [SerializeField] private MonsterAIType aiType = MonsterAIType.Aggressive;
-        [SerializeField] private float detectionRange = 5f;
-        [SerializeField] private float attackRange = 1.5f;
-        [SerializeField] private float loseTargetRange = 8f;
-        [SerializeField] private float moveSpeed = 2f;
-        [SerializeField] private float rotationSpeed = 180f;
+        [SerializeField] protected MonsterAIType aiType = MonsterAIType.Aggressive;
+        [SerializeField] protected float detectionRange = 5f;
+        [SerializeField] protected float attackRange = 1.5f;
+        [SerializeField] protected float loseTargetRange = 8f;
+        [SerializeField] protected float moveSpeed = 2f;
+        [SerializeField] protected float rotationSpeed = 180f;
         
         [Header("공격 설정")]
-        [SerializeField] private float attackCooldown = 2f;
-        [SerializeField] private float attackDamage = 20f;
-        [SerializeField] private DamageType damageType = DamageType.Physical;
+        [SerializeField] protected float attackCooldown = 2f;
+        [SerializeField] protected float attackDamage = 20f;
+        [SerializeField] protected DamageType damageType = DamageType.Physical;
         
         [Header("순찰 설정")]
         [SerializeField] private float patrolRadius = 3f;
@@ -32,18 +32,18 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         [SerializeField] private bool showDebugGizmos = true;
         
         // AI 상태
-        private MonsterAIState currentState = MonsterAIState.Idle;
-        private PlayerController currentTarget;
-        private Vector3 spawnPosition;
-        private Vector3 patrolTarget;
-        private float lastAttackTime = 0f;
-        private float stateTimer = 0f;
-        private float patrolTimer = 0f;
+        protected MonsterAIState currentState = MonsterAIState.Idle;
+        protected PlayerController currentTarget;
+        protected Vector3 spawnPosition;
+        protected Vector3 patrolTarget;
+        protected float lastAttackTime = 0f;
+        protected float stateTimer = 0f;
+        protected float patrolTimer = 0f;
         
         // 컴포넌트 참조
-        private Rigidbody2D rb;
-        private MonsterHealth monsterHealth;
-        private SpriteRenderer spriteRenderer;
+        protected Rigidbody2D rb;
+        protected MonsterHealth monsterHealth;
+        protected SpriteRenderer spriteRenderer;
         
         // 네트워크 동기화
         private NetworkVariable<MonsterAIState> networkState = new NetworkVariable<MonsterAIState>(
@@ -92,7 +92,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             base.OnNetworkDespawn();
         }
         
-        private void Update()
+        protected virtual void Update()
         {
             if (!IsServer) return;
             
@@ -113,7 +113,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// <summary>
         /// AI 메인 업데이트 로직
         /// </summary>
-        private void UpdateAI()
+        protected virtual void UpdateAI()
         {
             stateTimer += Time.deltaTime;
             
@@ -146,7 +146,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// <summary>
         /// Idle 상태 업데이트
         /// </summary>
-        private void UpdateIdleState()
+        protected virtual void UpdateIdleState()
         {
             // 플레이어 탐지
             PlayerController nearestPlayer = FindNearestPlayer();
@@ -229,7 +229,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// <summary>
         /// Attack 상태 업데이트
         /// </summary>
-        private void UpdateAttackState()
+        protected virtual void UpdateAttackState()
         {
             if (currentTarget == null)
             {
@@ -289,7 +289,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// <summary>
         /// 가장 가까운 플레이어 찾기
         /// </summary>
-        private PlayerController FindNearestPlayer()
+        protected PlayerController FindNearestPlayer()
         {
             Collider2D[] nearbyColliders = Physics2D.OverlapCircleAll(transform.position, detectionRange);
             PlayerController nearestPlayer = null;
@@ -320,7 +320,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// <summary>
         /// 타겟 설정
         /// </summary>
-        private void SetTarget(PlayerController target)
+        protected virtual void SetTarget(PlayerController target)
         {
             currentTarget = target;
             
@@ -337,7 +337,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// <summary>
         /// 상태 변경
         /// </summary>
-        private void ChangeState(MonsterAIState newState)
+        protected virtual void ChangeState(MonsterAIState newState)
         {
             if (currentState == newState) return;
             
@@ -391,7 +391,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// <summary>
         /// 특정 위치로 이동
         /// </summary>
-        private void MoveTowards(Vector3 targetPosition, float speed)
+        protected virtual void MoveTowards(Vector3 targetPosition, float speed)
         {
             if (rb == null) return;
             
@@ -405,7 +405,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// <summary>
         /// 특정 위치를 바라보기
         /// </summary>
-        private void LookAt(Vector3 targetPosition)
+        protected void LookAt(Vector3 targetPosition)
         {
             Vector3 direction = (targetPosition - transform.position).normalized;
             if (direction != Vector3.zero)
@@ -420,7 +420,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// <summary>
         /// 공격 실행
         /// </summary>
-        private void PerformAttack()
+        protected virtual void PerformAttack()
         {
             if (currentTarget == null) return;
             
@@ -445,7 +445,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// <summary>
         /// 공격 애니메이션 트리거
         /// </summary>
-        private void TriggerAttackAnimation()
+        protected virtual void TriggerAttackAnimation()
         {
             // 간단한 색상 변화로 공격 표시
             if (spriteRenderer != null)
@@ -593,9 +593,22 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         }
         
         /// <summary>
+        /// 공격 데미지 설정 (보스 전용)
+        /// </summary>
+        public void SetAttackDamage(float damage)
+        {
+            attackDamage = damage;
+        }
+        
+        /// <summary>
+        /// 공격 데미지 가져오기
+        /// </summary>
+        public float AttackDamage => attackDamage;
+        
+        /// <summary>
         /// 디버그 기즈모
         /// </summary>
-        private void OnDrawGizmosSelected()
+        protected virtual void OnDrawGizmosSelected()
         {
             if (!showDebugGizmos) return;
             

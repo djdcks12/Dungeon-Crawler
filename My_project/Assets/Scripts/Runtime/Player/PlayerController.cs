@@ -89,6 +89,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             HandleRotation();
             HandleAttack();
             HandleSkill();
+            HandleUI();
         }
         
         private void FixedUpdate()
@@ -256,6 +257,18 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             }
             
             Debug.Log("Skill activated");
+        }
+        
+        /// <summary>
+        /// UI 입력 처리
+        /// </summary>
+        private void HandleUI()
+        {
+            // UIManager를 통한 UI 입력 처리
+            if (UIManager.Instance != null)
+            {
+                UIManager.Instance.HandleUIInput();
+            }
         }
         
         /// <summary>

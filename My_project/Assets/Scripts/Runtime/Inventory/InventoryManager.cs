@@ -424,6 +424,23 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         }
         
         /// <summary>
+        /// 인벤토리에 공간이 있는지 확인
+        /// </summary>
+        public bool HasSpace()
+        {
+            if (inventory == null) return false;
+            return inventory.HasEmptySlot();
+        }
+        
+        /// <summary>
+        /// 아이템을 인벤토리에 추가 (간단한 인터페이스)
+        /// </summary>
+        public bool AddItem(ItemInstance item)
+        {
+            return AddItemToInventory(item);
+        }
+        
+        /// <summary>
         /// 아이템을 인벤토리에 추가 (Equipment System 연동용)
         /// </summary>
         public bool AddItemToInventory(ItemInstance item)

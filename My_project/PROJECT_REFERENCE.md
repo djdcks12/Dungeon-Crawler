@@ -255,6 +255,20 @@ public void ChangeGold(long amount)
 - **역할**: 골드 변경
 - **매개변수**: amount (변경할 골드량, 음수 가능)
 
+#### `RestoreFullHealth()`
+```csharp
+public void RestoreFullHealth()
+```
+- **역할**: 체력 완전 회복
+- **서버 전용**: IsServer에서만 실행
+
+#### `RestoreFullMana()`
+```csharp
+public void RestoreFullMana()
+```
+- **역할**: 마나 완전 회복
+- **서버 전용**: IsServer에서만 실행
+
 ### 🔔 이벤트 시스템
 ```csharp
 public System.Action<PlayerStats> OnStatsUpdated;
@@ -276,6 +290,15 @@ public Race CharacterRace => characterRace;
 public RaceData RaceData => raceData;
 public StatBlock CurrentStats => currentStats;
 public string CharacterName => characterName;
+```
+
+#### 레벨 및 재화 정보
+```csharp
+public int CurrentLevel => currentLevel;
+public long CurrentExperience => currentExp;
+public long ExpToNextLevel => expToNextLevel;
+public long Gold => gold;
+public long CurrentGold => gold; // 별칭
 ```
 
 #### 총 스탯 (종족 + 영혼 + 장비 + 인챈트)
@@ -550,27 +573,30 @@ public enum MonsterAIType
 
 ### 🎯 핵심 메서드
 
-#### `UpdateAI()`
+#### `UpdateAI()` (가상 메서드)
 ```csharp
-private void UpdateAI()
+protected virtual void UpdateAI()
 ```
 - **역할**: AI 메인 업데이트 루프
+- **접근성**: BossMonsterAI에서 오버라이드 가능
 - **호출**: Update()에서 매 프레임 호출 (서버만)
 - **기능**: 현재 상태에 따른 행동 실행
 
 #### `FindNearestPlayer()`
 ```csharp
-private PlayerController FindNearestPlayer()
+protected PlayerController FindNearestPlayer()
 ```
 - **역할**: 가장 가까운 플레이어 탐지
+- **접근성**: 상속 클래스에서 접근 가능
 - **반환**: PlayerController (가장 가까운 플레이어)
 - **기능**: 탐지 반경 내 살아있는 플레이어 검색
 
-#### `ChangeState(MonsterAIState newState)`
+#### `ChangeState(MonsterAIState newState)` (가상 메서드)
 ```csharp
-public void ChangeState(MonsterAIState newState)
+protected virtual void ChangeState(MonsterAIState newState)
 ```
 - **역할**: AI 상태 변경
+- **접근성**: BossMonsterAI에서 오버라이드 가능
 - **매개변수**: newState (새로운 상태)
 - **기능**: 상태 전환 및 네트워크 동기화
 
@@ -2302,6 +2328,155 @@ DeathManager.ProcessDeathSequence()
 - 각 클래스의 디버그 메서드 활용
 - **LogStats()**, **DrawGizmosSelected()** 등
 - 네트워크 동기화 상태 확인
+
+---
+
+# 🏛️ 던전 환경 시스템 (신규 추가)
+
+## DungeonTrap.cs
+**위치**: `Assets/Scripts/Runtime/Dungeon/DungeonTrap.cs`  
+**상속**: `NetworkBehaviour`  
+**역할**: 던전 내 함정 시스템 관리
+
+### 🎯 핵심 메서드
+```csharp
+public void Initialize(TrapType type, float multiplier, DungeonEnvironment environment)
+public void TriggerTrap(PlayerController player)
+```
+
+### 📊 지원하는 함정 타입 (TrapType enum)
+- **SpikeTrap**: 가시 함정 (물리 데미지)
+- **PoisonTrap**: 독 함정 (마법 데미지 + 지속 독)
+- **FireTrap**: 화염 함정 (마법 데미지)
+- **FreezeTrap**: 빙결 함정 (마법 데미지 + 이동 제약)
+- **ExplosionTrap**: 폭발 함정 (높은 물리 데미지)
+- **PitTrap**: 구덩이 함정 (일회성)
+
+## TreasureChest.cs
+**위치**: `Assets/Scripts/Runtime/Dungeon/TreasureChest.cs`  
+**상속**: `NetworkBehaviour`  
+**역할**: 던전 보물상자 시스템
+
+### 🎯 핵심 메서드
+```csharp
+public void Initialize(ChestType type, int floor, DungeonEnvironment environment)
+public void GiveRewards(PlayerController player)
+```
+
+### 📊 지원하는 상자 타입 (ChestType enum)
+- **Common**: 일반 상자 (1-2개 아이템)
+- **Rare**: 희귀 상자 (2-3개 아이템)
+- **Epic**: 영웅 상자 (3-4개 아이템, 30% 키 필요)
+- **Legendary**: 전설 상자 (4-6개 아이템, 60% 키 필요)
+
+## SecretPassage.cs
+**위치**: `Assets/Scripts/Runtime/Dungeon/SecretPassage.cs`  
+**상속**: `NetworkBehaviour`  
+**역할**: 던전 비밀 통로 시스템
+
+### 🎯 핵심 메서드
+```csharp
+public void Initialize(int floor, DungeonEnvironment environment)
+public void ActivateSecret(PlayerController player)
+```
+
+### 📊 비밀 통로 타입 (SecretType enum)
+- **HiddenRoom**: 숨겨진 방 (추가 아이템 스폰)
+- **ShortCut**: 지름길 (다음 층 이동)
+- **TreasureVault**: 보물 창고 (3배 골드, 2배 경험치)
+- **HealingSpring**: 치유의 샘 (체력/마나 완전 회복)
+
+## FloorEnvironmentManager.cs
+**위치**: `Assets/Scripts/Runtime/Dungeon/FloorEnvironmentManager.cs`  
+**상속**: `NetworkBehaviour`  
+**역할**: 층별 환경적 특징 실시간 적용
+
+### 🎯 핵심 메서드
+```csharp
+public void ApplyFloorEnvironment(int floor)
+private void ApplyLightingEffects()
+private void StartEnvironmentDamage()
+private void ApplyMovementRestriction()
+```
+
+### 📊 환경 효과 타입
+- **조명 효과**: 앰비언트 라이트 조정, 깜빡이는 조명
+- **시야 제한**: 포그 효과, 렌더 거리 조정
+- **환경 데미지**: 독성, 화염, 빙결, 저주, 혼돈 데미지
+- **이동 제약**: 진흙, 빙판, 가시밭, 유사 효과
+
+## FloorEnvironmentConfig.cs
+**위치**: `Assets/Scripts/Runtime/Dungeon/FloorEnvironmentConfig.cs`  
+**상속**: `ScriptableObject`  
+**역할**: 층별 환경 설정 데이터
+
+### 🎯 핵심 프로퍼티
+```csharp
+public bool ModifyTrapDensity => modifyTrapDensity;
+public float TrapDensityMultiplier => trapDensityMultiplier;
+public bool EnableVisionLimit => enableVisionLimit;
+public float VisionRange => visionRange;
+public bool EnableEnvironmentDamage => enableEnvironmentDamage;
+public EnvironmentDamageType EnvironmentDamageType => environmentDamageType;
+```
+
+## BossMonsterAI.cs
+**위치**: `Assets/Scripts/Runtime/AI/BossMonsterAI.cs`  
+**상속**: `MonsterAI`  
+**역할**: 보스 몬스터 전용 고급 AI 시스템
+
+### 🎯 보스 타입 (BossType enum)
+- **FloorGuardian**: 층 수호자 (기본 보스)
+- **EliteBoss**: 엘리트 보스 (강화된 능력)
+- **FinalBoss**: 최종 보스 (10층 보스)
+- **HiddenBoss**: 히든 보스 (11층 특수 보스)
+
+### 🔥 페이즈 시스템
+```csharp
+public void CheckPhaseTransition()  // 체력에 따른 페이즈 전환
+public void EnterNextPhase()        // 다음 페이즈 진입
+```
+
+### ⚔️ 보스 스킬 시스템
+```csharp
+public void ExecuteBossSkill(BossSkillType skillType)  // 보스 스킬 실행
+```
+
+**지원하는 스킬 타입**:
+- **ChargeAttack**: 돌진 공격 (높은 물리 데미지)
+- **AreaSlam**: 범위 강타 (광역 물리 데미지)
+- **MeteorStrike**: 메테오 (광역 마법 데미지)
+- **Heal**: 치유 (보스 체력 회복)
+
+### 🔗 상속 관계
+```
+MonsterAI (기본 AI)
+├── protected 필드들 (attackDamage, currentTarget 등)
+├── protected virtual 메서드들 (UpdateAI, PerformAttack 등)
+└── BossMonsterAI (보스 특화)
+    ├── 페이즈 시스템
+    ├── 보스 스킬 시스템
+    └── 향상된 AI 패턴
+```
+
+### 🔗 시스템 의존성
+```
+DungeonEnvironment (환경 요소 관리)
+├── DungeonTrap (함정)
+├── TreasureChest (보물상자)
+├── SecretPassage (비밀 통로)
+└── DestructibleObject (파괴 가능 오브젝트)
+
+FloorEnvironmentManager (환경 효과 적용)
+├── FloorEnvironmentConfig (설정 데이터)
+├── DungeonManager (층 변경 이벤트)
+└── PlayerController (플레이어별 효과)
+
+MonsterAI → BossMonsterAI (상속 관계)
+├── protected 접근성으로 필드/메서드 공유
+├── virtual 메서드 오버라이드 지원
+└── 보스별 특수 행동 패턴 확장
+```
 
 ---
 

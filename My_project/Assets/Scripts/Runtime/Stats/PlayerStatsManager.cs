@@ -24,6 +24,12 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         private NetworkVariable<float> networkMaxHP = new NetworkVariable<float>(100f,
             NetworkVariableReadPermission.Everyone,
             NetworkVariableWritePermission.Owner);
+        private NetworkVariable<float> networkCurrentMP = new NetworkVariable<float>(100f,
+            NetworkVariableReadPermission.Everyone,
+            NetworkVariableWritePermission.Owner);
+        private NetworkVariable<float> networkMaxMP = new NetworkVariable<float>(100f,
+            NetworkVariableReadPermission.Everyone,
+            NetworkVariableWritePermission.Owner);
         
         // 컴포넌트 참조
         private PlayerController playerController;
@@ -52,6 +58,8 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             networkLevel.OnValueChanged += OnNetworkLevelChanged;
             networkCurrentHP.OnValueChanged += OnNetworkHPChanged;
             networkMaxHP.OnValueChanged += OnNetworkMaxHPChanged;
+            networkCurrentMP.OnValueChanged += OnNetworkMPChanged;
+            networkMaxMP.OnValueChanged += OnNetworkMaxMPChanged;
             
             // 스탯 이벤트 구독
             if (currentStats != null)
@@ -69,6 +77,8 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             networkLevel.OnValueChanged -= OnNetworkLevelChanged;
             networkCurrentHP.OnValueChanged -= OnNetworkHPChanged;
             networkMaxHP.OnValueChanged -= OnNetworkMaxHPChanged;
+            networkCurrentMP.OnValueChanged -= OnNetworkMPChanged;
+            networkMaxMP.OnValueChanged -= OnNetworkMaxMPChanged;
             
             if (currentStats != null)
             {
@@ -268,6 +278,18 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             Debug.Log($"Gold changed by {amount}. Current gold: {currentStats?.Gold ?? 0}");
         }
         
+        // 골드 추가 (양수 값으로 골드 증가)
+        public void AddGold(long amount)
+        {
+            if (amount < 0)
+            {
+                Debug.LogWarning($"AddGold called with negative amount: {amount}. Use ChangeGold for negative values.");
+                return;
+            }
+            
+            ChangeGold(amount);
+        }
+        
         // 영혼 보너스 스탯 추가
         public void AddSoulBonusStats(StatBlock bonusStats)
         {
@@ -302,6 +324,8 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             networkLevel.Value = currentStats.CurrentLevel;
             networkCurrentHP.Value = currentStats.CurrentHP;
             networkMaxHP.Value = currentStats.MaxHP;
+            networkCurrentMP.Value = currentStats.CurrentMP;
+            networkMaxMP.Value = currentStats.MaxMP;
         }
         
         // 네트워크 이벤트 콜백들
@@ -318,6 +342,16 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         private void OnNetworkMaxHPChanged(float previousValue, float newValue)
         {
             OnHealthChanged?.Invoke(networkCurrentHP.Value, newValue);
+        }
+        
+        private void OnNetworkMPChanged(float previousValue, float newValue)
+        {
+            // MP 변경 처리 (필요시 이벤트 추가)
+        }
+        
+        private void OnNetworkMaxMPChanged(float previousValue, float newValue)
+        {
+            // MaxMP 변경 처리 (필요시 이벤트 추가)
         }
         
         // 스탯 이벤트 콜백들
@@ -409,7 +443,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         // 레벨업 가능 여부 확인
         public bool CanLevelUp()
         {
-            return currentStats != null && currentStats.CurrentExp >= currentStats.ExpToNextLevel;
+            return currentStats != null && currentStats.CurrentExperience >= currentStats.ExpToNextLevel;
         }
         
         // 영혼 보너스 스탯 리셋
@@ -465,6 +499,28 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             OnStatsUpdated?.Invoke(currentStats);
             
             Debug.Log($"📊 Equipment stats updated");
+        }
+        
+        /// <summary>
+        /// 체력 완전 회복
+        /// </summary>
+        public void RestoreFullHealth()
+        {
+            if (!IsServer) return;
+            
+            networkCurrentHP.Value = networkMaxHP.Value;
+            Debug.Log($"💚 Full health restored: {networkCurrentHP.Value}");
+        }
+        
+        /// <summary>
+        /// 마나 완전 회복
+        /// </summary>
+        public void RestoreFullMana()
+        {
+            if (!IsServer) return;
+            
+            networkCurrentMP.Value = networkMaxMP.Value;
+            Debug.Log($"💙 Full mana restored: {networkCurrentMP.Value}");
         }
     }
     

@@ -35,6 +35,14 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         public List<InventorySlot> Slots => slots;
         
         /// <summary>
+        /// 빈 슬롯이 있는지 확인
+        /// </summary>
+        public bool HasEmptySlot()
+        {
+            return EmptySlots > 0;
+        }
+        
+        /// <summary>
         /// 인벤토리 초기화
         /// </summary>
         public void Initialize(int slotCount = 30)

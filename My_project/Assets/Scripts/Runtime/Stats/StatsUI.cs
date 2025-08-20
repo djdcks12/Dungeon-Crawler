@@ -223,12 +223,12 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             
             if (expText != null)
             {
-                expText.text = $"EXP: {stats.CurrentExp:N0} / {stats.ExpToNextLevel:N0}";
+                expText.text = $"EXP: {stats.CurrentExperience:N0} / {stats.ExpToNextLevel:N0}";
             }
             
             if (expSlider != null)
             {
-                expSlider.value = (float)stats.CurrentExp / stats.ExpToNextLevel;
+                expSlider.value = (float)stats.CurrentExperience / stats.ExpToNextLevel;
             }
             
             if (availablePointsText != null)

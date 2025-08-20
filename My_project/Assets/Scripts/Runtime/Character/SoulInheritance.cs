@@ -558,6 +558,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         public string description;
         public int floorFound;
         public long acquiredTime;
+        public int characterLevel;
         
         public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
         {
@@ -570,6 +571,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             serializer.SerializeValue(ref description);
             serializer.SerializeValue(ref floorFound);
             serializer.SerializeValue(ref acquiredTime);
+            serializer.SerializeValue(ref characterLevel);
         }
         
         public System.DateTime GetAcquiredDateTime()
