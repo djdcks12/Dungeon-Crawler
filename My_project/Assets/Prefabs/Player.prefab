@@ -17,9 +17,6 @@ GameObject:
   - component: {fileID: 6020273514770976838}
   - component: {fileID: 4724327941333640051}
   - component: {fileID: 6408536767090415239}
-  - component: {fileID: 2079893117681304662}
-  - component: {fileID: 8644556667679740522}
-  - component: {fileID: 9222452835634159200}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -185,7 +182,7 @@ SpriteRenderer:
   m_Size: {x: 1, y: 1}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
-  m_WasSpriteAssigned: 1
+  m_WasSpriteAssigned: 0
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
 --- !u!114 &541984990869444658
@@ -251,65 +248,3 @@ MonoBehaviour:
   positionSyncThreshold: 0.1
   rotationSyncThreshold: 1
   interpolationSpeed: 15
---- !u!114 &2079893117681304662
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4933057213717785712}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3efafb0eef3477144a0a5d4cc3fcfc21, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.TestPlayer
-  ShowTopMostFoldoutHeaderGroup: 1
-  moveSpeed: 5
-  rotationSpeed: 10
-  statsManager: {fileID: 0}
-  rb: {fileID: 0}
-  spriteRenderer: {fileID: 0}
-  attackRange: 2
-  enemyLayerMask:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  showDebugInfo: 1
-  showAttackRange: 1
-  attackRangeColor: {r: 1, g: 0, b: 0, a: 0.3}
-  enemyHighlightColor: {r: 1, g: 1, b: 0, a: 0.8}
---- !u!114 &8644556667679740522
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4933057213717785712}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 409c43ceef4b7fb419f750add824ac80, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.PlayerTestManager
-  enableDebugUI: 1
-  enablePerformanceMonitoring: 1
-  testKeyCode: 282
-  testPlayers: []
---- !u!114 &9222452835634159200
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4933057213717785712}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 28727e506c9856f45bb62781017c8ac6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.StatsTestManager
-  enableDebugUI: 1
-  testMenuKey: 283
-  addExpKey: 284
-  damageTestKey: 285
-  healTestKey: 286
-  testExpAmount: 100
-  testDamageAmount: 25
-  testHealAmount: 50
