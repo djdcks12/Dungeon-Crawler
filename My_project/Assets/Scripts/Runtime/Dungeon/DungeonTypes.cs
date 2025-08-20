@@ -66,6 +66,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         public int recommendedLevel;
         public int maxPlayers;
         public float timeLimit; // 제한 시간 (초)
+        public float startTime; // 던전 시작 시간
         public long baseExpReward;
         public long baseGoldReward;
         
@@ -86,6 +87,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             serializer.SerializeValue(ref recommendedLevel);
             serializer.SerializeValue(ref maxPlayers);
             serializer.SerializeValue(ref timeLimit);
+            serializer.SerializeValue(ref startTime);
             serializer.SerializeValue(ref baseExpReward);
             serializer.SerializeValue(ref baseGoldReward);
         }
@@ -102,6 +104,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                    recommendedLevel == other.recommendedLevel &&
                    maxPlayers == other.maxPlayers &&
                    Mathf.Approximately(timeLimit, other.timeLimit) &&
+                   Mathf.Approximately(startTime, other.startTime) &&
                    baseExpReward == other.baseExpReward &&
                    baseGoldReward == other.baseGoldReward;
         }

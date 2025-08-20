@@ -42,6 +42,9 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         private Dictionary<ulong, DungeonPlayer> playerStats = new Dictionary<ulong, DungeonPlayer>();
         private Dictionary<int, float> floorTimeAllocations = new Dictionary<int, float>(); // 층별 제한시간
         
+        // 싱글톤 패턴
+        public static DungeonManager Instance { get; private set; }
+        
         // 이벤트
         public System.Action<DungeonInfo> OnDungeonStarted;
         public System.Action<int> OnFloorChanged;
@@ -70,6 +73,20 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 }
                 return players;
             } 
+        }
+        
+        private void Awake()
+        {
+            // 싱글톤 설정
+            if (Instance == null)
+            {
+                Instance = this;
+                DontDestroyOnLoad(gameObject);
+            }
+            else if (Instance != this)
+            {
+                Destroy(gameObject);
+            }
         }
         
         public override void OnNetworkSpawn()
@@ -224,6 +241,9 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             // 던전 상태 변경
             dungeonState.Value = DungeonState.Active;
             
+            // 첫 층 시작 이벤트 호출
+            OnFloorChanged?.Invoke(1);
+            
             string spawnInfo = spawnGroups != null ? $" with {spawnGroups.Count} spawn groups" : "";
             Debug.Log($"🏰 Dungeon '{dungeonData.DungeonName}' started with {dungeonPlayers.Count} players{spawnInfo}");
         }
@@ -257,6 +277,9 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             // 다음 층으로 이동
             currentFloor.Value = nextFloor;
             currentFloorStartTime = Time.time;
+            
+            // 층 변경 이벤트 호출
+            OnFloorChanged?.Invoke(nextFloor);
             
             // 다음 층 시간 = 할당된 시간 + 이전 층에서 남은 시간
             currentFloorRemainingTime.Value = nextFloorAllocatedTime + remainingFloorTime;

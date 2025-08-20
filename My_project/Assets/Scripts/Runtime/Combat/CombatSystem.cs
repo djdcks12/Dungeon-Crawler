@@ -187,6 +187,14 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             var targetStatsManager = target.GetComponent<PlayerStatsManager>();
             if (targetStatsManager != null)
             {
+                // PvP 종족 밸런스 적용
+                if (PvPBalanceSystem.Instance != null && statsManager?.CurrentStats != null)
+                {
+                    Race attackerRace = statsManager.CurrentStats.CharacterRace;
+                    Race targetRace = targetStatsManager.CurrentStats.CharacterRace;
+                    attackDamage = PvPBalanceSystem.Instance.CalculateRaceBalancedDamage(attackerRace, targetRace, attackDamage);
+                }
+                
                 ApplyDamageToPlayer(targetStatsManager, attackDamage, damageType, isCritical, attackPosition);
                 return;
             }
@@ -220,17 +228,13 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             Vector2 hitPosition = targetStatsManager.transform.position;
             ShowDamageEffectClientRpc(hitPosition, actualDamage, isCritical, damageType);
             
-            // 경험치 획득 (타겟이 죽었을 경우)
+            // PvP 킬/데스 처리 (타겟이 죽었을 경우)
             if (targetStatsManager.IsDead)
             {
                 var killerStatsManager = GetComponent<PlayerStatsManager>();
                 if (killerStatsManager != null)
                 {
-                    // PvP 킬 경험치: 상대방 레벨 * 100
-                    long expGain = targetStatsManager.CurrentStats.CurrentLevel * 100;
-                    killerStatsManager.AddExperience(expGain);
-                    
-                    Debug.Log($"{name} killed {targetStatsManager.name} and gained {expGain} experience!");
+                    ProcessPvPKillReward(killerStatsManager, targetStatsManager);
                 }
             }
         }
@@ -240,7 +244,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         private void ApplyDamageToMonster(MonsterHealth targetMonster, float damage, DamageType damageType, bool isCritical, Vector2 attackPosition)
         {
-            targetMonster.TakeDamage(damage, playerController);
+            targetMonster.TakeDamage(damage, damageType);
             
             // 인챈트 효과 적용
             if (enchantManager != null && statsManager != null)
@@ -338,6 +342,78 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         }
         
         /// <summary>
+        /// PvP 킬 보상 처리
+        /// </summary>
+        private void ProcessPvPKillReward(PlayerStatsManager killerStatsManager, PlayerStatsManager victimStatsManager)
+        {
+            if (PvPBalanceSystem.Instance == null) 
+            {
+                // 기본 PvP 보상 (PvPBalanceSystem이 없을 때)
+                long expGain = victimStatsManager.CurrentStats.CurrentLevel * 100;
+                killerStatsManager.AddExperience(expGain);
+                Debug.Log($"{killerStatsManager.name} killed {victimStatsManager.name} and gained {expGain} experience!");
+                return;
+            }
+            
+            // 고급 PvP 보상 시스템
+            var killerNetworkBehaviour = killerStatsManager.GetComponent<NetworkBehaviour>();
+            var victimNetworkBehaviour = victimStatsManager.GetComponent<NetworkBehaviour>();
+            
+            if (killerNetworkBehaviour != null && victimNetworkBehaviour != null)
+            {
+                ulong killerClientId = killerNetworkBehaviour.OwnerClientId;
+                ulong victimClientId = victimNetworkBehaviour.OwnerClientId;
+                
+                // 킬 보상 계산
+                var killReward = PvPBalanceSystem.Instance.CalculatePvPKillReward(
+                    killerClientId, victimClientId, victimStatsManager.CurrentStats.CurrentLevel);
+                
+                // 데스 페널티 계산
+                var deathPenalty = PvPBalanceSystem.Instance.CalculatePvPDeathPenalty(
+                    victimClientId, victimStatsManager.CurrentStats.CurrentExperience, 
+                    victimStatsManager.CurrentStats.CurrentGold);
+                
+                // 킬러에게 보상 지급
+                killerStatsManager.AddExperience(killReward.finalExpReward);
+                killerStatsManager.ChangeGold(killReward.finalGoldReward);
+                
+                // 피해자에게 페널티 적용
+                victimStatsManager.AddExperience(-deathPenalty.expLoss); // 경험치 감소
+                victimStatsManager.ChangeGold(-deathPenalty.goldDrop);   // 골드 드롭
+                
+                // 로그 출력
+                string revengeText = killReward.isRevenge ? " [REVENGE]" : "";
+                int killStreak = PvPBalanceSystem.Instance.GetKillStreak(killerClientId);
+                
+                Debug.Log($"💀 PvP Kill{revengeText}: {killerStatsManager.name} → {victimStatsManager.name}");
+                Debug.Log($"🏆 Killer gained: {killReward.finalExpReward} EXP, {killReward.finalGoldReward} Gold (Streak: {killStreak})");
+                Debug.Log($"💔 Victim lost: {deathPenalty.expLoss} EXP, {deathPenalty.goldDrop} Gold");
+                
+                // 킬 스트릭 알림
+                if (killStreak > 0 && killStreak % 3 == 0)
+                {
+                    NotifyKillStreakClientRpc(killerClientId, killStreak);
+                }
+            }
+        }
+        
+        /// <summary>
+        /// 킬 스트릭 알림 (모든 클라이언트에게)
+        /// </summary>
+        [ClientRpc]
+        private void NotifyKillStreakClientRpc(ulong playerClientId, int killStreak)
+        {
+            string playerName = $"Player_{playerClientId}"; // 실제로는 플레이어 이름 가져오기
+            
+            if (killStreak >= 10)
+                Debug.Log($"🔥🔥🔥 UNSTOPPABLE! {playerName} has {killStreak} kills in a row!");
+            else if (killStreak >= 5)
+                Debug.Log($"🔥🔥 RAMPAGE! {playerName} has {killStreak} kills in a row!");
+            else if (killStreak >= 3)
+                Debug.Log($"🔥 KILLING SPREE! {playerName} has {killStreak} kills in a row!");
+        }
+        
+        /// <summary>
         /// 디버그용 공격 범위 시각화
         /// </summary>
         private void OnDrawGizmosSelected()
@@ -351,179 +427,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             {
                 Gizmos.color = Color.yellow;
                 Gizmos.DrawLine(transform.position, transform.position + (Vector3)attackDirection * 2.0f);
-            }
-        }
-    }
-    
-    /// <summary>
-    /// 몬스터 체력 관리 - 아이템 드롭 시스템 연동
-    /// </summary>
-    public class MonsterHealth : MonoBehaviour
-    {
-        [Header("몬스터 정보")]
-        [SerializeField] private string monsterName = "몬스터";
-        [SerializeField] private int monsterLevel = 1;
-        [SerializeField] private string monsterType = "Basic";
-        
-        [Header("체력")]
-        [SerializeField] private float maxHealth = 100f;
-        [SerializeField] private float currentHealth = 100f;
-        
-        [Header("경험치 보상")]
-        [SerializeField] private long expReward = 50;
-        
-        // 공격자 추적 (마지막으로 공격한 플레이어)
-        private PlayerController lastAttacker;
-        
-        public float MaxHealth => maxHealth;
-        public float CurrentHealth => currentHealth;
-        public bool IsDead => currentHealth <= 0;
-        
-        private void Start()
-        {
-            currentHealth = maxHealth;
-        }
-        
-        public void TakeDamage(float damage, PlayerController attacker = null)
-        {
-            if (IsDead) return;
-            
-            currentHealth -= damage;
-            currentHealth = Mathf.Max(0, currentHealth);
-            
-            // 공격자 추적
-            if (attacker != null)
-            {
-                lastAttacker = attacker;
-            }
-            
-            Debug.Log($"Monster {monsterName} took {damage} damage. HP: {currentHealth}/{maxHealth}");
-            
-            if (currentHealth <= 0)
-            {
-                Die();
-            }
-        }
-        
-        private void Die()
-        {
-            Debug.Log($"💀 Monster {monsterName} (Level {monsterLevel}) died!");
-            
-            // 경험치 보상
-            if (lastAttacker != null)
-            {
-                GiveExperienceReward();
-                TriggerItemDrop();
-                TriggerSoulDrop();
-                TriggerEnchantDrop();
-                
-                // 던전 시스템에 몬스터 처치 알림
-                NotifyDungeonManager();
-            }
-            
-            // 몬스터 오브젝트 제거
-            Destroy(gameObject);
-        }
-        
-        /// <summary>
-        /// 경험치 보상
-        /// </summary>
-        private void GiveExperienceReward()
-        {
-            var attackerStats = lastAttacker.GetComponent<PlayerStatsManager>();
-            if (attackerStats != null)
-            {
-                // 몬스터 레벨에 따른 경험치 계산
-                long finalExpReward = expReward + (monsterLevel * 25);
-                attackerStats.AddExperience(finalExpReward);
-                
-                Debug.Log($"🌟 {lastAttacker.name} gained {finalExpReward} experience from {monsterName}!");
-            }
-        }
-        
-        /// <summary>
-        /// 아이템 드롭 트리거
-        /// </summary>
-        private void TriggerItemDrop()
-        {
-            var itemDropSystem = lastAttacker.GetComponent<ItemDropSystem>();
-            if (itemDropSystem != null)
-            {
-                itemDropSystem.CheckItemDrop(transform.position, monsterLevel, monsterType, lastAttacker);
-            }
-        }
-        
-        /// <summary>
-        /// 영혼 드롭 트리거 (0.1% 확률)
-        /// </summary>
-        private void TriggerSoulDrop()
-        {
-            var soulDropSystem = lastAttacker.GetComponent<SoulDropSystem>();
-            if (soulDropSystem != null)
-            {
-                soulDropSystem.CheckSoulDrop(transform.position, monsterLevel, monsterName);
-            }
-        }
-        
-        /// <summary>
-        /// 인챈트 북 드롭 트리거 (1% 확률)
-        /// </summary>
-        private void TriggerEnchantDrop()
-        {
-            var enchantDropSystem = FindObjectOfType<EnchantDropSystem>();
-            if (enchantDropSystem != null)
-            {
-                enchantDropSystem.CheckEnchantDrop(transform.position, monsterLevel, monsterName, lastAttacker);
-            }
-        }
-        
-        /// <summary>
-        /// 몬스터 정보 설정 (동적 생성 시 사용)
-        /// </summary>
-        public void SetMonsterInfo(string name, int level, string type, float health, long exp)
-        {
-            monsterName = name;
-            monsterLevel = level;
-            monsterType = type;
-            maxHealth = health;
-            currentHealth = health;
-            expReward = exp;
-        }
-        
-        /// <summary>
-        /// 체력 회복
-        /// </summary>
-        public void Heal(float amount)
-        {
-            if (IsDead) return;
-            
-            currentHealth = Mathf.Min(maxHealth, currentHealth + amount);
-        }
-        
-        /// <summary>
-        /// 체력 비율
-        /// </summary>
-        public float GetHealthPercentage()
-        {
-            return maxHealth > 0 ? currentHealth / maxHealth : 0f;
-        }
-        
-        /// <summary>
-        /// 던전 매니저에게 몬스터 처치 알림
-        /// </summary>
-        private void NotifyDungeonManager()
-        {
-            // 던전이 활성화된 상태에서만 알림
-            var dungeonManager = FindObjectOfType<DungeonManager>();
-            if (dungeonManager != null && dungeonManager.IsActive && lastAttacker != null)
-            {
-                // 공격자의 클라이언트 ID 가져오기
-                var playerNetwork = lastAttacker.GetComponent<NetworkBehaviour>();
-                if (playerNetwork != null)
-                {
-                    dungeonManager.OnMonsterKilled(playerNetwork.OwnerClientId);
-                    Debug.Log($"🏰 Notified DungeonManager: {monsterName} killed by client {playerNetwork.OwnerClientId}");
-                }
             }
         }
     }

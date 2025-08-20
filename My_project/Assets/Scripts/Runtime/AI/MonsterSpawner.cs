@@ -32,6 +32,9 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         [Header("몬스터 타입별 확률")]
         [SerializeField] private MonsterSpawnData[] spawnData;
         
+        [Header("난이도 배율")]
+        [SerializeField] private float difficultyMultiplier = 1f;
+        
         // 현재 생성된 몬스터들
         private List<MonsterAI> activeMonsters = new List<MonsterAI>();
         private float lastSpawnTime = 0f;
@@ -299,6 +302,10 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 var randomAIType = (MonsterAIType)aiTypes.GetValue(Random.Range(0, aiTypes.Length));
                 monsterAI.SetAIType(randomAIType);
                 
+                // 난이도 배율 적용 (데미지)
+                float enhancedDamage = monsterAI.AttackDamage * difficultyMultiplier;
+                monsterAI.SetAttackDamage(enhancedDamage);
+                
                 activeMonsters.Add(monsterAI);
             }
             
@@ -308,7 +315,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             {
                 // 레벨 기반 스탯 계산
                 float healthMultiplier = 1f + (level - 1) * 0.5f;
-                float maxHealth = 100f * healthMultiplier;
+                float maxHealth = 100f * healthMultiplier * difficultyMultiplier; // 난이도 배율 적용
                 long expReward = 50 + (level * 25);
                 
                 string monsterName = monsterObject.name.Replace("(Clone)", "");
@@ -413,6 +420,41 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             if (enabled && IsServer)
             {
                 StartCoroutine(SpawnCoroutine());
+            }
+        }
+        
+        /// <summary>
+        /// 난이도 배율 설정 (히든 층용)
+        /// </summary>
+        public void SetDifficultyMultiplier(float multiplier)
+        {
+            difficultyMultiplier = multiplier;
+            
+            // 기존 몬스터들에게도 적용
+            ApplyDifficultyToExistingMonsters();
+            
+            Debug.Log($"Difficulty multiplier set to {multiplier}x for {name}");
+        }
+        
+        /// <summary>
+        /// 기존 몬스터들에게 난이도 배율 적용
+        /// </summary>
+        private void ApplyDifficultyToExistingMonsters()
+        {
+            foreach (var monster in activeMonsters)
+            {
+                if (monster != null)
+                {
+                    var monsterHealth = monster.GetComponent<MonsterHealth>();
+                    if (monsterHealth != null)
+                    {
+                        int enhancedHealth = Mathf.RoundToInt(monsterHealth.MaxHealth * difficultyMultiplier);
+                        monsterHealth.SetMaxHealth(enhancedHealth);
+                    }
+                    
+                    float enhancedDamage = monster.AttackDamage * difficultyMultiplier;
+                    monster.SetAttackDamage(enhancedDamage);
+                }
             }
         }
         

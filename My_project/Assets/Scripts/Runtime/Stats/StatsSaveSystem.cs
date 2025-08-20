@@ -169,7 +169,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 
                 // 레벨 및 경험치
                 level = stats.CurrentLevel,
-                experience = stats.CurrentExp,
+                experience = stats.CurrentExperience,
                 
                 // 기본 스탯
                 baseSTR = stats.TotalSTR, // 주의: 실제로는 base 값만 저장해야 함

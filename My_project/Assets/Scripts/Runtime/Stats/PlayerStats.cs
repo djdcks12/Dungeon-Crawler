@@ -75,7 +75,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         public float TotalSTAB => currentStats.stability + soulBonusStats.stability + equipmentBonusStats.stability + enchantBonusStats.stability;
         
         public int CurrentLevel => currentLevel;
-        public long CurrentExp => currentExp;
+        public long CurrentExperience => currentExp;
         public long ExpToNextLevel => expToNextLevel;
         // 스탯 포인트 시스템 제거됨 (종족별 고정 성장)
         
@@ -92,6 +92,9 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         public CombatStats CombatStats => combatStats;
         public WeaponData EquippedWeapon => equippedWeapon;
         public long Gold => gold;
+        
+        // 재화 관련 프로퍼티 (별칭)
+        public long CurrentGold => gold;
         
         // 캐릭터 이름
         [SerializeField] private string characterName = "Unknown";
@@ -568,7 +571,12 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
     {
         Physical,   // 물리 데미지
         Magical,    // 마법 데미지
-        True,       // 고정 데미지 (방어력 무시)
-        Holy        // 신성 데미지 (언데드에게 효과적)
+        Fire,       // 화염 데미지
+        Ice,        // 빙결 데미지
+        Lightning,  // 번개 데미지
+        Poison,     // 독 데미지
+        Dark,       // 암흑 데미지
+        Holy,       // 신성 데미지
+        True        // 고정 데미지 (방어력 무시)
     }
 }
