@@ -72,7 +72,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         private void Start()
         {
             // 파티 매니저 찾기
-            partyManager = FindObjectOfType<PartyManager>();
+            partyManager = FindFirstObjectByType<PartyManager>();
             if (partyManager != null)
             {
                 SubscribeToPartyEvents();

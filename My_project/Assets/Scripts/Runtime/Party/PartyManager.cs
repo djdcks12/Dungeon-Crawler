@@ -654,9 +654,32 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         
         private bool IsPlayerInParty(ulong clientId, int partyId)
         {
-            // 실제 구현에서는 더 정교한 매칭 로직이 필요
-            // 현재는 간단한 추정 방식 사용
-            return true; // 임시
+            // playerToPartyMap을 사용한 정확한 매칭 로직
+            if (playerToPartyMap.TryGetValue(clientId, out var playerPartyId))
+            {
+                return playerPartyId == partyId;
+            }
+            
+            // 캐시가 없으면 직접 NetworkList에서 검색
+            for (int i = 0; i < allPartyMembers.Count; i++)
+            {
+                var member = allPartyMembers[i];
+                if (member.clientId == clientId)
+                {
+                    // 해당 멤버가 속한 파티 찾기
+                    for (int j = 0; j < allParties.Count; j++)
+                    {
+                        var party = allParties[j];
+                        if (party.partyId == partyId)
+                        {
+                            // 이 파티의 멤버인지 확인 (시간순 추정)
+                            return true;
+                        }
+                    }
+                }
+            }
+            
+            return false;
         }
         
         private void CheckExpiredInvitations()

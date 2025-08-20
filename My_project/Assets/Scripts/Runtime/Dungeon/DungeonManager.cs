@@ -172,10 +172,18 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         }
         
         /// <summary>
-        /// 던전 시작 (서버 전용)
+        /// 던전 시작 (서버 전용) - 스케줄러에서 호출
         /// </summary>
         [ServerRpc(RequireOwnership = false)]
         public void StartDungeonServerRpc(int dungeonDataIndex)
+        {
+            StartDungeonWithSpawnGroups(dungeonDataIndex, null);
+        }
+        
+        /// <summary>
+        /// 파티 스폰 그룹과 함께 던전 시작
+        /// </summary>
+        public void StartDungeonWithSpawnGroups(int dungeonDataIndex, List<PartySpawnGroup> spawnGroups)
         {
             if (!IsServer) return;
             
@@ -207,16 +215,17 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             currentFloorRemainingTime.Value = floorTimeAllocations[1];
             remainingTime.Value = currentFloorRemainingTime.Value;
             
-            // 플레이어 정보 수집
-            CollectPlayerInformation();
+            // 플레이어 정보 수집 (스폰 그룹 기반)
+            CollectPlayerInformationFromSpawnGroups(spawnGroups);
             
-            // 첫 번째 층 로드
-            LoadFloor(1, dungeonData);
+            // 첫 번째 층 로드 (스폰 그룹 고려)
+            LoadFloorWithSpawnGroups(1, dungeonData, spawnGroups);
             
             // 던전 상태 변경
             dungeonState.Value = DungeonState.Active;
             
-            Debug.Log($"🏰 Dungeon '{dungeonData.DungeonName}' started with {dungeonPlayers.Count} players");
+            string spawnInfo = spawnGroups != null ? $" with {spawnGroups.Count} spawn groups" : "";
+            Debug.Log($"🏰 Dungeon '{dungeonData.DungeonName}' started with {dungeonPlayers.Count} players{spawnInfo}");
         }
         
         /// <summary>
@@ -844,6 +853,135 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             int totalSeconds = Mathf.FloorToInt(totalRemainingTime.Value % 60);
             
             return $"현재 층: {minutes:00}:{seconds:00} | 총 시간: {totalMinutes:00}:{totalSeconds:00}";
+        }
+        
+        /// <summary>
+        /// 스폰 그룹 기반 플레이어 정보 수집
+        /// </summary>
+        private void CollectPlayerInformationFromSpawnGroups(List<PartySpawnGroup> spawnGroups)
+        {
+            dungeonPlayers.Clear();
+            
+            if (spawnGroups == null || spawnGroups.Count == 0)
+            {
+                // 스폰 그룹이 없으면 기존 방식 사용
+                CollectPlayerInformation();
+                return;
+            }
+            
+            foreach (var group in spawnGroups)
+            {
+                for (int i = 0; i < group.memberCount; i++)
+                {
+                    var clientId = group.GetMemberAtIndex(i);
+                    if (NetworkManager.Singleton.ConnectedClients.TryGetValue(clientId, out var client))
+                    {
+                        var playerObject = client.PlayerObject;
+                        if (playerObject != null)
+                        {
+                            var statsManager = playerObject.GetComponent<PlayerStatsManager>();
+                            if (statsManager != null)
+                            {
+                                var dungeonPlayer = new DungeonPlayer
+                                {
+                                    clientId = clientId,
+                                    playerNameHash = DungeonNameRegistry.RegisterName($"Player_{clientId}"),
+                                    playerLevel = statsManager.CurrentStats?.CurrentLevel ?? 1,
+                                    playerRace = statsManager.CurrentStats?.CharacterRace ?? Race.Human,
+                                    isAlive = true,
+                                    isReady = true,
+                                    spawnPosition = group.spawnCenter // 그룹 스폰 중심점 사용
+                                };
+                                
+                                dungeonPlayers.Add(dungeonPlayer);
+                                playerStats[clientId] = dungeonPlayer;
+                            }
+                        }
+                    }
+                }
+            }
+            
+            Debug.Log($"📊 Collected {dungeonPlayers.Count} players from {spawnGroups.Count} spawn groups");
+        }
+        
+        /// <summary>
+        /// 스폰 그룹 고려한 층 로드
+        /// </summary>
+        private void LoadFloorWithSpawnGroups(int floorNumber, DungeonData dungeonData, List<PartySpawnGroup> spawnGroups)
+        {
+            if (!IsServer) return;
+            
+            // 기본 층 로드
+            LoadFloor(floorNumber, dungeonData);
+            
+            // 스폰 그룹이 있으면 플레이어들을 해당 위치로 이동
+            if (spawnGroups != null && spawnGroups.Count > 0)
+            {
+                ApplySpawnGroupPositionsClientRpc(SerializeSpawnGroups(spawnGroups));
+            }
+        }
+        
+        /// <summary>
+        /// 스폰 그룹 직렬화 (NetworkList 전송용)
+        /// </summary>
+        private SpawnGroupData[] SerializeSpawnGroups(List<PartySpawnGroup> spawnGroups)
+        {
+            var serialized = new SpawnGroupData[spawnGroups.Count];
+            
+            for (int i = 0; i < spawnGroups.Count; i++)
+            {
+                var group = spawnGroups[i];
+                
+                // 실제 멤버 수만큼 배열 생성
+                var memberIds = new ulong[group.memberCount];
+                for (int j = 0; j < group.memberCount; j++)
+                {
+                    memberIds[j] = group.GetMemberAtIndex(j);
+                }
+                
+                var spawnGroupData = new SpawnGroupData
+                {
+                    spawnCenter = group.spawnCenter,
+                    spawnRadius = group.spawnRadius,
+                    assignedZone = group.assignedZone
+                };
+                spawnGroupData.SetMemberClientIds(memberIds);
+                
+                serialized[i] = spawnGroupData;
+            }
+            
+            return serialized;
+        }
+        
+        [ClientRpc]
+        private void ApplySpawnGroupPositionsClientRpc(SpawnGroupData[] spawnGroupsData)
+        {
+            var localClientId = NetworkManager.Singleton.LocalClientId;
+            var localPlayer = NetworkManager.Singleton.SpawnManager.GetLocalPlayerObject();
+            
+            if (localPlayer == null) return;
+            
+            // 로컬 플레이어가 속한 스폰 그룹 찾기
+            foreach (var group in spawnGroupsData)
+            {
+                var memberIds = group.GetMemberClientIds();
+                if (System.Array.Exists(memberIds, id => id == localClientId))
+                {
+                    // 그룹 내에서의 개별 스폰 위치 계산
+                    var angle = Random.Range(0f, 360f) * Mathf.Deg2Rad;
+                    var distance = Random.Range(0f, group.spawnRadius);
+                    var spawnPosition = group.spawnCenter + new Vector3(
+                        Mathf.Cos(angle) * distance,
+                        Mathf.Sin(angle) * distance,
+                        0
+                    );
+                    
+                    localPlayer.transform.position = spawnPosition;
+                    
+                    Debug.Log($"🎯 Spawned in zone {group.assignedZone} at {spawnPosition}");
+                    break;
+                }
+            }
         }
     }
 }

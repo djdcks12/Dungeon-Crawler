@@ -55,7 +55,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
     /// 던전 정보 데이터
     /// </summary>
     [System.Serializable]
-    public struct DungeonInfo : INetworkSerializable
+    public struct DungeonInfo : INetworkSerializable, System.IEquatable<DungeonInfo>
     {
         public int dungeonId;
         public int dungeonNameHash; // string 대신 해시값 사용
@@ -88,6 +88,47 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             serializer.SerializeValue(ref timeLimit);
             serializer.SerializeValue(ref baseExpReward);
             serializer.SerializeValue(ref baseGoldReward);
+        }
+
+        // IEquatable 구현 - NetworkList 호환성을 위해 필요
+        public bool Equals(DungeonInfo other)
+        {
+            return dungeonId == other.dungeonId &&
+                   dungeonNameHash == other.dungeonNameHash &&
+                   dungeonType == other.dungeonType &&
+                   difficulty == other.difficulty &&
+                   currentFloor == other.currentFloor &&
+                   maxFloors == other.maxFloors &&
+                   recommendedLevel == other.recommendedLevel &&
+                   maxPlayers == other.maxPlayers &&
+                   Mathf.Approximately(timeLimit, other.timeLimit) &&
+                   baseExpReward == other.baseExpReward &&
+                   baseGoldReward == other.baseGoldReward;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is DungeonInfo other && Equals(other);
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 17;
+                hash = hash * 23 + dungeonId.GetHashCode();
+                hash = hash * 23 + dungeonNameHash.GetHashCode();
+                hash = hash * 23 + dungeonType.GetHashCode();
+                hash = hash * 23 + difficulty.GetHashCode();
+                hash = hash * 23 + currentFloor.GetHashCode();
+                hash = hash * 23 + maxFloors.GetHashCode();
+                hash = hash * 23 + recommendedLevel.GetHashCode();
+                hash = hash * 23 + maxPlayers.GetHashCode();
+                hash = hash * 23 + timeLimit.GetHashCode();
+                hash = hash * 23 + baseExpReward.GetHashCode();
+                hash = hash * 23 + baseGoldReward.GetHashCode();
+                return hash;
+            }
         }
     }
     
@@ -176,7 +217,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
     /// 던전 층 정보
     /// </summary>
     [System.Serializable]
-    public struct DungeonFloor : INetworkSerializable
+    public struct DungeonFloor : INetworkSerializable, System.IEquatable<DungeonFloor>
     {
         public int floorNumber;
         public int floorNameHash; // string 대신 해시값 사용
@@ -209,6 +250,45 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             serializer.SerializeValue(ref completionBonus);
             serializer.SerializeValue(ref playerSpawnPoint);
             serializer.SerializeValue(ref exitPoint);
+        }
+
+        // IEquatable 구현 - NetworkList 호환성을 위해 필요
+        public bool Equals(DungeonFloor other)
+        {
+            return floorNumber == other.floorNumber &&
+                   floorNameHash == other.floorNameHash &&
+                   floorSize.Equals(other.floorSize) &&
+                   monsterCount == other.monsterCount &&
+                   eliteCount == other.eliteCount &&
+                   hasBoss == other.hasBoss &&
+                   hasExit == other.hasExit &&
+                   Mathf.Approximately(completionBonus, other.completionBonus) &&
+                   playerSpawnPoint.Equals(other.playerSpawnPoint) &&
+                   exitPoint.Equals(other.exitPoint);
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is DungeonFloor other && Equals(other);
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 17;
+                hash = hash * 23 + floorNumber.GetHashCode();
+                hash = hash * 23 + floorNameHash.GetHashCode();
+                hash = hash * 23 + floorSize.GetHashCode();
+                hash = hash * 23 + monsterCount.GetHashCode();
+                hash = hash * 23 + eliteCount.GetHashCode();
+                hash = hash * 23 + hasBoss.GetHashCode();
+                hash = hash * 23 + hasExit.GetHashCode();
+                hash = hash * 23 + completionBonus.GetHashCode();
+                hash = hash * 23 + playerSpawnPoint.GetHashCode();
+                hash = hash * 23 + exitPoint.GetHashCode();
+                return hash;
+            }
         }
     }
     
@@ -262,6 +342,121 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                         itemCopy.NetworkSerialize(serializer);
                     }
                 }
+            }
+        }
+    }
+    
+    /// <summary>
+    /// 스폰 그룹 데이터 (네트워크 직렬화용)
+    /// </summary>
+    [System.Serializable]
+    public struct SpawnGroupData : INetworkSerializable, System.IEquatable<SpawnGroupData>
+    {
+        public Vector3 spawnCenter;
+        public float spawnRadius;
+        public int assignedZone;
+        public int memberCount;
+        // Unity Netcode는 ulong[] 배열 직렬화를 지원하지 않으므로 수동 구현
+        
+        private ulong[] memberClientIds;
+        
+        public void SetMemberClientIds(ulong[] clientIds)
+        {
+            memberClientIds = clientIds;
+            memberCount = clientIds?.Length ?? 0;
+        }
+        
+        public ulong[] GetMemberClientIds()
+        {
+            return memberClientIds ?? new ulong[0];
+        }
+        
+        public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
+        {
+            serializer.SerializeValue(ref spawnCenter);
+            serializer.SerializeValue(ref spawnRadius);
+            serializer.SerializeValue(ref assignedZone);
+            serializer.SerializeValue(ref memberCount);
+            
+            // ulong[] 배열 수동 직렬화
+            if (serializer.IsReader)
+            {
+                memberClientIds = new ulong[memberCount];
+                for (int i = 0; i < memberCount; i++)
+                {
+                    ulong clientId = 0;
+                    serializer.SerializeValue(ref clientId);
+                    memberClientIds[i] = clientId;
+                }
+            }
+            else
+            {
+                if (memberClientIds != null)
+                {
+                    for (int i = 0; i < memberCount; i++)
+                    {
+                        ulong clientId = memberClientIds[i];
+                        serializer.SerializeValue(ref clientId);
+                    }
+                }
+            }
+        }
+        
+        public bool Equals(SpawnGroupData other)
+        {
+            bool memberIdsEqual = true;
+            if (memberClientIds != null && other.memberClientIds != null)
+            {
+                if (memberClientIds.Length != other.memberClientIds.Length)
+                {
+                    memberIdsEqual = false;
+                }
+                else
+                {
+                    for (int i = 0; i < memberClientIds.Length; i++)
+                    {
+                        if (memberClientIds[i] != other.memberClientIds[i])
+                        {
+                            memberIdsEqual = false;
+                            break;
+                        }
+                    }
+                }
+            }
+            else if (memberClientIds != other.memberClientIds)
+            {
+                memberIdsEqual = false;
+            }
+            
+            return spawnCenter.Equals(other.spawnCenter) &&
+                   Mathf.Approximately(spawnRadius, other.spawnRadius) &&
+                   assignedZone == other.assignedZone &&
+                   memberCount == other.memberCount &&
+                   memberIdsEqual;
+        }
+        
+        public override bool Equals(object obj)
+        {
+            return obj is SpawnGroupData other && Equals(other);
+        }
+        
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 17;
+                hash = hash * 23 + spawnCenter.GetHashCode();
+                hash = hash * 23 + spawnRadius.GetHashCode();
+                hash = hash * 23 + assignedZone.GetHashCode();
+                hash = hash * 23 + memberCount.GetHashCode();
+                if (memberClientIds != null)
+                {
+                    for (int i = 0; i < memberClientIds.Length; i++)
+                    {
+                        hash = hash * 23 + memberClientIds[i].GetHashCode();
+                    }
+                }
+                return hash;
             }
         }
     }
