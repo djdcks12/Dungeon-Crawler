@@ -129,7 +129,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         
         private void HandleMovement()
         {
-            if (playerInput == null) return;
+            if (playerInput == null || rb == null) return;
             
             Vector2 moveInput = playerInput.GetMoveInput();
             
@@ -146,12 +146,16 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 actualMoveSpeed = statsManager.CurrentStats.MoveSpeed;
             }
             
-            Vector2 movement = moveInput * actualMoveSpeed;
+            // NetworkRigidbody2D와 호환되는 velocity 기반 이동
+            Vector2 targetVelocity = moveInput * actualMoveSpeed;
             
-            // 디버그: velocity 적용 전후 (입력이 있을 때만)
-            if (moveInput.magnitude > 0.01f)
+            // velocity를 직접 설정 (NetworkRigidbody2D가 자동으로 네트워크 동기화)
+            rb.linearVelocity = targetVelocity;
+            
+            // 디버그: velocity 적용 (입력이 있을 때만)
+            if (moveInput.magnitude > 0.01f && Time.fixedTime % 1f < Time.fixedDeltaTime)
             {
-                Debug.Log($"🏃 Movement APPLIED: input={moveInput}, speed={actualMoveSpeed}, oldVel={rb.linearVelocity}, newVel={movement}");
+                Debug.Log($"🏃 Movement: input={moveInput:F2}, speed={actualMoveSpeed:F1}, velocity={rb.linearVelocity:F2}");
             }
             
             // FixedUpdate 실행 확인 (2초마다 한 번)
@@ -160,21 +164,10 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 Debug.Log($"⚙️ FixedUpdate/HandleMovement called - input={moveInput.magnitude:F2}");
             }
             
-            // NetworkTransform과 호환성을 위해 MovePosition 사용
-            if (moveInput.magnitude > 0.01f)
+            // 네트워크 동기화 디버깅 (1초마다)
+            if (moveInput.magnitude > 0.01f && Time.fixedTime % 1f < Time.fixedDeltaTime)
             {
-                Vector2 newPosition = rb.position + movement * Time.fixedDeltaTime;
-                rb.MovePosition(newPosition);
-            }
-            else
-            {
-                rb.linearVelocity = Vector2.zero; // 정지 시 velocity 초기화
-            }
-            
-            // 위치 동기화 디버깅
-            if (moveInput.magnitude > 0.01f && Time.frameCount % 60 == 0) // 1초마다
-            {
-                Debug.Log($"🌐 Position Sync: {gameObject.name} pos={transform.position}, IsLocalPlayer={IsLocalPlayer}, NetworkId={NetworkObjectId}");
+                Debug.Log($"🌐 Network Sync: {gameObject.name} pos={transform.position:F2}, vel={rb.linearVelocity:F2}, IsLocalPlayer={IsLocalPlayer}");
             }
             
             

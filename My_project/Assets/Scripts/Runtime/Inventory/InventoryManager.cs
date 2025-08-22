@@ -445,14 +445,24 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         public bool AddItemToInventory(ItemInstance item)
         {
-            if (item == null || inventory == null) return false;
+            if (item == null || inventory == null) 
+            {
+                Debug.LogError("❌ Cannot add item: item or inventory is null");
+                return false;
+            }
             
-            int remainder;
-            bool success = inventory.TryAddItem(item, out remainder);
+            if (item.ItemData == null)
+            {
+                Debug.LogError("❌ Cannot add item: ItemData is null");
+                return false;
+            }
+            
+            int slotIndex;
+            bool success = inventory.TryAddItem(item, out slotIndex);
             
             if (success)
             {
-                OnItemAdded?.Invoke(item, item.Quantity - remainder);
+                OnItemAdded?.Invoke(item, slotIndex);
                 OnInventoryUpdated?.Invoke();
                 
                 // 네트워크 동기화
@@ -461,7 +471,11 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                     networkInventory.Value = inventory;
                 }
                 
-                Debug.Log($"📦 Added {item.ItemData.ItemName} to inventory");
+                Debug.Log($"📦 Added {item.ItemData.ItemName} x{item.Quantity} to inventory slot {slotIndex}");
+            }
+            else
+            {
+                Debug.LogError($"❌ Failed to add {item.ItemData.ItemName} to inventory - inventory full or other error");
             }
             
             return success;
