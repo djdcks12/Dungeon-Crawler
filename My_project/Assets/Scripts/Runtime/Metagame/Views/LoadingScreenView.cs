@@ -18,6 +18,9 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             m_Root = m_UIDocument.rootVisualElement;
             m_QuitButton = m_Root.Q<Button>("quitButton");
             m_QuitButton.RegisterCallback<ClickEvent>(OnClickQuit);
+            
+            // 던전 크롤러 게임에서는 LoadingScreenView 사용하지 않음 - 완전 비활성화
+            m_Root.style.display = UnityEngine.UIElements.DisplayStyle.None;
         }
 
         void OnDisable()

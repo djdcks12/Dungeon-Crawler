@@ -39,7 +39,8 @@
 1. Hierarchy 우클릭 > `Create Empty`
 2. 이름: `TestGameManager`
 3. `TestGameManager.cs` 스크립트 추가
-4. Inspector 설정:
+4. `NetworkObject` 컴포넌트 자동 추가 (NetworkBehaviour 상속 때문에 필수)
+5. Inspector 설정:
    ```
    Enable Cheat Codes: ✓
    Cheat Menu Key: F1
@@ -58,40 +59,71 @@
    Test Player Name: "TestPlayer"
    ```
 
-## 🗺️ **4단계: 게임 환경 구축**
+## 🗺️ **4단계: 2D 게임 환경 구축**
 
-### **Ground (바닥) 생성**
-1. Hierarchy 우클릭 > `3D Object > Plane`
+### **카메라 설정 (2D용)**
+1. Main Camera 선택 (NetworkManager가 관리하지 않는 경우)
+2. Inspector에서:
+   ```
+   Projection: Orthographic
+   Size: 10
+   Position: (0, 0, -10)
+   ```
+
+### **Ground (바닥) 생성 - 2D 스프라이트**
+1. Hierarchy 우클릭 > `2D Object > Sprite`
 2. 이름: `Ground`
-3. Transform 설정:
-   ```
-   Position: (0, 0, 0)
-   Scale: (5, 1, 5)  // 50x50 크기
-   ```
-4. Material 적용 (선택사항):
-   - `Assets/Prefabs/New Material.mat` 적용
-
-### **Walls (벽) 생성**
-1. Hierarchy 우클릭 > `3D Object > Cube`
-2. 이름: `Wall_North`  
 3. Transform:
    ```
-   Position: (0, 1, 25)
-   Scale: (50, 2, 1)
+   Position: (0, 0, 0)
+   Scale: (20, 20, 1)  // 큰 바닥 영역
    ```
-4. 같은 방식으로 4개 벽 생성:
-   - `Wall_South`: (0, 1, -25), Scale(50, 2, 1)
-   - `Wall_East`: (25, 1, 0), Scale(1, 2, 50)  
-   - `Wall_West`: (-25, 1, 0), Scale(1, 2, 50)
+4. Sprite Renderer:
+   ```
+   Sprite: 기본 Unity 스프라이트 (흰색 사각형)
+   Color: 회색 (R:0.8, G:0.8, B:0.8)
+   ```
+5. Collider 추가:
+   - `Add Component > Box Collider 2D`
+   - `Is Trigger: ✗` (물리 충돌용)
 
-### **SpawnPoints 생성**
+### **Walls (벽) 생성 - 2D 스프라이트**
+1. Hierarchy 우클릭 > `2D Object > Sprite`
+2. 이름: `Wall_North`
+3. Transform:
+   ```
+   Position: (0, 10, 0)
+   Scale: (22, 1, 1)  // 가로로 긴 벽
+   ```
+4. Sprite Renderer:
+   ```
+   Sprite: Unity 기본 스프라이트
+   Color: 어두운 회색 (R:0.3, G:0.3, B:0.3)
+   ```
+5. Collider 추가:
+   - `Add Component > Box Collider 2D`
+
+**나머지 벽들:**
+같은 방식으로 3개 더 생성:
+- `Wall_South`: Position(0, -10, 0), Scale(22, 1, 1)
+- `Wall_East`: Position(10, 0, 0), Scale(1, 22, 1)
+- `Wall_West`: Position(-10, 0, 0), Scale(1, 22, 1)
+
+### **SpawnPoints 생성 (2D 좌표)**
 1. Hierarchy 우클릭 > `Create Empty`
 2. 이름: `SpawnPoint_1`
-3. Transform: Position(-5, 1, 0)
+3. Transform: Position(-3, 0, 0)  // 2D에서는 Z=0
 4. 추가 스폰포인트들:
-   - `SpawnPoint_2`: (5, 1, 0)
-   - `SpawnPoint_3`: (0, 1, -5)
-   - `SpawnPoint_4`: (0, 1, 5)
+   - `SpawnPoint_2`: (3, 0, 0)
+   - `SpawnPoint_3`: (0, -3, 0)
+   - `SpawnPoint_4`: (0, 3, 0)
+
+### **2D Physics 설정**
+1. `Edit > Project Settings > Physics 2D`
+2. Gravity 설정:
+   ```
+   Gravity: (0, 0)  // 탑다운 게임이므로 중력 없음
+   ```
 
 ## 🎨 **5단계: UI 시스템 구성**
 
@@ -272,25 +304,26 @@ Debug UI: DebugPanel의 DebugUI 컴포넌트
 4. WASD로 이동 테스트
 5. 상대방 화면에서 이동 동기화 확인
 
-## 📋 **완성된 Hierarchy 구조**
+## 📋 **완성된 2D TestScene Hierarchy 구조**
 ```
 TestScene
-├── Directional Light
+├── Main Camera (Orthographic, Size: 10)
 ├── NetworkManager (prefab)
 ├── UnityServicesManager (prefab)
-├── TestGameManager
+├── TestGameManager (+ NetworkObject)
 ├── AuthManager
-├── Environment
-│   ├── Ground (Plane)
-│   ├── Wall_North (Cube)
-│   ├── Wall_South (Cube)
-│   ├── Wall_East (Cube)
-│   └── Wall_West (Cube)
-├── SpawnPoints
-│   ├── SpawnPoint_1
-│   ├── SpawnPoint_2
-│   ├── SpawnPoint_3
-│   └── SpawnPoint_4
+├── GameFlowManager
+├── 2D Environment
+│   ├── Ground (2D Sprite, 회색, Box Collider 2D)
+│   ├── Wall_North (2D Sprite, 어두운 회색)
+│   ├── Wall_South (2D Sprite, 어두운 회색)
+│   ├── Wall_East (2D Sprite, 어두운 회색)
+│   └── Wall_West (2D Sprite, 어두운 회색)
+├── SpawnPoints (2D 좌표)
+│   ├── SpawnPoint_1 (-3, 0, 0)
+│   ├── SpawnPoint_2 (3, 0, 0)
+│   ├── SpawnPoint_3 (0, -3, 0)
+│   └── SpawnPoint_4 (0, 3, 0)
 ├── Managers
 │   ├── ItemDatabaseManager
 │   └── MonsterSpawner
@@ -312,15 +345,24 @@ TestScene
         └── HealPlayerButton
 ```
 
-## ✅ **구성 완료 체크리스트**
+## ✅ **2D 환경 구성 완료 체크리스트**
 - [ ] TestScene 생성 및 저장
+- [ ] Main Camera를 Orthographic으로 설정
 - [ ] NetworkManager 프리팹 추가
-- [ ] TestGameManager 설정
+- [ ] TestGameManager 설정 (+ NetworkObject)
 - [ ] SimpleAuthManager 설정
-- [ ] 기본 게임 환경 (Ground, Walls, SpawnPoints)
+- [ ] GameFlowManager 추가
+- [ ] 2D 스프라이트 환경 (Ground, 4개 Walls + Collider 2D)
+- [ ] 2D 좌표계 SpawnPoints 설정
+- [ ] Physics 2D 중력 (0, 0) 설정
 - [ ] UI Canvas 및 패널들
 - [ ] 모든 버튼 및 텍스트 컴포넌트
 - [ ] 스크립트들 연결 완료
 - [ ] Build Settings에 씬 추가
 
-**🎯 다음 단계**: 이제 CharacterCreationUI를 만들어서 전체 게임 플로우를 완성하겠습니다!
+## 🎮 **2D vs 3D 차이점 요약**
+- **카메라**: Perspective → Orthographic
+- **환경**: 3D Primitives → 2D Sprites + Collider 2D
+- **물리**: Physics (3D) → Physics 2D (중력 없음)
+- **좌표**: Y축 높이 → Y축 상하 이동
+- **충돌**: Box/Sphere Collider → Box/Circle Collider 2D

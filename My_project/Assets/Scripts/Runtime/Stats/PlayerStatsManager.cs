@@ -17,19 +17,19 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         [Header("Stats Synchronization")]
         private NetworkVariable<int> networkLevel = new NetworkVariable<int>(1, 
             NetworkVariableReadPermission.Everyone, 
-            NetworkVariableWritePermission.Owner);
+            NetworkVariableWritePermission.Server);
         private NetworkVariable<float> networkCurrentHP = new NetworkVariable<float>(100f,
             NetworkVariableReadPermission.Everyone,
-            NetworkVariableWritePermission.Owner);
+            NetworkVariableWritePermission.Server);
         private NetworkVariable<float> networkMaxHP = new NetworkVariable<float>(100f,
             NetworkVariableReadPermission.Everyone,
-            NetworkVariableWritePermission.Owner);
+            NetworkVariableWritePermission.Server);
         private NetworkVariable<float> networkCurrentMP = new NetworkVariable<float>(100f,
             NetworkVariableReadPermission.Everyone,
-            NetworkVariableWritePermission.Owner);
+            NetworkVariableWritePermission.Server);
         private NetworkVariable<float> networkMaxMP = new NetworkVariable<float>(100f,
             NetworkVariableReadPermission.Everyone,
-            NetworkVariableWritePermission.Owner);
+            NetworkVariableWritePermission.Server);
         
         // 컴포넌트 참조
         private PlayerController playerController;
@@ -319,7 +319,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         // 네트워크 변수 업데이트
         private void UpdateNetworkVariables()
         {
-            if (!IsOwner || currentStats == null) return;
+            if (!IsServer || currentStats == null) return;
             
             networkLevel.Value = currentStats.CurrentLevel;
             networkCurrentHP.Value = currentStats.CurrentHP;
