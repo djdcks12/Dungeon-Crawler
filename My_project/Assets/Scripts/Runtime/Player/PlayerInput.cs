@@ -23,6 +23,12 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         
         private void Update()
         {
+            // PlayerInput Update 호출 확인 (2초마다 한 번)
+            if (Time.frameCount % 120 == 0)
+            {
+                Debug.Log($"🎯 PlayerInput Update called for {gameObject.name}");
+            }
+            
             HandleInput();
         }
         
@@ -32,6 +38,18 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             float horizontal = Input.GetAxis("Horizontal");
             float vertical = Input.GetAxis("Vertical");
             moveInput = new Vector2(horizontal, vertical);
+            
+            // Input.GetAxis 동작 확인 (한 번만 로그)
+            if (Time.frameCount % 240 == 0) // 4초마다 한 번
+            {
+                Debug.Log($"🔍 Input.GetAxis values - Horizontal: {horizontal:F2}, Vertical: {vertical:F2}");
+            }
+            
+            // 이동 입력 디버그 (0이 아닐 때만)
+            if (debugInput && moveInput.magnitude > 0.1f)
+            {
+                Debug.Log($"🎮 PlayerInput: Move input detected - H:{horizontal:F2}, V:{vertical:F2}");
+            }
             
             // 마우스 위치
             mousePosition = Input.mousePosition;

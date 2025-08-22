@@ -118,6 +118,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             {
                 fps = frameCount / (Time.unscaledTime - lastUpdateTime);
                 frameCount = 0;
+                lastUpdateTime = Time.unscaledTime; // 이 줄이 빠져있었음
             }
         }
         

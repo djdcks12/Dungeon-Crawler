@@ -7,15 +7,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
     /// </summary>
     public class GameView : View<GameApplication>
     {
-        internal MatchView Match => m_MatchView;
-
-        [SerializeField]
-        MatchView m_MatchView;
-
-        internal MatchRecapView MatchRecap => m_MatchRecapView;
-
-        [SerializeField]
-        MatchRecapView m_MatchRecapView;
 
         void Awake()
         {

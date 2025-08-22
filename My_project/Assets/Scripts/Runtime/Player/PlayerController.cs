@@ -39,9 +39,23 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         {
             base.OnNetworkSpawn();
             
+            Debug.Log($"🚀 PlayerController OnNetworkSpawn called for {gameObject.name}, IsLocalPlayer: {IsLocalPlayer}, OwnerClientId: {OwnerClientId}, IsOwner: {IsOwner}, IsServer: {IsServer}");
+            
             // 컴포넌트 초기화
             rb = GetComponent<Rigidbody2D>();
+            
+            // PlayerInput이 없으면 자동 추가
             playerInput = GetComponent<PlayerInput>();
+            if (playerInput == null)
+            {
+                playerInput = gameObject.AddComponent<PlayerInput>();
+                Debug.Log($"✅ PlayerInput component automatically added to {gameObject.name}");
+            }
+            else
+            {
+                Debug.Log($"✅ PlayerInput component already exists on {gameObject.name}");
+            }
+            
             playerNetwork = GetComponent<PlayerNetwork>();
             statsManager = GetComponent<PlayerStatsManager>();
             combatSystem = GetComponent<CombatSystem>();
@@ -84,7 +98,21 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         
         private void Update()
         {
-            if (!IsLocalPlayer) return;
+            if (!IsLocalPlayer) 
+            {
+                // 한 번만 로그 출력 (프레임마다 출력 방지)
+                if (Time.frameCount % 60 == 0) // 1초마다 한 번
+                {
+                    Debug.Log($"⚠️ Update: {gameObject.name} is NOT LocalPlayer, skipping input");
+                }
+                return;
+            }
+            
+            // LocalPlayer인 경우 로그 (한 번만)
+            if (Time.frameCount % 120 == 0) // 2초마다 한 번
+            {
+                Debug.Log($"✅ Update: {gameObject.name} IS LocalPlayer, handling input");
+            }
             
             HandleRotation();
             HandleAttack();
@@ -119,13 +147,36 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             }
             
             Vector2 movement = moveInput * actualMoveSpeed;
-            rb.linearVelocity = movement;
             
-            // 네트워크 동기화
-            if (playerNetwork != null)
+            // 디버그: velocity 적용 전후 (입력이 있을 때만)
+            if (moveInput.magnitude > 0.01f)
             {
-                playerNetwork.UpdatePosition(transform.position);
+                Debug.Log($"🏃 Movement APPLIED: input={moveInput}, speed={actualMoveSpeed}, oldVel={rb.linearVelocity}, newVel={movement}");
             }
+            
+            // FixedUpdate 실행 확인 (2초마다 한 번)
+            if (Time.fixedTime % 2f < Time.fixedDeltaTime)
+            {
+                Debug.Log($"⚙️ FixedUpdate/HandleMovement called - input={moveInput.magnitude:F2}");
+            }
+            
+            // NetworkTransform과 호환성을 위해 MovePosition 사용
+            if (moveInput.magnitude > 0.01f)
+            {
+                Vector2 newPosition = rb.position + movement * Time.fixedDeltaTime;
+                rb.MovePosition(newPosition);
+            }
+            else
+            {
+                rb.linearVelocity = Vector2.zero; // 정지 시 velocity 초기화
+            }
+            
+            // 위치 동기화 디버깅
+            if (moveInput.magnitude > 0.01f && Time.frameCount % 60 == 0) // 1초마다
+            {
+                Debug.Log($"🌐 Position Sync: {gameObject.name} pos={transform.position}, IsLocalPlayer={IsLocalPlayer}, NetworkId={NetworkObjectId}");
+            }
+            
             
             // 비주얼 매니저 애니메이션 업데이트 (이동 애니메이션만)
             if (visualManager != null)
@@ -167,10 +218,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             transform.rotation = Quaternion.Euler(0f, 0f, newAngle);
             
             // 네트워크 동기화
-            if (playerNetwork != null)
-            {
-                playerNetwork.UpdateRotation(newAngle);
-            }
             
             // 마우스 방향에 따른 비주얼 업데이트 (바라보는 방향만)
             if (visualManager != null)

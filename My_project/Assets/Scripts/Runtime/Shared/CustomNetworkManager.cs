@@ -51,9 +51,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         bool m_PreparedGame = true;
 
         [SerializeField]
-        GameApplication m_GameAppPrefab;
-        GameApplication m_GameApp;
-        [SerializeField]
         Player m_BotPrefab;
 
         internal HashSet<Player> ReadyPlayers { get; private set; }
@@ -317,10 +314,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             if (IsServer)
             {
                 ReadyPlayers.RemoveWhere(p => p.NetworkObject == m_NetworkManager.ConnectedClients[ClientId].PlayerObject);
-                if (GameApplication.Instance) //the game already started
-                {
-                    GameApplication.Instance.Broadcast(new PlayerDisconnected(ClientId));
-                }
             }
         }
 
@@ -362,21 +355,15 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         {
             Debug.Log("[Server] Preparing game");
             m_PreparedGame = true;
-            InstantiateGameApplication();
             foreach (var connectionToClient in m_NetworkManager.ConnectedClients.Values)
             {
                 connectionToClient.PlayerObject.GetComponent<Player>().OnClientPrepareGameClientRpc();
             }
         }
 
-        internal void InstantiateGameApplication()
-        {
-            m_GameApp = Instantiate(m_GameAppPrefab);
-        }
 
         internal void OnServerGameReadyToStart()
         {
-            m_GameApp.Broadcast(new StartMatchEvent(true, false));
             foreach (var player in ReadyPlayers)
             {
                 player.OnClientStartGameClientRpc();
@@ -393,7 +380,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             {
                 m_NetworkManager.Shutdown();
             }
-            Destroy(GameApplication.Instance.gameObject);
             ReturnToMetagame?.Invoke();
         }
 

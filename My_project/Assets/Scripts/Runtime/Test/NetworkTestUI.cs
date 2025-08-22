@@ -91,16 +91,12 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         public void StartHost()
         {
-            if (networkManager.StartHost())
-            {
-                Debug.Log("🔸 Started as Host");
-                UpdateStatus("Starting as Host...", Color.yellow);
-            }
-            else
-            {
-                Debug.LogError("❌ Failed to start Host");
-                UpdateStatus("Failed to start Host", Color.red);
-            }
+            Debug.Log("🔸 Attempting to start Host...");
+            UpdateStatus("Starting as Host...", Color.yellow);
+            
+            // StartHost는 즉시 성공/실패를 반환하지 않으므로 호출만 하고
+            // 실제 결과는 네트워크 상태 변화로 확인
+            networkManager.StartHost();
             
             UpdateButtonStates();
         }
@@ -270,9 +266,35 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 
                 if (networkManager == null) continue;
                 
+                UpdateNetworkStatus();
                 UpdateConnectionInfo();
                 UpdatePlayersList();
                 UpdateButtonStates();
+            }
+        }
+        
+        /// <summary>
+        /// 실제 네트워크 상태를 확인해서 상태 텍스트 업데이트
+        /// </summary>
+        private void UpdateNetworkStatus()
+        {
+            if (!networkManager.IsListening)
+            {
+                UpdateStatus("Not Connected", Color.gray);
+            }
+            else if (networkManager.IsHost)
+            {
+                int playerCount = networkManager.ConnectedClients.Count;
+                UpdateStatus($"🔸 Host ({playerCount} players)", Color.green);
+            }
+            else if (networkManager.IsServer)
+            {
+                int playerCount = networkManager.ConnectedClients.Count;
+                UpdateStatus($"🔸 Server ({playerCount} players)", Color.green);
+            }
+            else if (networkManager.IsClient)
+            {
+                UpdateStatus("🔸 Client Connected", Color.green);
             }
         }
         

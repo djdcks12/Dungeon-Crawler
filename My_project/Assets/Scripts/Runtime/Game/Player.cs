@@ -32,13 +32,10 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             }
             if (MetagameApplication.Instance)
             {
-                MetagameApplication.Instance.Broadcast(new MatchEnteredEvent());
+                // 던전 크롤러 테스트 환경에서는 MatchEnteredEvent 사용하지 않음 - 비활성화
+                // MetagameApplication.Instance.Broadcast(new MatchEnteredEvent());
             }
             Debug.Log("[Local client] Preparing game [Showing loading screen]");
-            if (!IsServer) //the server already does this before asking clients to do the same
-            {
-                CustomNetworkManager.Singleton.InstantiateGameApplication();
-            }
             OnClientReadyToStart();
         }
 
@@ -59,7 +56,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         internal void OnClientStartGameClientRpc()
         {
             if (!IsLocalPlayer) { return; }
-            GameApplication.Instance.Broadcast(new StartMatchEvent(false, true));
         }
 
         [ServerRpc]
@@ -70,7 +66,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
 
         internal void OnServerPlayerAskedToWin()
         {
-            GameApplication.Instance.Broadcast(new EndMatchEvent(this));
         }
         
         // PlayerController 접근용 메서드들
