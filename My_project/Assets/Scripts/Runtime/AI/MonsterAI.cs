@@ -17,7 +17,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         [SerializeField] protected float attackRange = 1.5f;
         [SerializeField] protected float loseTargetRange = 8f;
         [SerializeField] protected float moveSpeed = 2f;
-        [SerializeField] protected float rotationSpeed = 180f;
         
         [Header("공격 설정")]
         [SerializeField] protected float attackCooldown = 2f;
@@ -417,17 +416,18 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         }
         
         /// <summary>
-        /// 특정 위치를 바라보기
+        /// 특정 위치를 바라보기 (Scale 기반)
         /// </summary>
         protected void LookAt(Vector3 targetPosition)
         {
-            Vector3 direction = (targetPosition - transform.position).normalized;
-            if (direction != Vector3.zero)
+            Vector3 direction = (targetPosition - transform.position);
+            if (Mathf.Abs(direction.x) > 0.1f) // 최소 거리 임계값
             {
-                float targetAngle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg - 90f;
-                float currentAngle = transform.eulerAngles.z;
-                float newAngle = Mathf.MoveTowardsAngle(currentAngle, targetAngle, rotationSpeed * Time.deltaTime);
-                transform.rotation = Quaternion.Euler(0f, 0f, newAngle);
+                // 좌우 방향에 따라 Scale 변경
+                float lookDirection = direction.x > 0 ? 1f : -1f;
+                
+                Vector3 currentScale = transform.localScale;
+                transform.localScale = new Vector3(lookDirection * Mathf.Abs(currentScale.x), currentScale.y, currentScale.z);
             }
         }
         

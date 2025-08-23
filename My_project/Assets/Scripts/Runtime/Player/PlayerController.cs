@@ -5,13 +5,12 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
 {
     /// <summary>
     /// 하드코어 던전 크롤러 탑다운 2D 플레이어 컨트롤러
-    /// WASD 이동, 마우스 회전, 좌클릭 공격, 우클릭 스킬
+    /// WASD 이동, 좌우 Scale 기반 방향 전환, 좌클릭 공격, 우클릭 스킬
     /// </summary>
     public class PlayerController : NetworkBehaviour
     {
         [Header("Movement Settings")]
         [SerializeField] private float baseMoveSpeed = 5.0f;
-        [SerializeField] private float rotationSpeed = 720.0f;
         
         [Header("Attack Settings")]
         [SerializeField] private float baseAttackCooldown = 0.5f;
@@ -114,7 +113,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 Debug.Log($"✅ Update: {gameObject.name} IS LocalPlayer, handling input");
             }
             
-            HandleRotation();
+            HandleDirection();
             HandleAttack();
             HandleSkill();
             HandleUI();
@@ -194,29 +193,48 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             }
         }
         
-        private void HandleRotation()
+        private void HandleDirection()
         {
-            if (playerInput == null || playerCamera == null) return;
+            // 이동 입력에 따른 좌우 방향 전환 (Scale 기반)
+            Vector2 moveInput = playerInput.GetMoveInput();
+            
+            if (moveInput.x != 0)
+            {
+                // 왼쪽(-1) 또는 오른쪽(1)으로 스케일 설정
+                float direction = moveInput.x > 0 ? 1f : -1f;
+                
+                // Y, Z는 원래 값 유지, X만 변경
+                Vector3 currentScale = transform.localScale;
+                transform.localScale = new Vector3(direction * Mathf.Abs(currentScale.x), currentScale.y, currentScale.z);
+            }
+        }
+        
+        /// <summary>
+        /// 마우스 방향 벡터 반환 (스킬 시전용)
+        /// </summary>
+        public Vector2 GetMouseDirection()
+        {
+            if (playerInput == null || playerCamera == null) return Vector2.right;
             
             Vector2 mousePosition = playerInput.GetMousePosition();
             Vector3 worldMousePosition = playerCamera.ScreenToWorldPoint(new Vector3(mousePosition.x, mousePosition.y, playerCamera.nearClipPlane));
             worldMousePosition.z = 0f;
             
-            Vector2 direction = (worldMousePosition - transform.position).normalized;
-            float targetAngle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg - 90f;
+            return (worldMousePosition - transform.position).normalized;
+        }
+        
+        /// <summary>
+        /// 마우스 월드 좌표 반환 (스킬 타겟팅용)
+        /// </summary>
+        public Vector3 GetMouseWorldPosition()
+        {
+            if (playerInput == null || playerCamera == null) return transform.position;
             
-            // 부드러운 회전
-            float currentAngle = transform.eulerAngles.z;
-            float newAngle = Mathf.MoveTowardsAngle(currentAngle, targetAngle, rotationSpeed * Time.deltaTime);
-            transform.rotation = Quaternion.Euler(0f, 0f, newAngle);
+            Vector2 mousePosition = playerInput.GetMousePosition();
+            Vector3 worldMousePosition = playerCamera.ScreenToWorldPoint(new Vector3(mousePosition.x, mousePosition.y, playerCamera.nearClipPlane));
+            worldMousePosition.z = 0f;
             
-            // 네트워크 동기화
-            
-            // 마우스 방향에 따른 비주얼 업데이트 (바라보는 방향만)
-            if (visualManager != null)
-            {
-                visualManager.SetDirectionFromMouse(direction);
-            }
+            return worldMousePosition;
         }
         
         private void HandleAttack()
