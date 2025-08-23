@@ -1153,9 +1153,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.MonsterSpawner
   ShowTopMostFoldoutHeaderGroup: 1
-  monsterPrefabs: []
-  spawnPoints: []
-  maxMonsters: 10
+  monsterPrefabs:
+  - {fileID: 7835155605699564521, guid: 4dcec3810c19ab44e87e07ad835e066c, type: 3}
+  spawnPoints:
+  - {fileID: 1650805222}
+  - {fileID: 1540168301}
+  - {fileID: 2093520456}
+  - {fileID: 1630473285}
+  maxMonsters: 5
   spawnRadius: 5
   spawnInterval: 10
   autoSpawn: 0
@@ -3439,8 +3444,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 0.99993896}
-  m_SizeDelta: {x: 255, y: 47.7}
+  m_AnchoredPosition: {x: 0, y: 5}
+  m_SizeDelta: {x: 255, y: 88.5}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1862065376
 MonoBehaviour:

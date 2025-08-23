@@ -200,184 +200,30 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
 
             Debug.Log("🔍 Searching for InventoryManager...");
             
-            // InventoryManager 찾기 또는 자동 추가
             var inventoryManager = localPlayer.GetComponent<InventoryManager>();
             if (inventoryManager == null)
             {
-                Debug.LogWarning("⚠️ InventoryManager not found, adding automatically...");
-                inventoryManager = localPlayer.gameObject.AddComponent<InventoryManager>();
-                Debug.Log("✅ InventoryManager added to player");
-                
-                // InventoryManager가 NetworkBehaviour이므로 OnNetworkSpawn을 기다려야 함
-                // 임시로 다음 프레임까지 기다림
-                StartCoroutine(DelayedItemCreation(inventoryManager));
+                Debug.LogError("❌ InventoryManager not found on player. Make sure DungeonPlayer prefab has InventoryManager component.");
                 return;
             }
             
-            // InventoryManager가 이미 있는 경우 바로 진행
-            CreateTestItemsWithInventory(inventoryManager);
-        }
-        
-        /// <summary>
-        /// 지연된 아이템 생성 (새로 추가된 InventoryManager용)
-        /// </summary>
-        private System.Collections.IEnumerator DelayedItemCreation(InventoryManager inventoryManager)
-        {
-            // 다음 프레임까지 대기 (NetworkBehaviour 초기화 시간 확보)
-            yield return null;
-            
-            Debug.Log("🔄 Delayed item creation starting...");
-            CreateTestItemsWithInventory(inventoryManager);
-        }
-        
-        /// <summary>
-        /// InventoryManager를 사용하여 테스트 아이템 생성
-        /// </summary>
-        private void CreateTestItemsWithInventory(InventoryManager inventoryManager)
-        {
-            // ItemDatabase 초기화 (isInitialized는 private이므로 Initialize 직접 호출)
-            Debug.Log("🔄 Initializing ItemDatabase...");
-            ItemDatabase.Initialize();
-            
-            // ItemDatabase 통계 먼저 출력
-            ItemDatabase.LogStatistics();
-            
-            // 모든 아이템 목록 확인
-            var allItems = ItemDatabase.GetAllItems();
-            Debug.Log($"📋 Found {allItems.Count} items in database:");
-            foreach (var item in allItems.Take(3))  // 처음 3개만 표시
-            {
-                Debug.Log($"  - {item.ItemId}: {item.ItemName} (Grade: {item.Grade})");
-            }
-            
-            // 랜덤 아이템 생성 시도 - 더 자세한 디버깅
-            Debug.Log("🎲 Attempting to create random item...");
-            
-            // 등급별 아이템 수 확인
-            Debug.Log("🔍 Items by grade:");
-            for (int grade = 1; grade <= 5; grade++)
-            {
-                var gradeEnum = (ItemGrade)grade;
-                var itemsOfGrade = ItemDatabase.GetItemsByGrade(gradeEnum);
-                Debug.Log($"  {gradeEnum}: {itemsOfGrade.Count} items");
-            }
-            
+            // 랜덤 아이템 생성 및 인벤토리 추가
             var testItem = ItemDatabase.GetRandomItemDrop();
-            
-            Debug.Log($"🔍 Random drop result: testItem = {(testItem != null ? "NOT NULL" : "NULL")}");
-            
-            if (testItem != null)
+            if (testItem != null && testItem.IsValid())
             {
-                Debug.Log($"🔍 Item details: ID={testItem.ItemId}, IsValid={testItem.IsValid()}");
-                
-                if (testItem.ItemData != null)
+                bool success = inventoryManager.AddItem(testItem);
+                if (success)
                 {
-                    Debug.Log($"🔍 ItemData: {testItem.ItemData.ItemName} (Grade: {testItem.ItemData.Grade})");
+                    Debug.Log($"🎁 SUCCESS: Created test item: {testItem.ItemData.ItemName} (Grade: {testItem.ItemData.Grade})");
                 }
                 else
                 {
-                    Debug.LogError("❌ testItem.ItemData is NULL!");
-                }
-                
-                if (testItem.IsValid())
-                {
-                    Debug.Log("🔍 Item is valid, adding to inventory...");
-                    bool success = inventoryManager.AddItem(testItem);
-                    if (success)
-                    {
-                        Debug.Log($"🎁 SUCCESS: Created test item: {testItem.ItemData.ItemName} (Grade: {testItem.ItemData.Grade})");
-                    }
-                    else
-                    {
-                        Debug.LogWarning($"⚠️ Failed to add item to inventory: {testItem.ItemData.ItemName}");
-                    }
-                }
-                else
-                {
-                    Debug.LogError("❌ testItem.IsValid() returned false!");
+                    Debug.LogWarning($"⚠️ Failed to add item to inventory: {testItem.ItemData.ItemName}");
                 }
             }
             else
             {
-                Debug.LogError("❌ GetRandomItemDrop() returned null - Creating specific test items...");
-                
-                // 대체 방안: ItemDatabase에서 직접 아이템 생성
-                CreateSpecificTestItems(inventoryManager);
-            }
-        }
-        
-        /// <summary>
-        /// 특정 테스트 아이템들 생성 (더 안정적인 방법)
-        /// </summary>
-        private void CreateSpecificTestItems(InventoryManager inventoryManager)
-        {
-            try
-            {
-                Debug.Log("🔧 Creating specific test items...");
-                
-                // ItemDatabase에서 특정 아이템들을 직접 생성
-                string[] testItemIds = { 
-                    "weapon_sword_basic",    // 낡은 검
-                    "armor_helmet_basic",    // 가죽 모자  
-                    "consumable_hp_small",   // 소형 체력 포션
-                    "material_iron_ore"      // 철광석
-                };
-                
-                bool anySuccess = false;
-                
-                foreach (string itemId in testItemIds)
-                {
-                    Debug.Log($"🔍 Trying to create item: {itemId}");
-                    
-                    // ItemData 먼저 확인
-                    var itemData = ItemDatabase.GetItem(itemId);
-                    if (itemData == null)
-                    {
-                        Debug.LogError($"❌ ItemData not found for {itemId}");
-                        continue;
-                    }
-                    
-                    Debug.Log($"✅ Found ItemData: {itemData.ItemName}");
-                    
-                    var testItem = ItemDatabase.CreateItemInstance(itemId);
-                    if (testItem == null)
-                    {
-                        Debug.LogError($"❌ CreateItemInstance returned null for {itemId}");
-                        continue;
-                    }
-                    
-                    Debug.Log($"✅ ItemInstance created for {itemId}");
-                    
-                    if (!testItem.IsValid())
-                    {
-                        Debug.LogError($"❌ ItemInstance.IsValid() failed for {itemId}");
-                        continue;
-                    }
-                    
-                    Debug.Log($"✅ ItemInstance is valid for {itemId}");
-                    
-                    bool success = inventoryManager.AddItem(testItem);
-                    if (success)
-                    {
-                        Debug.Log($"🎁 SUCCESS: Created {testItem.ItemData.ItemName}");
-                        anySuccess = true;
-                    }
-                    else
-                    {
-                        Debug.LogError($"❌ InventoryManager.AddItem failed for {itemId}");
-                    }
-                }
-                
-                if (!anySuccess)
-                {
-                    Debug.LogError("❌ All specific item creation failed - ItemDatabase might have issues");
-                    // ItemDatabase 통계 출력으로 디버깅
-                    ItemDatabase.LogStatistics();
-                }
-            }
-            catch (System.Exception e)
-            {
-                Debug.LogError($"❌ Exception during specific item creation: {e.Message}");
+                Debug.LogError("❌ Failed to create random test item");
             }
         }
         
@@ -387,16 +233,25 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         [ContextMenu("Cheat: Spawn Monster")]
         public void CheatSpawnMonster()
         {
+            if (!IsServer)
+            {
+                Debug.LogWarning("⚠️ Monster spawning can only be done on Server/Host");
+                return;
+            }
+            
             var spawner = FindFirstObjectByType<MonsterSpawner>();
             if (spawner != null)
             {
-                // 테스트용 몬스터 스폰 시도
                 Debug.Log("👹 Attempting to spawn test monster...");
-                // MonsterSpawner의 공개 메서드가 있다면 호출
+                
+                // MonsterSpawner의 공개 메서드로 랜덤 몬스터 스폰
+                spawner.SpawnRandomMonster();
+                
+                Debug.Log($"✅ Monster spawn requested. Active: {spawner.CurrentMonsterCount}/{spawner.MaxMonsters}");
             }
             else
             {
-                Debug.LogWarning("⚠️ No MonsterSpawner found for cheat");
+                Debug.LogWarning("⚠️ No MonsterSpawner found in scene. Please add MonsterSpawner to TestScene.");
             }
         }
         

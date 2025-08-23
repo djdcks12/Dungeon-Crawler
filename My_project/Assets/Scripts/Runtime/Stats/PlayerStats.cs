@@ -310,6 +310,41 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             }
         }
         
+        // 네트워크 동기화용 직접 설정 메서드들
+        public void SetCurrentHP(float value)
+        {
+            float oldHP = currentHP;
+            currentHP = Mathf.Clamp(value, 0f, maxHP);
+            
+            if (oldHP != currentHP)
+            {
+                OnHPChanged?.Invoke(currentHP, maxHP);
+            }
+        }
+        
+        public void SetMaxHP(float value)
+        {
+            maxHP = Mathf.Max(1f, value);
+            currentHP = Mathf.Min(currentHP, maxHP);
+        }
+        
+        public void SetCurrentMP(float value)
+        {
+            float oldMP = currentMP;
+            currentMP = Mathf.Clamp(value, 0f, maxMP);
+            
+            if (oldMP != currentMP)
+            {
+                OnMPChanged?.Invoke(currentMP, maxMP);
+            }
+        }
+        
+        public void SetMaxMP(float value)
+        {
+            maxMP = Mathf.Max(1f, value);
+            currentMP = Mathf.Min(currentMP, maxMP);
+        }
+        
         // 골드 변경
         public void ChangeGold(long amount)
         {
