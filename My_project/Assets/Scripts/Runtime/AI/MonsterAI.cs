@@ -1,6 +1,7 @@
 using UnityEngine;
 using Unity.Netcode;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Unity.Template.Multiplayer.NGO.Runtime
 {
@@ -231,17 +232,22 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         protected virtual void UpdateAttackState()
         {
+            Debug.Log($"🎯 {name} UpdateAttackState called, currentState: {currentState}");
+            
             if (currentTarget == null)
             {
+                Debug.Log($"🎯 {name} No target, changing to Return");
                 ChangeState(MonsterAIState.Return);
                 return;
             }
             
             float distanceToTarget = Vector3.Distance(transform.position, currentTarget.transform.position);
+            Debug.Log($"🎯 {name} Distance to target: {distanceToTarget:F2} (attackRange: {attackRange})");
             
             // 타겟이 공격 범위를 벗어남
             if (distanceToTarget > attackRange * 1.2f)
             {
+                Debug.Log($"🎯 {name} Target too far, changing to Chase");
                 ChangeState(MonsterAIState.Chase);
                 return;
             }
@@ -250,9 +256,17 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             LookAt(currentTarget.transform.position);
             
             // 공격 실행
+            float timeSinceLastAttack = Time.time - lastAttackTime;
+            Debug.Log($"🕐 {name} Attack cooldown check: {timeSinceLastAttack:F2}s / {attackCooldown}s (can attack: {timeSinceLastAttack >= attackCooldown})");
+            
             if (Time.time >= lastAttackTime + attackCooldown)
             {
+                Debug.Log($"🔥 {name} Cooldown passed, calling PerformAttack()");
                 PerformAttack();
+            }
+            else
+            {
+                Debug.Log($"🕐 {name} Still on cooldown, waiting {(attackCooldown - timeSinceLastAttack):F2}s more");
             }
         }
         
@@ -298,7 +312,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             foreach (var collider in nearbyColliders)
             {
                 var player = collider.GetComponent<PlayerController>();
-                if (player != null && player.IsOwner)
+                if (player != null)
                 {
                     // 플레이어가 살아있는지 확인
                     var statsManager = player.GetComponent<PlayerStatsManager>();
@@ -422,23 +436,31 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         protected virtual void PerformAttack()
         {
-            if (currentTarget == null) return;
+            Debug.Log($"🔥 {name} PerformAttack called, target: {currentTarget?.name}");
+            
+            if (currentTarget == null) 
+            {
+                Debug.Log($"❌ {name} PerformAttack: currentTarget is null");
+                return;
+            }
             
             lastAttackTime = Time.time;
             
-            // 공격 애니메이션 트리거 (추후 구현)
-            TriggerAttackAnimation();
-            
             // 실제 데미지 적용
             var targetStatsManager = currentTarget.GetComponent<PlayerStatsManager>();
+            
             if (targetStatsManager != null)
             {
                 float actualDamage = targetStatsManager.TakeDamage(attackDamage, damageType);
                 
-                // 공격 이펙트
-                ShowAttackEffectClientRpc(currentTarget.transform.position, actualDamage);
+                // 모든 클라이언트에 공격 이펙트 및 애니메이션 동기화
+                TriggerAttackAnimationClientRpc(currentTarget.transform.position, actualDamage);
                 
-                Debug.Log($"{name} attacked {currentTarget.name} for {actualDamage} damage");
+                Debug.Log($"👹 {name} attacked {currentTarget.name} for {actualDamage} damage");
+            }
+            else
+            {
+                Debug.LogError($"❌ {name} PlayerStatsManager not found on {currentTarget.name}");
             }
         }
         
@@ -540,13 +562,23 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         }
         
         /// <summary>
-        /// 공격 이펙트 표시 (클라이언트)
+        /// 공격 애니메이션 및 이펙트 (모든 클라이언트)
         /// </summary>
         [ClientRpc]
-        private void ShowAttackEffectClientRpc(Vector3 targetPosition, float damage)
+        private void TriggerAttackAnimationClientRpc(Vector3 targetPosition, float damage)
         {
-            Debug.Log($"💥 {name} attack effect at {targetPosition} for {damage} damage");
-            // 추후 이펙트 시스템에서 구현
+            // 공격 애니메이션 트리거
+            if (spriteRenderer != null)
+            {
+                StartCoroutine(AttackColorAnimation());
+            }
+            
+            // 공격 이펙트 로그
+            Debug.Log($"💥 {name} attack animation triggered! Target at {targetPosition}, Damage: {damage}");
+            Debug.Log($"💥 {name} Current target: {currentTarget?.name}, Current state: {currentState}");
+            Debug.Log($"💥 {name} IsServer: {IsServer}, NetworkState: {networkState.Value}");
+            
+            // 추후 파티클 이펙트, 사운드 등 추가 가능
         }
         
         /// <summary>

@@ -31,6 +31,17 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             NetworkVariableReadPermission.Everyone,
             NetworkVariableWritePermission.Server);
         
+        // 스탯 계산용 추가 NetworkVariable들
+        private NetworkVariable<float> networkDefense = new NetworkVariable<float>(0f,
+            NetworkVariableReadPermission.Everyone,
+            NetworkVariableWritePermission.Server);
+        private NetworkVariable<float> networkMagicDefense = new NetworkVariable<float>(0f,
+            NetworkVariableReadPermission.Everyone,
+            NetworkVariableWritePermission.Server);
+        private NetworkVariable<float> networkAgility = new NetworkVariable<float>(0f,
+            NetworkVariableReadPermission.Everyone,
+            NetworkVariableWritePermission.Server);
+        
         // 컴포넌트 참조
         private PlayerController playerController;
         
@@ -40,8 +51,16 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         public System.Action OnPlayerDeath; // 사망 이벤트
         public System.Action<int> OnLevelChanged;
         
+        
         public PlayerStats CurrentStats => currentStats;
-        public bool IsDead => currentStats != null && currentStats.IsDead();
+        public bool IsDead => networkCurrentHP.Value <= 0f;
+        
+        // NetworkVariable 접근용 프로퍼티들
+        public int NetworkLevel => networkLevel.Value;
+        public float NetworkCurrentHP => networkCurrentHP.Value;
+        public float NetworkMaxHP => networkMaxHP.Value;
+        public float NetworkCurrentMP => networkCurrentMP.Value;
+        public float NetworkMaxMP => networkMaxMP.Value;
         
         public override void OnNetworkSpawn()
         {
@@ -213,25 +232,74 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             UpdateNetworkVariables();
         }
         
-        // 데미지 받기
+        // 데미지 받기 (Server 전용 - NetworkVariable 기반)
         public float TakeDamage(float damage, DamageType damageType = DamageType.Physical)
         {
-            if (currentStats == null) return 0f;
-            
-            float actualDamage = currentStats.TakeDamage(damage, damageType);
-            
-            if (IsOwner)
+            // Server에서만 데미지 처리
+            if (!IsServer)
             {
-                UpdateNetworkVariables();
+                Debug.LogWarning($"⚠️ TakeDamage called on non-server for {name}");
+                return 0f;
             }
             
+            Debug.Log($"💔 {name} TakeDamage called - damage: {damage}, type: {damageType}");
+            
+            float finalDamage = CalculateDamage(damage, damageType);
+            float oldHP = networkCurrentHP.Value;
+            
+            // 회피 체크
+            if (CheckDodge())
+            {
+                Debug.Log($"💨 {name} dodged the attack!");
+                return 0f;
+            }
+            
+            // HP 감소 적용
+            float newHP = Mathf.Max(0f, oldHP - finalDamage);
+            networkCurrentHP.Value = newHP;
+            
+            Debug.Log($"💔 {name} TakeDamage - HP: {oldHP} → {newHP}, actualDamage: {finalDamage}");
+            
             // 죽음 처리
-            if (currentStats.IsDead())
+            if (newHP <= 0f)
             {
                 OnPlayerDeath?.Invoke();
             }
             
-            return actualDamage;
+            return finalDamage;
+        }
+        
+        // 데미지 계산 (NetworkVariable 기반)
+        private float CalculateDamage(float damage, DamageType damageType)
+        {
+            float finalDamage = damage;
+            
+            switch (damageType)
+            {
+                case DamageType.Physical:
+                    // 물리 방어: DEF / (DEF + 100) * 100% 감소
+                    float physicalReduction = networkDefense.Value / (networkDefense.Value + 100f);
+                    finalDamage = damage * (1f - physicalReduction);
+                    break;
+                case DamageType.Magical:
+                    // 마법 방어: MDEF / (MDEF + 100) * 100% 감소
+                    float magicalReduction = networkMagicDefense.Value / (networkMagicDefense.Value + 100f);
+                    finalDamage = damage * (1f - magicalReduction);
+                    break;
+                case DamageType.True:
+                    // 고정 데미지 (방어력 무시)
+                    break;
+            }
+            
+            // 최소 1 데미지는 받음
+            return Mathf.Max(1f, finalDamage);
+        }
+        
+        // 회피 체크 (NetworkVariable 기반)
+        private bool CheckDodge()
+        {
+            float dodgeChance = networkAgility.Value * 0.001f; // AGI * 0.1%
+            return UnityEngine.Random.value < dodgeChance;
         }
         
         // 힐링
@@ -241,10 +309,13 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             
             currentStats.ChangeHP(amount);
             
-            if (IsOwner)
+            // Owner이거나 Server에서 호출된 경우 네트워크 동기화
+            if (IsOwner || IsServer)
             {
                 UpdateNetworkVariables();
             }
+            
+            Debug.Log($"💚 {name} healed {amount}. HP: {currentStats.CurrentHP}/{currentStats.MaxHP}");
         }
         
         // MP 회복
@@ -253,6 +324,14 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             if (currentStats == null) return;
             
             currentStats.ChangeMP(amount);
+            
+            // Owner이거나 Server에서 호출된 경우 네트워크 동기화
+            if (IsOwner || IsServer)
+            {
+                UpdateNetworkVariables();
+            }
+            
+            Debug.Log($"💙 {name} restored {amount} MP. MP: {currentStats.CurrentMP}/{currentStats.MaxMP}");
         }
         
         // MP 소모
@@ -319,13 +398,20 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         // 네트워크 변수 업데이트
         private void UpdateNetworkVariables()
         {
-            if (!IsServer || currentStats == null) return;
+            if (currentStats == null) return;
             
-            networkLevel.Value = currentStats.CurrentLevel;
-            networkCurrentHP.Value = currentStats.CurrentHP;
-            networkMaxHP.Value = currentStats.MaxHP;
-            networkCurrentMP.Value = currentStats.CurrentMP;
-            networkMaxMP.Value = currentStats.MaxMP;
+            // Server 권한으로 NetworkVariable 업데이트
+            if (IsServer)
+            {
+                networkLevel.Value = currentStats.CurrentLevel;
+                networkCurrentHP.Value = currentStats.CurrentHP;
+                networkMaxHP.Value = currentStats.MaxHP;
+                networkCurrentMP.Value = currentStats.CurrentMP;
+                networkMaxMP.Value = currentStats.MaxMP;
+                networkDefense.Value = currentStats.TotalDEF;
+                networkMagicDefense.Value = currentStats.TotalMDEF;
+                networkAgility.Value = currentStats.TotalAGI;
+            }
         }
         
         // 네트워크 이벤트 콜백들
@@ -336,22 +422,44 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         
         private void OnNetworkHPChanged(float previousValue, float newValue)
         {
+            Debug.Log($"🔄 {name} OnNetworkHPChanged: {previousValue} → {newValue} (IsServer: {IsServer})");
+            
+            // Client에서 NetworkVariable 변경을 currentStats에 반영
+            if (!IsServer && currentStats != null)
+            {
+                Debug.Log($"🔄 {name} Setting currentStats HP from {currentStats.CurrentHP} to {newValue}");
+                currentStats.SetCurrentHP(newValue);
+                Debug.Log($"🔄 {name} currentStats HP is now {currentStats.CurrentHP}");
+            }
             OnHealthChanged?.Invoke(newValue, networkMaxHP.Value);
         }
         
         private void OnNetworkMaxHPChanged(float previousValue, float newValue)
         {
+            // Client에서 NetworkVariable 변경을 currentStats에 반영
+            if (!IsServer && currentStats != null)
+            {
+                currentStats.SetMaxHP(newValue);
+            }
             OnHealthChanged?.Invoke(networkCurrentHP.Value, newValue);
         }
         
         private void OnNetworkMPChanged(float previousValue, float newValue)
         {
-            // MP 변경 처리 (필요시 이벤트 추가)
+            // Client에서 NetworkVariable 변경을 currentStats에 반영
+            if (!IsServer && currentStats != null)
+            {
+                currentStats.SetCurrentMP(newValue);
+            }
         }
         
         private void OnNetworkMaxMPChanged(float previousValue, float newValue)
         {
-            // MaxMP 변경 처리 (필요시 이벤트 추가)
+            // Client에서 NetworkVariable 변경을 currentStats에 반영
+            if (!IsServer && currentStats != null)
+            {
+                currentStats.SetMaxMP(newValue);
+            }
         }
         
         // 스탯 이벤트 콜백들

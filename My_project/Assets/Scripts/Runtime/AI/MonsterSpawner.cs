@@ -110,7 +110,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 foreach (var collider in nearbyColliders)
                 {
                     var player = collider.GetComponent<PlayerController>();
-                    if (player != null && player.IsOwner)
+                    if (player != null)
                     {
                         var statsManager = player.GetComponent<PlayerStatsManager>();
                         if (statsManager != null && !statsManager.IsDead)
@@ -236,19 +236,29 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         private int CalculateMonsterLevel()
         {
-            // 기본 레벨 범위에서 선택
+            // 기본 레벨 범위에서 선택 (플레이어 레벨 기반 조정 비활성화)
             int baseLevel = Random.Range(minLevel, maxLevel + 1);
             
-            // 근처 플레이어 평균 레벨 기반 조정 (추후 구현)
-            int adjustedLevel = AdjustLevelBasedOnPlayers(baseLevel);
-            
-            return Mathf.Clamp(adjustedLevel, 1, 15);
+            return Mathf.Clamp(baseLevel, 1, 15);
         }
         
         /// <summary>
-        /// 플레이어 레벨 기반 몬스터 레벨 조정
+        /// 이벤트 던전용 - 플레이어 레벨 기반 몬스터 스폰
         /// </summary>
-        private int AdjustLevelBasedOnPlayers(int baseLevel)
+        public void SpawnEventMonster(GameObject prefab, Vector3 position, bool adjustLevel = true)
+        {
+            if (!IsServer) return;
+            
+            int level = adjustLevel ? AdjustLevelBasedOnPlayers(Random.Range(minLevel, maxLevel + 1)) : Random.Range(minLevel, maxLevel + 1);
+            SpawnSpecificMonster(prefab, position, level);
+            
+            Debug.Log($"🌟 Event monster spawned with level adjustment: {level}");
+        }
+        
+        /// <summary>
+        /// 플레이어 레벨 기반 몬스터 레벨 조정 (이벤트 던전 전용)
+        /// </summary>
+        public int AdjustLevelBasedOnPlayers(int baseLevel)
         {
             // 근처 플레이어들의 평균 레벨 계산
             List<int> playerLevels = new List<int>();
@@ -260,10 +270,10 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 foreach (var collider in nearbyColliders)
                 {
                     var player = collider.GetComponent<PlayerController>();
-                    if (player != null && player.IsOwner)
+                    if (player != null)
                     {
                         var statsManager = player.GetComponent<PlayerStatsManager>();
-                        if (statsManager != null && !statsManager.IsDead)
+                        if (statsManager != null && !statsManager.IsDead && statsManager.CurrentStats != null)
                         {
                             playerLevels.Add(statsManager.CurrentStats.CurrentLevel);
                         }

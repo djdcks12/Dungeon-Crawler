@@ -128,8 +128,17 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             }
             else
             {
-                Debug.LogError("❌ Failed to start Client");
-                UpdateStatus("Failed to start Client", Color.red);
+                // 이미 네트워크가 실행 중인 경우 오류가 아님
+                if (networkManager.IsListening)
+                {
+                    Debug.Log("ℹ️ Network is already running, cannot start client again");
+                    UpdateStatus("Network already active", Color.blue);
+                }
+                else
+                {
+                    Debug.LogError("❌ Failed to start Client");
+                    UpdateStatus("Failed to start Client", Color.red);
+                }
             }
             
             UpdateButtonStates();

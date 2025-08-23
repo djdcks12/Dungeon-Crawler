@@ -37,6 +37,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         [SerializeField] private bool showSystemInfo = true;
         
         private float lastUpdateTime = 0f;
+        private float lastFPSUpdateTime = 0f;
         private float frameCount = 0;
         private float fps = 0;
         
@@ -114,11 +115,11 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         {
             frameCount++;
             
-            if (Time.unscaledTime - lastUpdateTime >= 1.0f)
+            if (Time.unscaledTime - lastFPSUpdateTime >= 1.0f)
             {
-                fps = frameCount / (Time.unscaledTime - lastUpdateTime);
+                fps = frameCount / (Time.unscaledTime - lastFPSUpdateTime);
                 frameCount = 0;
-                lastUpdateTime = Time.unscaledTime; // 이 줄이 빠져있었음
+                lastFPSUpdateTime = Time.unscaledTime;
             }
         }
         
@@ -170,19 +171,30 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             }
             
             var statsManager = localPlayer.GetComponent<PlayerStatsManager>();
-            if (statsManager == null || statsManager.CurrentStats == null)
+            if (statsManager == null)
             {
-                playerStatsText.text = "Stats: Not Available";
+                playerStatsText.text = $"Stats: No StatsManager on {localPlayer.name}";
                 return;
             }
             
-            var stats = statsManager.CurrentStats;
-            string statsText = $"Player Stats:\\n" +
-                              $"Level: {stats.CurrentLevel}\\n" +
-                              $"EXP: {stats.CurrentExperience:N0}\\n" +
-                              $"HP: {stats.CurrentHP:F0}/{stats.MaxHP:F0}\\n" +
-                              $"MP: {stats.CurrentMP:F0}/{stats.MaxMP:F0}\\n" +
-                              $"Gold: {stats.Gold:N0}";
+            // NetworkVariable에서 직접 읽기 (Owner가 아닐 수도 있으므로)
+            string statsText = $"Player: {localPlayer.name}\\n" +
+                              $"IsOwner: {statsManager.IsOwner}\\n" +
+                              $"Level: {statsManager.NetworkLevel}\\n" +
+                              $"HP: {statsManager.NetworkCurrentHP:F0}/{statsManager.NetworkMaxHP:F0}\\n" +
+                              $"MP: {statsManager.NetworkCurrentMP:F0}/{statsManager.NetworkMaxMP:F0}\\n";
+                              
+            // Owner인 경우에만 EXP와 Gold 표시 (currentStats 필요)
+            if (statsManager.IsOwner && statsManager.CurrentStats != null)
+            {
+                statsText += $"EXP: {statsManager.CurrentStats.CurrentExperience:N0}\\n" +
+                           $"Gold: {statsManager.CurrentStats.Gold:N0}";
+            }
+            else
+            {
+                statsText += "EXP: N/A (Not Owner)\\n" +
+                           "Gold: N/A (Not Owner)";
+            }
             
             playerStatsText.text = statsText;
         }
