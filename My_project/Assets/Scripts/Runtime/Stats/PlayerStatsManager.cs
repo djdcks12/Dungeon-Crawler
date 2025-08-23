@@ -302,36 +302,50 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             return UnityEngine.Random.value < dodgeChance;
         }
         
-        // 힐링
+        // 힐링 (Server 전용 - NetworkVariable 기반)
         public void Heal(float amount)
         {
-            if (currentStats == null) return;
-            
-            currentStats.ChangeHP(amount);
-            
-            // Owner이거나 Server에서 호출된 경우 네트워크 동기화
-            if (IsOwner || IsServer)
+            // Server에서만 처리하도록 RPC로 전달
+            if (!IsServer)
             {
-                UpdateNetworkVariables();
+                HealServerRpc(amount);
+                return;
             }
             
-            Debug.Log($"💚 {name} healed {amount}. HP: {currentStats.CurrentHP}/{currentStats.MaxHP}");
+            float oldHP = networkCurrentHP.Value;
+            float newHP = Mathf.Min(networkMaxHP.Value, oldHP + amount);
+            networkCurrentHP.Value = newHP;
+            
+            Debug.Log($"💚 {name} healed: {oldHP} → {newHP} (+{amount})");
         }
         
-        // MP 회복
+        [ServerRpc(RequireOwnership = false)]
+        private void HealServerRpc(float amount)
+        {
+            Heal(amount);
+        }
+        
+        // MP 회복 (Server 전용 - NetworkVariable 기반)
         public void RestoreMP(float amount)
         {
-            if (currentStats == null) return;
-            
-            currentStats.ChangeMP(amount);
-            
-            // Owner이거나 Server에서 호출된 경우 네트워크 동기화
-            if (IsOwner || IsServer)
+            // Server에서만 처리하도록 RPC로 전달
+            if (!IsServer)
             {
-                UpdateNetworkVariables();
+                RestoreMPServerRpc(amount);
+                return;
             }
             
-            Debug.Log($"💙 {name} restored {amount} MP. MP: {currentStats.CurrentMP}/{currentStats.MaxMP}");
+            float oldMP = networkCurrentMP.Value;
+            float newMP = Mathf.Min(networkMaxMP.Value, oldMP + amount);
+            networkCurrentMP.Value = newMP;
+            
+            Debug.Log($"💙 {name} MP restored: {oldMP} → {newMP} (+{amount})");
+        }
+        
+        [ServerRpc(RequireOwnership = false)]
+        private void RestoreMPServerRpc(float amount)
+        {
+            RestoreMP(amount);
         }
         
         // MP 소모
