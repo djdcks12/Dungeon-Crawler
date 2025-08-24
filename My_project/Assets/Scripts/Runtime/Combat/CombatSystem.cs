@@ -11,7 +11,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
     public class CombatSystem : NetworkBehaviour
     {
         [Header("Combat Settings")]
-        [SerializeField] private LayerMask enemyLayerMask = 1; // Enemy layer
+        [SerializeField] private LayerMask enemyLayerMask = 1; // Default layer (0)
         [SerializeField] private LayerMask playerLayerMask = 1 << 6; // Player layer
         [SerializeField] private bool enablePvP = true;
         
@@ -46,11 +46,45 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         {
             if (!IsOwner || isAttacking) return;
             
-            // 공격 방향 설정 (플레이어가 바라보는 방향)
-            attackDirection = transform.up; // 플레이어의 forward 방향
+            // 가장 가까운 적을 찾아서 공격 (마우스 방향 대신)
+            var nearestEnemy = FindNearestEnemy();
+            if (nearestEnemy != null)
+            {
+                // 적 방향으로 공격
+                attackDirection = (nearestEnemy.transform.position - transform.position).normalized;
+            }
+            else
+            {
+                // 적이 없으면 마우스 방향으로 공격
+                attackDirection = playerController.GetMouseDirection();
+            }
             
             // 서버에서 공격 처리
             PerformAttackServerRpc(transform.position, attackDirection);
+        }
+        
+        /// <summary>
+        /// 가장 가까운 적 찾기
+        /// </summary>
+        private Collider2D FindNearestEnemy()
+        {
+            float attackRange = 3.0f; // 공격 가능 범위
+            var nearbyEnemies = Physics2D.OverlapCircleAll(transform.position, attackRange, enemyLayerMask);
+            
+            Collider2D nearestEnemy = null;
+            float nearestDistance = float.MaxValue;
+            
+            foreach (var enemy in nearbyEnemies)
+            {
+                float distance = Vector2.Distance(transform.position, enemy.transform.position);
+                if (distance < nearestDistance)
+                {
+                    nearestDistance = distance;
+                    nearestEnemy = enemy;
+                }
+            }
+            
+            return nearestEnemy;
         }
         
         /// <summary>
@@ -259,9 +293,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 }
             }
             
-            string critText = isCritical ? " (CRITICAL)" : "";
-            Debug.Log($"Hit monster {targetMonster.name} for {damage:F1} damage{critText}");
-            
             // 피격 이펙트 표시
             ShowDamageEffectClientRpc(attackPosition, damage, isCritical, damageType);
         }
@@ -273,9 +304,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         [ClientRpc]
         private void PlayAttackEffectClientRpc(Vector2 attackPosition, Vector2 attackDirection)
         {
-            // 공격 이펙트 재생 (파티클, 사운드 등)
-            Debug.Log($"Attack effect at {attackPosition} in direction {attackDirection}");
-            
             // 실제 이펙트 재생 코드
             if (hitEffectPrefab != null)
             {
@@ -306,8 +334,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                     Destroy(critEffect, 1.5f);
                 }
             }
-            
-            Debug.Log($"Damage Effect: {damageText} at {hitPosition}");
             
             // 실제 UI 데미지 텍스트 표시는 추후 UI 시스템에서 구현
         }

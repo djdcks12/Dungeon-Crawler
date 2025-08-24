@@ -186,6 +186,29 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         }
         
         /// <summary>
+        /// 체력 설정 (MonsterAI.TakeDamage에서 사용)
+        /// </summary>
+        public void SetHealth(float newHealth)
+        {
+            if (!IsServer) return;
+            
+            int intHealth = Mathf.RoundToInt(newHealth);
+            currentHealth = Mathf.Clamp(intHealth, 0, maxHealth);
+            
+            // 네트워크 동기화
+            networkCurrentHealth.Value = currentHealth;
+            
+            // 이벤트 호출
+            OnHealthChanged?.Invoke(currentHealth, maxHealth);
+            
+            // 사망 체크
+            if (currentHealth <= 0 && !isDead)
+            {
+                Die();
+            }
+        }
+        
+        /// <summary>
         /// 체력 완전 회복
         /// </summary>
         public void FullHeal()

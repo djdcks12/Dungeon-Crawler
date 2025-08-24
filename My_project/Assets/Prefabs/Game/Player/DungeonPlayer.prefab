@@ -20,6 +20,7 @@ GameObject:
   - component: {fileID: 8389054499754392800}
   - component: {fileID: -777195234683741617}
   - component: {fileID: 934379557237757811}
+  - component: {fileID: -128126306777906015}
   m_Layer: 0
   m_Name: DungeonPlayer
   m_TagString: Player
@@ -238,7 +239,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.PlayerController
   ShowTopMostFoldoutHeaderGroup: 1
   baseMoveSpeed: 5
-  rotationSpeed: 720
   baseAttackCooldown: 0.5
   attackRange: 2
 --- !u!114 &-786281597540454076
@@ -335,3 +335,26 @@ MonoBehaviour:
   inventorySize: 30
   enableAutoPickup: 1
   pickupRange: 2
+--- !u!114 &-128126306777906015
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3851752766134567891}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 27da405a2260dff4cb36690d8e2c04e8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.CombatSystem
+  ShowTopMostFoldoutHeaderGroup: 1
+  enemyLayerMask:
+    serializedVersion: 2
+    m_Bits: 1
+  playerLayerMask:
+    serializedVersion: 2
+    m_Bits: 64
+  enablePvP: 1
+  hitEffectPrefab: {fileID: 0}
+  criticalHitEffectPrefab: {fileID: 0}
+  missEffectPrefab: {fileID: 0}
