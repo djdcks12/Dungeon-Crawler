@@ -196,12 +196,19 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 var player = collider.GetComponent<PlayerController>();
                 if (player != null && player.IsOwner)
                 {
+                    Debug.Log($"🎯 Found player {player.OwnerClientId} near item {itemInstance?.ItemData?.ItemName}");
+                    
                     // 플레이어가 살아있는지 확인
                     var statsManager = player.GetComponent<PlayerStatsManager>();
                     if (statsManager != null && !statsManager.IsDead)
                     {
+                        Debug.Log($"🎯 Attempting pickup for player {player.OwnerClientId}");
                         AttemptPickup(player);
                         return;
+                    }
+                    else
+                    {
+                        Debug.Log($"❌ Player {player.OwnerClientId} is dead or no statsManager");
                     }
                 }
             }
@@ -216,14 +223,18 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             
             lastPickupAttempt = Time.time;
             
+            Debug.Log($"🎯 AttemptPickup called for player {player.OwnerClientId}");
+            
             // 아이템 드롭 시스템에 픽업 요청
             var itemDropSystem = FindObjectOfType<ItemDropSystem>();
             if (itemDropSystem != null)
             {
+                Debug.Log($"🎯 Using ItemDropSystem for pickup");
                 itemDropSystem.PickupItem(this, player);
             }
             else
             {
+                Debug.Log($"🎯 Using direct pickup (no ItemDropSystem)");
                 // ItemDropSystem이 없으면 직접 처리
                 ProcessDirectPickup(player);
             }
@@ -234,24 +245,29 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         private void ProcessDirectPickup(PlayerController player)
         {
-            if (itemInstance == null) return;
-            
-            var statsManager = player.GetComponent<PlayerStatsManager>();
-            if (statsManager == null) return;
-            
-            // 골드 아이템인지 확인
-            if (itemInstance.ItemId == "gold_coin")
+            if (itemInstance == null) 
             {
-                statsManager.ChangeGold(itemInstance.ItemData.SellPrice);
-                NotifyPickupClientRpc(player.OwnerClientId, $"+{itemInstance.ItemData.SellPrice} 골드", Color.yellow);
+                Debug.LogError("❌ itemInstance is null in ProcessDirectPickup");
+                return;
             }
-            else
+            
+            var inventoryManager = player.GetComponent<InventoryManager>();
+            if (inventoryManager == null) 
             {
-                // 일반 아이템은 판매가로 변환 (임시)
-                long sellValue = itemInstance.ItemData.GetTotalValue();
-                statsManager.ChangeGold(sellValue);
-                NotifyPickupClientRpc(player.OwnerClientId, $"{itemInstance.ItemData.ItemName} (+{sellValue} 골드)", itemInstance.ItemData.GradeColor);
+                Debug.LogError($"❌ No InventoryManager found on player {player.OwnerClientId}");
+                return;
             }
+            
+            Debug.Log($"🎯 ProcessDirectPickup: Adding {itemInstance.ItemData.ItemName} to player {player.OwnerClientId} inventory");
+            
+            // ServerRpc를 통해 아이템 추가 요청
+            inventoryManager.AddItemServerRpc(itemInstance.ItemId, itemInstance.Quantity);
+            
+            NotifyPickupClientRpc(player.OwnerClientId, 
+                $"{itemInstance.ItemData.ItemName} x{itemInstance.Quantity} 획득", 
+                itemInstance.ItemData.GradeColor);
+            
+            Debug.Log($"✅ Player {player.OwnerClientId} picked up {itemInstance.ItemData.ItemName} x{itemInstance.Quantity}");
             
             // 오브젝트 제거
             if (NetworkObject != null)

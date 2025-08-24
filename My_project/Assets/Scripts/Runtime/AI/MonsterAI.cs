@@ -638,12 +638,25 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 rb.linearVelocity = Vector2.zero;
             }
             
-            // 경험치 보상 처리
-            GiveRewardToNearbyPlayers();
+            // MonsterEntity가 있으면 그쪽에서 보상 처리, 없으면 기존 방식
+            var monsterEntity = GetComponent<MonsterEntity>();
+            if (monsterEntity == null)
+            {
+                // 기존 몬스터 시스템용 경험치 보상 처리
+                GiveRewardToNearbyPlayers();
+                
+                // 기존 영혼 드롭 시스템 (기본 0.1% 확률)
+                var soulDropSystem = FindObjectOfType<SoulDropSystem>();
+                if (soulDropSystem != null)
+                {
+                    soulDropSystem.CheckSoulDrop(transform.position, 1, name);
+                }
+            }
+            // MonsterEntity가 있으면 해당 시스템에서 보상 처리
         }
         
         /// <summary>
-        /// 주변 플레이어들에게 경험치 보상 지급
+        /// 주변 플레이어들에게 경험치 보상 지급 (기존 시스템용)
         /// </summary>
         private void GiveRewardToNearbyPlayers()
         {
@@ -659,7 +672,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                     var statsManager = player.GetComponent<PlayerStatsManager>();
                     if (statsManager != null && !statsManager.IsDead)
                     {
-                        long expReward = 40; // 기본 경험치
+                        long expReward = 40; // 기본 경험치 (MonsterEntity가 없는 구형 몬스터용)
                         
                         // 서버에서 직접 경험치 지급 (NetworkVariable을 통해 동기화됨)
                         statsManager.AddExperience(expReward);

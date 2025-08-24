@@ -152,6 +152,54 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         }
         
         /// <summary>
+        /// 아이템 직접 추가 (서버에서 호출, DroppedItem 픽업용)
+        /// </summary>
+        public bool TryAddItemDirect(ItemInstance item, out int slotIndex)
+        {
+            slotIndex = -1;
+            
+            Debug.Log($"🎯 TryAddItemDirect called - IsServer: {IsServer}, IsOwner: {IsOwner}, item: {item?.ItemData?.ItemName}");
+            
+            if (!IsServer) 
+            {
+                Debug.LogError("❌ TryAddItemDirect called on client");
+                return false;
+            }
+            if (inventory == null) 
+            {
+                Debug.LogError("❌ inventory is null");
+                return false;
+            }
+            
+            if (inventory.TryAddItem(item, out slotIndex))
+            {
+                Debug.Log($"✅ Added {item.ItemData.ItemName} x{item.Quantity} to inventory slot {slotIndex}");
+                
+                // 골드 아이템 특별 처리
+                if (item.ItemId == "gold_coin")
+                {
+                    if (statsManager != null)
+                    {
+                        statsManager.ChangeGold(item.ItemData.SellPrice * item.Quantity);
+                        // 골드는 인벤토리에서 즉시 제거
+                        inventory.RemoveItem(slotIndex, item.Quantity);
+                    }
+                }
+                
+                // 네트워크 동기화
+                networkInventory.Value = inventory;
+                
+                // 이벤트 호출
+                OnItemAdded?.Invoke(item, slotIndex);
+                OnInventoryUpdated?.Invoke();
+                
+                return true;
+            }
+            
+            return false;
+        }
+        
+        /// <summary>
         /// 아이템 제거
         /// </summary>
         public bool RemoveItem(int slotIndex, int quantity = 1)
