@@ -257,7 +257,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                     float alpha = Mathf.Clamp01(1f - distance / radius);
                     
                     // 등급이 높을수록 더 밝고 복잡한 패턴
-                    float intensity = 1f + ((int)grade * 0.2f);
+                    float intensity = 1f + ((grade - 80f) / 40f * 0.8f); // 80=1.0, 120=1.8
                     alpha *= intensity;
                     
                     pixels[y * size + x] = new Color(gradeColor.r, gradeColor.g, gradeColor.b, alpha);
@@ -278,7 +278,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             // 등급별 발광 효과
             var soulGlow = soulDrop.AddComponent<SoulGlow>();
             Color gradeColor = GetGradeColor(soulData.grade);
-            float gradeIntensity = soulGlowIntensity + ((int)soulData.grade * 0.5f);
+            float gradeIntensity = soulGlowIntensity + ((soulData.grade - 80f) / 40f * 2f); // 80=base, 120=+2.0
             soulGlow.SetGlowSettings(gradeColor, gradeIntensity);
             
             // 부유 애니메이션 (등급별 속도)
@@ -336,7 +336,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 var effect = Instantiate(soulCollectEffectPrefab, position, Quaternion.identity);
                 
                 // 등급별 이펙트 스케일 조정
-                float scale = 1f + ((int)grade * 0.3f);
+                float scale = 1f + ((grade - 80f) / 40f * 1.2f); // 80=1.0, 120=2.2
                 effect.transform.localScale = Vector3.one * scale;
                 
                 // 등급별 색상 적용
@@ -348,7 +348,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                     main.startColor = gradeColor;
                 }
                 
-                Destroy(effect, 3f + ((int)grade * 0.5f));
+                Destroy(effect, 3f + ((grade - 80f) / 40f * 2f)); // 80=3s, 120=5s
             }
         }
         
@@ -358,7 +358,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         private IEnumerator MonsterSoulDropScreenEffect(float grade)
         {
             // 등급별 차별화된 화면 효과
-            float effectDuration = 1f + ((int)grade * 0.5f);
+            float effectDuration = 1f + ((grade - 80f) / 40f * 2f); // 80=1s, 120=3s
             
             // 추후 UI 시스템에서 구현
             // 예: 등급별 다른 색상의 화면 글로우, 사운드 등
