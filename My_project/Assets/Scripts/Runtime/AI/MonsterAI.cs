@@ -663,8 +663,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                         
                         // 서버에서 직접 경험치 지급 (NetworkVariable을 통해 동기화됨)
                         statsManager.AddExperience(expReward);
-                        
-                        Debug.Log($"🎉 {player.name} gained {expReward} EXP from {name}");
                     }
                 }
             }
