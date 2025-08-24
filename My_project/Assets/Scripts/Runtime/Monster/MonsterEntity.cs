@@ -293,9 +293,8 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             {
                 monsterAI.SetAIType(variantData.PreferredAIType);
                 
-                // 등급에 따른 AI 강화
-                float damageBoost = 1f + ((int)grade * 0.5f);
-                monsterAI.SetAttackDamage(combatStats.physicalDamage.maxDamage * damageBoost);
+                // AI 기본 설정
+                monsterAI.SetAttackDamage(combatStats.physicalDamage.maxDamage);
             }
         }
         

@@ -93,7 +93,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             {
                 foreach (var skill in baseRace.MandatorySkills)
                 {
-                    if (skill.IsAvailableForLevel((int)grade))
+                    if (skill.IsAvailableForGrade(grade))
                     {
                         allSkills.Add(skill);
                     }
@@ -105,7 +105,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             {
                 foreach (var skill in variantMandatorySkills)
                 {
-                    if (skill.IsAvailableForLevel((int)grade))
+                    if (skill.IsAvailableForGrade(grade))
                     {
                         allSkills.Add(skill);
                     }
@@ -127,7 +127,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             {
                 foreach (var skill in baseRace.AvailableSkills)
                 {
-                    if (skill.IsAvailableForLevel((int)grade))
+                    if (skill.IsAvailableForGrade(grade))
                     {
                         allSkills.Add(skill);
                     }
@@ -139,7 +139,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             {
                 foreach (var skill in variantAvailableSkills)
                 {
-                    if (skill.IsAvailableForLevel((int)grade))
+                    if (skill.IsAvailableForGrade(grade))
                     {
                         allSkills.Add(skill);
                     }
