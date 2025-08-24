@@ -41,6 +41,14 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         private NetworkVariable<float> networkAgility = new NetworkVariable<float>(0f,
             NetworkVariableReadPermission.Everyone,
             NetworkVariableWritePermission.Server);
+            
+        // 경험치 동기화용 NetworkVariable들
+        private NetworkVariable<long> networkCurrentExp = new NetworkVariable<long>(0L,
+            NetworkVariableReadPermission.Everyone,
+            NetworkVariableWritePermission.Server);
+        private NetworkVariable<long> networkExpToNext = new NetworkVariable<long>(100L,
+            NetworkVariableReadPermission.Everyone,
+            NetworkVariableWritePermission.Server);
         
         // 컴포넌트 참조
         private PlayerController playerController;
@@ -57,6 +65,8 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         
         // NetworkVariable 접근용 프로퍼티들
         public int NetworkLevel => networkLevel.Value;
+        public long NetworkCurrentExp => networkCurrentExp.Value;
+        public long NetworkExpToNext => networkExpToNext.Value;
         public float NetworkCurrentHP => networkCurrentHP.Value;
         public float NetworkMaxHP => networkMaxHP.Value;
         public float NetworkCurrentMP => networkCurrentMP.Value;
@@ -68,13 +78,16 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             
             playerController = GetComponent<PlayerController>();
             
-            if (IsOwner)
+            // Owner 또는 Server에서 스탯 초기화 (서버가 모든 플레이어 관리)
+            if (IsOwner || IsServer)
             {
                 InitializeStats();
             }
             
             // 네트워크 변수 변경 이벤트 구독
             networkLevel.OnValueChanged += OnNetworkLevelChanged;
+            networkCurrentExp.OnValueChanged += OnNetworkExpChanged;
+            networkExpToNext.OnValueChanged += OnNetworkExpToNextChanged;
             networkCurrentHP.OnValueChanged += OnNetworkHPChanged;
             networkMaxHP.OnValueChanged += OnNetworkMaxHPChanged;
             networkCurrentMP.OnValueChanged += OnNetworkMPChanged;
@@ -94,6 +107,8 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         {
             // 이벤트 구독 해제
             networkLevel.OnValueChanged -= OnNetworkLevelChanged;
+            networkCurrentExp.OnValueChanged -= OnNetworkExpChanged;
+            networkExpToNext.OnValueChanged -= OnNetworkExpToNextChanged;
             networkCurrentHP.OnValueChanged -= OnNetworkHPChanged;
             networkMaxHP.OnValueChanged -= OnNetworkMaxHPChanged;
             networkCurrentMP.OnValueChanged -= OnNetworkMPChanged;
@@ -212,13 +227,15 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             expField?.SetValue(currentStats, experience);
         }
         
-        // 경험치 추가 (로컬)
+        // 경험치 추가 (서버 권한으로만)
         public void AddExperience(long amount)
         {
-            if (!IsOwner || currentStats == null) return;
+            // 서버에서만 경험치 추가 가능 (모든 플레이어에 대해)
+            if (!IsServer || currentStats == null) return;
             
             currentStats.AddExperience(amount);
-            ApplyStatsToController();
+            
+            // 서버에서 NetworkVariable 업데이트 (모든 클라이언트에 동기화)
             UpdateNetworkVariables();
         }
         
@@ -235,15 +252,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         // 데미지 받기 (Server 전용 - NetworkVariable 기반)
         public float TakeDamage(float damage, DamageType damageType = DamageType.Physical)
         {
-            // Server에서만 데미지 처리
-            if (!IsServer)
-            {
-                Debug.LogWarning($"⚠️ TakeDamage called on non-server for {name}");
-                return 0f;
-            }
-            
-            Debug.Log($"💔 {name} TakeDamage called - damage: {damage}, type: {damageType}");
-            
             float finalDamage = CalculateDamage(damage, damageType);
             float oldHP = networkCurrentHP.Value;
             
@@ -258,7 +266,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             float newHP = Mathf.Max(0f, oldHP - finalDamage);
             networkCurrentHP.Value = newHP;
             
-            Debug.Log($"💔 {name} TakeDamage - HP: {oldHP} → {newHP}, actualDamage: {finalDamage}");
+            Debug.Log($"💔 {name} TakeDamage - HP: {oldHP} → {newHP}, actualDamage: {finalDamage}, type: {damageType}");
             
             // 죽음 처리
             if (newHP <= 0f)
@@ -418,6 +426,8 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             if (IsServer)
             {
                 networkLevel.Value = currentStats.CurrentLevel;
+                networkCurrentExp.Value = currentStats.CurrentExperience;
+                networkExpToNext.Value = currentStats.ExpToNextLevel;
                 networkCurrentHP.Value = currentStats.CurrentHP;
                 networkMaxHP.Value = currentStats.MaxHP;
                 networkCurrentMP.Value = currentStats.CurrentMP;
@@ -434,17 +444,37 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             OnLevelChanged?.Invoke(newValue);
         }
         
-        private void OnNetworkHPChanged(float previousValue, float newValue)
+        private void OnNetworkExpChanged(long previousValue, long newValue)
         {
-            Debug.Log($"🔄 {name} OnNetworkHPChanged: {previousValue} → {newValue} (IsServer: {IsServer})");
+            Debug.Log($"🎉 NetworkExp changed for {gameObject.name}: {previousValue} → {newValue} (IsServer: {IsServer}, IsOwner: {IsOwner})");
             
             // Client에서 NetworkVariable 변경을 currentStats에 반영
             if (!IsServer && currentStats != null)
             {
-                Debug.Log($"🔄 {name} Setting currentStats HP from {currentStats.CurrentHP} to {newValue}");
-                currentStats.SetCurrentHP(newValue);
-                Debug.Log($"🔄 {name} currentStats HP is now {currentStats.CurrentHP}");
+                Debug.Log($"   Applying exp change to currentStats on client: {newValue}");
+                SetExperience(newValue);
+                
+                // UI 업데이트 이벤트 호출 (필요한 경우)
+                OnStatsUpdated?.Invoke(currentStats);
             }
+            else if (IsServer)
+            {
+                Debug.Log($"   Server received exp change notification: {newValue}");
+            }
+        }
+        
+        private void OnNetworkExpToNextChanged(long previousValue, long newValue)
+        {
+            // 레벨업이나 경험치 변경 시 ExpToNextLevel 동기화
+            Debug.Log($"📈 ExpToNext updated: {newValue}");
+        }
+        
+        private void OnNetworkHPChanged(float previousValue, float newValue)
+        {
+            // Client에서 NetworkVariable 변경을 currentStats에 반영
+            if (!IsServer && currentStats != null)
+                currentStats.SetCurrentHP(newValue);
+            
             OnHealthChanged?.Invoke(newValue, networkMaxHP.Value);
         }
         

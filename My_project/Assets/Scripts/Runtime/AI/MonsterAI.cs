@@ -71,6 +71,12 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             // 초기 순찰 지점 설정
             SetNewPatrolTarget();
             
+            // MonsterHealth 이벤트 구독 (서버에서만)
+            if (IsServer && monsterHealth != null)
+            {
+                monsterHealth.OnDeath += OnMonsterDeath;
+            }
+            
             // 네트워크 이벤트 구독
             if (!IsServer)
             {
@@ -83,6 +89,12 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         
         public override void OnNetworkDespawn()
         {
+            // MonsterHealth 이벤트 구독 해제
+            if (IsServer && monsterHealth != null)
+            {
+                monsterHealth.OnDeath -= OnMonsterDeath;
+            }
+            
             if (!IsServer)
             {
                 networkState.OnValueChanged -= OnNetworkStateChanged;
@@ -231,22 +243,17 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         protected virtual void UpdateAttackState()
         {
-            Debug.Log($"🎯 {name} UpdateAttackState called, currentState: {currentState}");
-            
             if (currentTarget == null)
             {
-                Debug.Log($"🎯 {name} No target, changing to Return");
                 ChangeState(MonsterAIState.Return);
                 return;
             }
             
             float distanceToTarget = Vector3.Distance(transform.position, currentTarget.transform.position);
-            Debug.Log($"🎯 {name} Distance to target: {distanceToTarget:F2} (attackRange: {attackRange})");
             
             // 타겟이 공격 범위를 벗어남
             if (distanceToTarget > attackRange * 1.2f)
             {
-                Debug.Log($"🎯 {name} Target too far, changing to Chase");
                 ChangeState(MonsterAIState.Chase);
                 return;
             }
@@ -255,17 +262,9 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             LookAt(currentTarget.transform.position);
             
             // 공격 실행
-            float timeSinceLastAttack = Time.time - lastAttackTime;
-            Debug.Log($"🕐 {name} Attack cooldown check: {timeSinceLastAttack:F2}s / {attackCooldown}s (can attack: {timeSinceLastAttack >= attackCooldown})");
-            
             if (Time.time >= lastAttackTime + attackCooldown)
             {
-                Debug.Log($"🔥 {name} Cooldown passed, calling PerformAttack()");
                 PerformAttack();
-            }
-            else
-            {
-                Debug.Log($"🕐 {name} Still on cooldown, waiting {(attackCooldown - timeSinceLastAttack):F2}s more");
             }
         }
         
@@ -436,14 +435,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         protected virtual void PerformAttack()
         {
-            Debug.Log($"🔥 {name} PerformAttack called, target: {currentTarget?.name}");
-            
-            if (currentTarget == null) 
-            {
-                Debug.Log($"❌ {name} PerformAttack: currentTarget is null");
-                return;
-            }
-            
             lastAttackTime = Time.time;
             
             // 실제 데미지 적용
@@ -573,11 +564,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 StartCoroutine(AttackColorAnimation());
             }
             
-            // 공격 이펙트 로그
-            Debug.Log($"💥 {name} attack animation triggered! Target at {targetPosition}, Damage: {damage}");
-            Debug.Log($"💥 {name} Current target: {currentTarget?.name}, Current state: {currentState}");
-            Debug.Log($"💥 {name} IsServer: {IsServer}, NetworkState: {networkState.Value}");
-            
             // 추후 파티클 이펙트, 사운드 등 추가 가능
         }
         
@@ -636,6 +622,54 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// 공격 데미지 가져오기
         /// </summary>
         public float AttackDamage => attackDamage;
+        
+        /// <summary>
+        /// 몬스터 사망 시 호출되는 메서드 (MonsterHealth.OnDeath 이벤트)
+        /// </summary>
+        private void OnMonsterDeath()
+        {
+            Debug.Log($"☠️ {name} has died!");
+            
+            ChangeState(MonsterAIState.Dead);
+            
+            // 이동 중단
+            if (rb != null)
+            {
+                rb.linearVelocity = Vector2.zero;
+            }
+            
+            // 경험치 보상 처리
+            GiveRewardToNearbyPlayers();
+        }
+        
+        /// <summary>
+        /// 주변 플레이어들에게 경험치 보상 지급
+        /// </summary>
+        private void GiveRewardToNearbyPlayers()
+        {
+            if (!IsServer) return;
+            
+            Collider2D[] nearbyColliders = Physics2D.OverlapCircleAll(transform.position, 10f);
+            
+            foreach (var collider in nearbyColliders)
+            {
+                var player = collider.GetComponent<PlayerController>();
+                if (player != null)
+                {
+                    var statsManager = player.GetComponent<PlayerStatsManager>();
+                    if (statsManager != null && !statsManager.IsDead)
+                    {
+                        long expReward = 40; // 기본 경험치
+                        
+                        // 서버에서 직접 경험치 지급 (NetworkVariable을 통해 동기화됨)
+                        statsManager.AddExperience(expReward);
+                        
+                        Debug.Log($"🎉 {player.name} gained {expReward} EXP from {name}");
+                    }
+                }
+            }
+        }
+        
         
         /// <summary>
         /// 디버그 기즈모

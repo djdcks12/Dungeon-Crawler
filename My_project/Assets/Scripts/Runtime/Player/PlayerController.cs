@@ -97,22 +97,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         
         private void Update()
         {
-            if (!IsLocalPlayer) 
-            {
-                // 한 번만 로그 출력 (프레임마다 출력 방지)
-                if (Time.frameCount % 60 == 0) // 1초마다 한 번
-                {
-                    Debug.Log($"⚠️ Update: {gameObject.name} is NOT LocalPlayer, skipping input");
-                }
-                return;
-            }
-            
-            // LocalPlayer인 경우 로그 (한 번만)
-            if (Time.frameCount % 120 == 0) // 2초마다 한 번
-            {
-                Debug.Log($"✅ Update: {gameObject.name} IS LocalPlayer, handling input");
-            }
-            
             HandleDirection();
             HandleAttack();
             HandleSkill();
@@ -151,25 +135,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             // velocity를 직접 설정 (NetworkRigidbody2D가 자동으로 네트워크 동기화)
             rb.linearVelocity = targetVelocity;
             
-            // 디버그: velocity 적용 (입력이 있을 때만)
-            if (moveInput.magnitude > 0.01f && Time.fixedTime % 1f < Time.fixedDeltaTime)
-            {
-                Debug.Log($"🏃 Movement: input={moveInput:F2}, speed={actualMoveSpeed:F1}, velocity={rb.linearVelocity:F2}");
-            }
-            
-            // FixedUpdate 실행 확인 (2초마다 한 번)
-            if (Time.fixedTime % 2f < Time.fixedDeltaTime)
-            {
-                Debug.Log($"⚙️ FixedUpdate/HandleMovement called - input={moveInput.magnitude:F2}");
-            }
-            
-            // 네트워크 동기화 디버깅 (1초마다)
-            if (moveInput.magnitude > 0.01f && Time.fixedTime % 1f < Time.fixedDeltaTime)
-            {
-                Debug.Log($"🌐 Network Sync: {gameObject.name} pos={transform.position:F2}, vel={rb.linearVelocity:F2}, IsLocalPlayer={IsLocalPlayer}");
-            }
-            
-            
             // 비주얼 매니저 애니메이션 업데이트 (이동 애니메이션만)
             if (visualManager != null)
             {
@@ -185,7 +150,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             }
             
             // 애니메이션 파라미터 설정 (기존 애니메이터와 호환)
-            if (animator != null)
+            if (animator != null && animator.runtimeAnimatorController != null)
             {
                 animator.SetFloat("Speed", moveInput.magnitude);
                 animator.SetFloat("Horizontal", moveInput.x);
@@ -263,7 +228,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             }
             
             // 기존 애니메이터와 호환
-            if (animator != null)
+            if (animator != null && animator.runtimeAnimatorController != null)
             {
                 animator.SetTrigger("Attack");
             }
@@ -280,7 +245,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 playerNetwork.TriggerAttackServerRpc();
             }
             
-            Debug.Log($"Player attacked! Cooldown: {currentAttackCooldown}s, Range: {attackRange}f");
         }
         
         private void HandleSkill()
