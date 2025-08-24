@@ -50,13 +50,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             InitializeForLocalPlayer();
         }
         
-        private void Update()
-        {
-            if (isInitialized && statsManager != null)
-            {
-                UpdateHUD();
-            }
-        }
+        // Update 제거 - NetworkVariable 이벤트 기반으로 최적화
         
         /// <summary>
         /// 로컬 플레이어용 초기화
@@ -74,9 +68,12 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                     {
                         isInitialized = true;
                         
-                        // 이벤트 구독 (PlayerStatsManager의 이벤트 사용)
+                        // NetworkVariable 이벤트 구독 (실시간 동기화)
                         statsManager.OnStatsUpdated += OnStatsChanged;
                         statsManager.OnLevelChanged += OnLevelUp;
+                        statsManager.OnHealthChanged += OnHealthChanged;
+                        statsManager.OnManaChanged += OnManaChanged;
+                        statsManager.OnExperienceChanged += OnExperienceChanged;
                         
                         // 초기 UI 설정
                         InitializeUI();
@@ -128,17 +125,31 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         }
         
         /// <summary>
-        /// HUD 업데이트 (매 프레임)
+        /// HP 변경 이벤트 처리
         /// </summary>
-        private void UpdateHUD()
+        private void OnHealthChanged(float currentHP, float maxHP)
+        {
+            UpdateSlider(healthSlider, currentHP, maxHP);
+            SetText(healthText, $"{currentHP:F0} / {maxHP:F0}");
+        }
+        
+        /// <summary>
+        /// MP 변경 이벤트 처리 
+        /// </summary>
+        private void OnManaChanged(float currentMP, float maxMP)
+        {
+            UpdateSlider(manaSlider, currentMP, maxMP);
+            SetText(manaText, $"{currentMP:F0} / {maxMP:F0}");
+        }
+        
+        /// <summary>
+        /// 경험치 변경 이벤트 처리
+        /// </summary>
+        private void OnExperienceChanged()
         {
             if (statsManager?.CurrentStats == null) return;
             
             var stats = statsManager.CurrentStats;
-            
-            // HP/MP 슬라이더 업데이트
-            UpdateSlider(healthSlider, stats.CurrentHP, stats.MaxHP);
-            UpdateSlider(manaSlider, stats.CurrentMP, stats.MaxMP);
             
             // 경험치 슬라이더 업데이트
             if (experienceSlider != null)
@@ -147,8 +158,8 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 experienceSlider.value = stats.CurrentExperience;
             }
             
-            // 텍스트 업데이트
-            UpdateAllTexts();
+            // 경험치 텍스트 업데이트
+            SetText(expText, $"{stats.CurrentExperience} / {stats.ExpToNextLevel}");
         }
         
         /// <summary>
@@ -204,8 +215,9 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         private void OnStatsChanged(PlayerStats stats)
         {
-            // 스탯이 변경되면 UI 즉시 업데이트
-            UpdateAllTexts();
+            // 레벨과 골드 텍스트 업데이트 (HP/MP/EXP는 별도 이벤트에서 처리)
+            SetText(levelText, $"Lv.{stats.CurrentLevel}");
+            SetText(goldText, $"{stats.Gold:N0}");
         }
         
         /// <summary>
@@ -302,6 +314,9 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             {
                 statsManager.OnStatsUpdated -= OnStatsChanged;
                 statsManager.OnLevelChanged -= OnLevelUp;
+                statsManager.OnHealthChanged -= OnHealthChanged;
+                statsManager.OnManaChanged -= OnManaChanged;
+                statsManager.OnExperienceChanged -= OnExperienceChanged;
             }
         }
         

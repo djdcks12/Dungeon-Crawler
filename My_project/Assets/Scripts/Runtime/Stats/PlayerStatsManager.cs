@@ -56,6 +56,8 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         // 스탯 변경 이벤트
         public System.Action<PlayerStats> OnStatsUpdated;
         public System.Action<float, float> OnHealthChanged;
+        public System.Action<float, float> OnManaChanged;
+        public System.Action OnExperienceChanged;
         public System.Action OnPlayerDeath; // 사망 이벤트
         public System.Action<int> OnLevelChanged;
         
@@ -445,22 +447,15 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         }
         
         private void OnNetworkExpChanged(long previousValue, long newValue)
-        {
-            Debug.Log($"🎉 NetworkExp changed for {gameObject.name}: {previousValue} → {newValue} (IsServer: {IsServer}, IsOwner: {IsOwner})");
-            
+        {            
             // Client에서 NetworkVariable 변경을 currentStats에 반영
             if (!IsServer && currentStats != null)
             {
-                Debug.Log($"   Applying exp change to currentStats on client: {newValue}");
                 SetExperience(newValue);
-                
-                // UI 업데이트 이벤트 호출 (필요한 경우)
-                OnStatsUpdated?.Invoke(currentStats);
             }
-            else if (IsServer)
-            {
-                Debug.Log($"   Server received exp change notification: {newValue}");
-            }
+            
+            // 모든 클라이언트에서 경험치 변경 이벤트 호출
+            OnExperienceChanged?.Invoke();
         }
         
         private void OnNetworkExpToNextChanged(long previousValue, long newValue)
@@ -495,6 +490,9 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             {
                 currentStats.SetCurrentMP(newValue);
             }
+            
+            // 모든 클라이언트에서 마나 변경 이벤트 호출
+            OnManaChanged?.Invoke(newValue, networkMaxMP.Value);
         }
         
         private void OnNetworkMaxMPChanged(float previousValue, float newValue)
@@ -504,6 +502,9 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             {
                 currentStats.SetMaxMP(newValue);
             }
+            
+            // 모든 클라이언트에서 마나 변경 이벤트 호출
+            OnManaChanged?.Invoke(networkCurrentMP.Value, newValue);
         }
         
         // 스탯 이벤트 콜백들
