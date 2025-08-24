@@ -282,6 +282,8 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
     /// </summary>
     public enum StatusType
     {
+        None,        // 상태이상 없음
+        
         // 디버프
         Poison,      // 독
         Burn,        // 화상

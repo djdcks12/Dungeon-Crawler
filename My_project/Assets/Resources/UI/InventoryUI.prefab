@@ -2622,11 +2622,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 97993202472042b45b3bb120ae99a2eb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.InventoryUI
-  inventoryPanel: {fileID: 0}
+  inventoryPanel: {fileID: 3800296849201232184}
   slotContainer: {fileID: 0}
   slotPrefab: {fileID: 0}
   sortButton: {fileID: 0}
-  closeButton: {fileID: 0}
+  closeButton: {fileID: 5952342624576576661}
   inventoryTitle: {fileID: 0}
   usedSlotsText: {fileID: 0}
   toggleKey: 105

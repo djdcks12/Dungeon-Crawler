@@ -53,6 +53,9 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         // 컴포넌트 참조
         private PlayerController playerController;
         
+        // 처치한 몬스터 추적 (경험치 중복 방지)
+        private HashSet<ulong> defeatedMonsters = new HashSet<ulong>();
+        
         // 스탯 변경 이벤트
         public System.Action<PlayerStats> OnStatsUpdated;
         public System.Action<float, float> OnHealthChanged;
@@ -607,6 +610,43 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             currentStats.ResetSoulBonusStats();
             ApplyStatsToController();
             UpdateNetworkVariables();
+        }
+        
+        /// <summary>
+        /// 몬스터 처치 여부 확인
+        /// </summary>
+        public bool HasDefeatedMonster(ulong monsterId)
+        {
+            return defeatedMonsters.Contains(monsterId);
+        }
+        
+        /// <summary>
+        /// 몬스터 처치 기록
+        /// </summary>
+        public void MarkMonsterAsDefeated(ulong monsterId)
+        {
+            defeatedMonsters.Add(monsterId);
+        }
+        
+        /// <summary>
+        /// 몬스터로부터 경험치 획득 (중복 방지)
+        /// </summary>
+        public bool TryGainExperienceFromMonster(ulong monsterId, long expAmount)
+        {
+            if (!IsServer) return false;
+            
+            // 이미 이 몬스터로부터 경험치를 받았는지 확인
+            if (HasDefeatedMonster(monsterId))
+            {
+                return false; // 이미 받았음
+            }
+            
+            // 몬스터 처치 기록 및 경험치 획득
+            MarkMonsterAsDefeated(monsterId);
+            AddExperience(expAmount);
+            
+            Debug.Log($"💰 Player {NetworkObject.NetworkObjectId} gained {expAmount} EXP from monster {monsterId}");
+            return true; // 성공적으로 받음
         }
         
         // 디버그 정보
