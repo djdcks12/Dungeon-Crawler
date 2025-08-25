@@ -497,11 +497,164 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         }
         
         /// <summary>
+        /// 스킬 ID로 스킬 데이터 가져오기
+        /// </summary>
+        public SkillData GetSkillById(string skillId)
+        {
+            availableSkills.TryGetValue(skillId, out SkillData skillData);
+            return skillData;
+        }
+        
+        /// <summary>
         /// 스킬 데이터 가져오기
         /// </summary>
         public SkillData GetSkillData(string skillId)
         {
             return availableSkills.ContainsKey(skillId) ? availableSkills[skillId] : null;
+        }
+        
+        /// <summary>
+        /// 몬스터 영혼 스킬 학습
+        /// </summary>
+        public bool LearnMonsterSkill(MonsterSkillData monsterSkillData, float skillGrade)
+        {
+            if (!enableSkillSystem || !IsOwner) return false;
+            
+            // 몬스터 스킬을 플레이어 스킬 데이터로 변환
+            SkillData convertedSkill = ConvertMonsterSkillToPlayerSkill(monsterSkillData, skillGrade);
+            
+            if (convertedSkill == null)
+            {
+                Debug.LogError($"Failed to convert monster skill: {monsterSkillData.skillName}");
+                return false;
+            }
+            
+            // 이미 같은 스킬을 보유하고 있는지 확인
+            if (learnedSkillIds.Contains(convertedSkill.skillId))
+            {
+                Debug.LogWarning($"Already learned skill: {convertedSkill.skillName}");
+                return false;
+            }
+            
+            // 서버에서 몬스터 스킬 학습 처리
+            LearnMonsterSkillServerRpc(convertedSkill.skillId, skillGrade);
+            return true;
+        }
+        
+        /// <summary>
+        /// 몬스터 스킬을 플레이어 스킬로 변환
+        /// </summary>
+        private SkillData ConvertMonsterSkillToPlayerSkill(MonsterSkillData monsterSkillData, float skillGrade)
+        {
+            // 동적으로 SkillData 생성
+            var skillData = ScriptableObject.CreateInstance<SkillData>();
+            
+            // 기본 정보 복사
+            skillData.skillName = monsterSkillData.skillName;
+            skillData.skillId = $"monster_{monsterSkillData.skillName.Replace(" ", "_").ToLower()}_{skillGrade:F0}";
+            skillData.description = monsterSkillData.description;
+            skillData.skillIcon = monsterSkillData.skillIcon;
+            
+            // 몬스터 스킬 타입을 플레이어 스킬 타입으로 변환
+            skillData.skillType = monsterSkillData.SkillType == MonsterSkillType.Active ? SkillType.Active : SkillType.Passive;
+            
+            // 몬스터 스킬 카테고리를 플레이어 카테고리로 매핑 (기본값 사용)
+            skillData.category = MapMonsterCategoryToPlayerCategory(monsterSkillData.Category);
+            
+            // 몬스터 스킬 효과를 플레이어 스킬 스탯으로 변환
+            var skillEffect = monsterSkillData.GetSkillEffect();
+            skillData.statBonus = skillEffect.GetStatBlockForGrade(skillGrade);
+            
+            // 스킬 설정 (몬스터 스킬은 무료, 레벨 제한 없음)
+            skillData.requiredLevel = 1;
+            skillData.goldCost = 0; // 몬스터 스킬은 무료
+            skillData.requiredRace = Race.Human; // 모든 종족이 사용 가능하게
+            skillData.skillTier = Mathf.RoundToInt(skillGrade / 20f); // 80-120을 1-5티어로 변환
+            
+            // 액티브 스킬 설정
+            if (skillData.skillType == SkillType.Active)
+            {
+                skillData.cooldown = monsterSkillData.Cooldown;
+                skillData.manaCost = monsterSkillData.ManaCost;
+                skillData.range = monsterSkillData.Range;
+                
+                // 데미지 계산 (스킬 효과에서 추출)
+                float damageMultiplier = skillEffect.damageMultiplierRange.GetValueForGrade(skillGrade);
+                skillData.baseDamage = damageMultiplier * 20f; // 기본 데미지에 배율 적용
+                skillData.damageScaling = 1f;
+                skillData.minDamagePercent = 80f;
+                skillData.maxDamagePercent = 120f;
+                skillData.damageType = DamageType.Physical; // 기본값
+            }
+            
+            return skillData;
+        }
+        
+        /// <summary>
+        /// 몬스터 스킬 카테고리를 플레이어 카테고리로 매핑
+        /// </summary>
+        private SkillCategory MapMonsterCategoryToPlayerCategory(MonsterSkillCategory monsterCategory)
+        {
+            switch (monsterCategory)
+            {
+                case MonsterSkillCategory.PhysicalAttack:
+                case MonsterSkillCategory.DamageBonus:
+                    return SkillCategory.Warrior;
+                    
+                case MonsterSkillCategory.MagicalAttack:
+                    return SkillCategory.ElementalMage;
+                    
+                case MonsterSkillCategory.PhysicalDefense:
+                case MonsterSkillCategory.HealthBonus:
+                    return SkillCategory.Paladin;
+                    
+                case MonsterSkillCategory.MagicalDefense:
+                    return SkillCategory.PureMage;
+                    
+                case MonsterSkillCategory.MovementSpeed:
+                case MonsterSkillCategory.AttackSpeed:
+                    return SkillCategory.Rogue;
+                    
+                case MonsterSkillCategory.Regeneration:
+                    return SkillCategory.NatureMage;
+                    
+                default:
+                    return SkillCategory.Warrior; // 기본값
+            }
+        }
+        
+        /// <summary>
+        /// 서버에서 몬스터 스킬 학습 처리
+        /// </summary>
+        [ServerRpc]
+        private void LearnMonsterSkillServerRpc(string skillId, float skillGrade)
+        {
+            // 스킬 학습 (골드 없이)
+            learnedSkillIds.Add(skillId);
+            
+            // 네트워크 동기화
+            var wrapper = new SkillListWrapper { skillIds = learnedSkillIds.ToArray() };
+            networkLearnedSkills.Value = wrapper;
+            
+            // 저장
+            SaveLearnedSkills();
+            
+            // 이벤트 발생
+            OnSkillLearned?.Invoke(skillId);
+            
+            // 클라이언트에 알림
+            NotifyMonsterSkillLearnedClientRpc(skillId, skillGrade);
+            
+            Debug.Log($"✅ Monster skill learned: {skillId} (Grade {skillGrade:F0})");
+        }
+        
+        /// <summary>
+        /// 몬스터 스킬 학습 알림
+        /// </summary>
+        [ClientRpc]
+        private void NotifyMonsterSkillLearnedClientRpc(string skillId, float skillGrade)
+        {
+            Debug.Log($"🌟 MONSTER SKILL LEARNED! {skillId} (Grade {skillGrade:F0})");
         }
         
         /// <summary>
