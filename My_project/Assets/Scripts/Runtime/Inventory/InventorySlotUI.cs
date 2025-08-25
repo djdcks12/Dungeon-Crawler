@@ -113,7 +113,9 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 var frameObject = transform.Find("GradeFrame");
                 if (frameObject == null)
                 {
-                    frameObject = new GameObject("GradeFrame").transform;
+                    var frameGameObject = new GameObject("GradeFrame");
+                    frameGameObject.AddComponent<RectTransform>(); // RectTransform 명시적으로 추가
+                    frameObject = frameGameObject.transform;
                     frameObject.SetParent(transform, false);
                     frameObject.SetAsFirstSibling(); // 배경 위에 표시
                     var rectTransform = frameObject.GetComponent<RectTransform>();
@@ -135,7 +137,9 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 var highlightObject = transform.Find("Highlight");
                 if (highlightObject == null)
                 {
-                    highlightObject = new GameObject("Highlight").transform;
+                    var highlightGameObject = new GameObject("Highlight");
+                    highlightGameObject.AddComponent<RectTransform>(); // RectTransform 명시적으로 추가
+                    highlightObject = highlightGameObject.transform;
                     highlightObject.SetParent(transform, false);
                     highlightObject.SetAsLastSibling(); // 최상위에 표시
                     var rectTransform = highlightObject.GetComponent<RectTransform>();
@@ -188,6 +192,8 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         private void ShowItemSlot(ItemInstance item)
         {
+            Debug.Log($"🔍 ShowItemSlot: {item.ItemData.ItemName}, Icon: {(item.ItemData.ItemIcon != null ? "✅" : "❌")}");
+            
             backgroundImage.color = occupiedSlotColor;
             
             // 아이템 아이콘
@@ -195,11 +201,13 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             {
                 itemIconImage.sprite = item.ItemData.ItemIcon;
                 itemIconImage.color = Color.white;
+                Debug.Log($"🔍 Icon set for {item.ItemData.ItemName}: {item.ItemData.ItemIcon.name}");
             }
             else
             {
                 itemIconImage.sprite = null;
                 itemIconImage.color = item.ItemData.GradeColor;
+                Debug.LogWarning($"⚠️ No icon for {item.ItemData.ItemName}, using grade color: {item.ItemData.GradeColor}");
             }
             
             // 수량 표시

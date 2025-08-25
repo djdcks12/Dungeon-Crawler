@@ -159,7 +159,10 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 GenerateAdvancedMinimapUIPrefab();
                 
             if (generateInventoryUI && GUILayout.Button("Generate Advanced Inventory UI"))
-                GenerateAdvancedInventoryUIPrefab();
+            {
+                // GUI 상태를 유지하기 위해 지연 실행
+                EditorApplication.delayCall += GenerateAdvancedInventoryUIPrefab;
+            }
         }
         
         private void GenerateAllPrefabs()
@@ -219,30 +222,114 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         
         private void GenerateStatsUIPrefab()
         {
-            GameObject statsRoot = new GameObject("StatsUI");
-            statsRoot.AddComponent<StatsUI>();
-            
-            // StatsPanel 생성
-            GameObject statsPanel = CreateUIPanel("StatsPanel", statsRoot.transform);
-            statsPanel.SetActive(false); // 기본적으로 숨김
-            
-            // Header 생성
-            GameObject header = CreateUIPanel("Header", statsPanel.transform);
-            GameObject titleText = CreateText("TitleText", header.transform, "캐릭터 정보");
-            GameObject closeButton = CreateButton("CloseButton", header.transform, "X");
-            
-            // PlayerInfoSection 생성
-            GameObject playerInfo = CreateUIPanel("PlayerInfoSection", statsPanel.transform);
-            GameObject playerNameText = CreateText("PlayerNameText", playerInfo.transform, "Player_12345");
-            GameObject levelText = CreateText("LevelText", playerInfo.transform, "Lv.1");
-            GameObject expSlider = CreateSlider("ExpSlider", playerInfo.transform, Color.yellow);
-            GameObject expText = CreateText("ExpText", playerInfo.transform, "0 / 100");
-            GameObject pointsText = CreateText("AvailablePointsText", playerInfo.transform, "사용 가능 포인트: 0");
-            
-            // 프리팹 저장
-            SavePrefab(statsRoot, "UI/StatsUI");
-            
-            Debug.Log("✅ StatsUI prefab generated!");
+            try
+            {
+                Debug.Log("🔧 Starting Advanced StatsUI generation...");
+                
+                var rootCanvas = CreateAdvancedCanvas("AdvancedStatsUI_Canvas");
+                
+                // 스탯 패널 - 화면 우측에 세로로 긴 형태
+                var statsPanel = CreateAdvancedUIPanel(rootCanvas.transform, "StatsPanel");
+                var statsRect = statsPanel.GetComponent<RectTransform>();
+                statsRect.anchorMin = new Vector2(0.7f, 0.1f); // 화면의 70% 지점부터
+                statsRect.anchorMax = new Vector2(0.98f, 0.9f); // 화면의 98% 지점까지
+                statsRect.offsetMin = Vector2.zero;
+                statsRect.offsetMax = Vector2.zero;
+                
+                statsPanel.SetActive(false); // 기본적으로 숨김
+                
+                Debug.Log($"🔍 StatsPanel created with size: {statsRect.sizeDelta}");
+                
+                // StatsUI 스크립트 추가
+                var statsUIScript = rootCanvas.gameObject.AddComponent<StatsUI>();
+                
+                // 토글 버튼 (UI 외부, 화면 우측 상단)
+                var toggleButton = CreateAdvancedButton(rootCanvas.transform, "ToggleStatsButton", "C");
+                SetRectTransform(toggleButton.gameObject, new Vector2(1, 1), new Vector2(1, 1), new Vector2(-60, -60), new Vector2(-10, -10));
+                
+                // 헤더
+                var header = CreateAdvancedUIPanel(statsPanel.transform, "Header");
+                SetRectTransform(header, new Vector2(0, 1), new Vector2(1, 1), new Vector2(0, -50), new Vector2(0, 0));
+                
+                var headerText = CreateAdvancedText(header.transform, "HeaderText", "Character Stats", 18);
+                SetRectTransform(headerText.gameObject, new Vector2(0, 0), new Vector2(0.8f, 1), Vector2.zero, Vector2.zero);
+                
+                var closeButton = CreateAdvancedButton(header.transform, "CloseStatsButton", "✕");
+                SetRectTransform(closeButton.gameObject, new Vector2(1, 0), new Vector2(1, 1), new Vector2(-40, 0), new Vector2(-5, 0));
+                
+                // 스크롤 뷰를 위한 콘텐츠 영역
+                var scrollView = new GameObject("ScrollView");
+                scrollView.transform.SetParent(statsPanel.transform);
+                scrollView.AddComponent<RectTransform>();
+                SetRectTransform(scrollView, new Vector2(0, 0), new Vector2(1, 1), new Vector2(5, 5), new Vector2(-5, -55));
+                
+                var scrollRect = scrollView.AddComponent<ScrollRect>();
+                scrollRect.vertical = true;
+                scrollRect.horizontal = false;
+                
+                // Content 영역
+                var content = CreateAdvancedUIPanel(scrollView.transform, "Content");
+                var contentLayout = content.AddComponent<VerticalLayoutGroup>();
+                contentLayout.spacing = 15;
+                contentLayout.padding = new RectOffset(10, 10, 10, 10);
+                contentLayout.childControlHeight = false;
+                contentLayout.childForceExpandHeight = false;
+                
+                var contentFitter = content.AddComponent<ContentSizeFitter>();
+                contentFitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+                
+                scrollRect.content = content.GetComponent<RectTransform>();
+                
+                // Player Info Section
+                var playerInfoSection = CreateStatsSection(content.transform, "PlayerInfoSection", "플레이어 정보");
+                var playerNameText = CreateAdvancedText(playerInfoSection.transform, "PlayerNameText", "Player_12345", 16);
+                var levelText = CreateAdvancedText(playerInfoSection.transform, "LevelText", "Level 1", 14);
+                var expText = CreateAdvancedText(playerInfoSection.transform, "ExpText", "EXP: 0 / 100", 12);
+                var expSlider = CreateAdvancedSlider(playerInfoSection.transform, "ExpSlider", Color.yellow);
+                var availablePointsText = CreateAdvancedText(playerInfoSection.transform, "AvailablePointsText", "Race: Human (Auto Growth)", 12);
+                
+                // Health & Mana Section
+                var healthManaSection = CreateStatsSection(content.transform, "HealthManaSection", "체력 & 마나");
+                var healthSlider = CreateAdvancedSlider(healthManaSection.transform, "HealthSlider", Color.red);
+                var healthText = CreateAdvancedText(healthManaSection.transform, "HealthText", "HP: 100 / 100", 12);
+                var manaSlider = CreateAdvancedSlider(healthManaSection.transform, "ManaSlider", Color.blue);
+                var manaText = CreateAdvancedText(healthManaSection.transform, "ManaText", "MP: 50 / 50", 12);
+                
+                // Primary Stats Section
+                var primaryStatsSection = CreateStatsSection(content.transform, "PrimaryStatsSection", "기본 능력치");
+                var strStat = CreateStatUIElement(primaryStatsSection.transform, "StrStat", "힘 (STR)");
+                var agiStat = CreateStatUIElement(primaryStatsSection.transform, "AgiStat", "민첩 (AGI)");
+                var vitStat = CreateStatUIElement(primaryStatsSection.transform, "VitStat", "체력 (VIT)");
+                var intStat = CreateStatUIElement(primaryStatsSection.transform, "IntStat", "지능 (INT)");
+                var defStat = CreateStatUIElement(primaryStatsSection.transform, "DefStat", "물리방어 (DEF)");
+                var mdefStat = CreateStatUIElement(primaryStatsSection.transform, "MdefStat", "마법방어 (MDEF)");
+                var lukStat = CreateStatUIElement(primaryStatsSection.transform, "LukStat", "운 (LUK)");
+                
+                // Derived Stats Section
+                var derivedStatsSection = CreateStatsSection(content.transform, "DerivedStatsSection", "파생 능력치");
+                var attackDamageText = CreateAdvancedText(derivedStatsSection.transform, "AttackDamageText", "Attack: 10.0", 12);
+                var magicDamageText = CreateAdvancedText(derivedStatsSection.transform, "MagicDamageText", "Magic: 5.0", 12);
+                var moveSpeedText = CreateAdvancedText(derivedStatsSection.transform, "MoveSpeedText", "Speed: 5.0", 12);
+                var attackSpeedText = CreateAdvancedText(derivedStatsSection.transform, "AttackSpeedText", "AS: 1.00", 12);
+                var critChanceText = CreateAdvancedText(derivedStatsSection.transform, "CritChanceText", "Crit: 5.0%", 12);
+                var critDamageText = CreateAdvancedText(derivedStatsSection.transform, "CritDamageText", "Crit DMG: 150%", 12);
+                
+                // StatsUI 스크립트에 UI 요소들 연결
+                ConnectStatsUIReferences(statsUIScript, statsPanel, toggleButton, closeButton, 
+                    playerNameText, levelText, expText, expSlider.GetComponent<Slider>(), availablePointsText,
+                    healthSlider.GetComponent<Slider>(), healthText, manaSlider.GetComponent<Slider>(), manaText,
+                    strStat, agiStat, vitStat, intStat, defStat, mdefStat, lukStat,
+                    attackDamageText, magicDamageText, moveSpeedText, attackSpeedText, critChanceText, critDamageText);
+                
+                SaveAdvancedPrefab(rootCanvas.gameObject, "AdvancedStatsUI");
+                
+                Debug.Log("✅ Advanced StatsUI generation completed successfully!");
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"❌ Error generating Advanced StatsUI: {ex.Message}");
+                Debug.LogError($"Stack trace: {ex.StackTrace}");
+            }
         }
         
         private void GenerateInventoryUIPrefab()
@@ -517,13 +604,30 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         private void GenerateAdvancedInventoryUIPrefab()
         {
-            var rootCanvas = CreateAdvancedCanvas("AdvancedInventoryUI_Canvas");
-            var inventoryPanel = CreateAdvancedUIPanel(rootCanvas.transform, "InventoryPanel");
-            inventoryPanel.SetActive(false); // 기본적으로 숨김
-            
-            // 헤더
-            var header = CreateAdvancedUIPanel(inventoryPanel.transform, "Header");
-            SetRectTransform(header, new Vector2(0, 1), new Vector2(1, 1), new Vector2(0, -50), new Vector2(0, 0));
+            try
+            {
+                Debug.Log("🔧 Starting AdvancedInventoryUI generation...");
+                
+                var rootCanvas = CreateAdvancedCanvas("AdvancedInventoryUI_Canvas");
+                
+                // 인벤토리 패널 - 화면 중앙에 적당한 크기로 설정
+                var inventoryPanel = CreateAdvancedUIPanel(rootCanvas.transform, "InventoryPanel");
+                var inventoryRect = inventoryPanel.GetComponent<RectTransform>();
+                inventoryRect.anchorMin = new Vector2(0.2f, 0.1f); // 화면의 20% 지점부터
+                inventoryRect.anchorMax = new Vector2(0.8f, 0.9f);  // 화면의 80% 지점까지
+                inventoryRect.offsetMin = Vector2.zero;
+                inventoryRect.offsetMax = Vector2.zero;
+                
+                inventoryPanel.SetActive(false); // 기본적으로 숨김
+                
+                Debug.Log($"🔍 InventoryPanel created with size: {inventoryRect.sizeDelta}");
+                
+                // InventoryUI 스크립트 추가
+                var inventoryUIScript = rootCanvas.gameObject.AddComponent<InventoryUI>();
+                
+                // 헤더
+                var header = CreateAdvancedUIPanel(inventoryPanel.transform, "Header");
+                SetRectTransform(header, new Vector2(0, 1), new Vector2(1, 1), new Vector2(0, -50), new Vector2(0, 0));
             
             var headerText = CreateAdvancedText(header.transform, "HeaderText", "Inventory", 24);
             SetRectTransform(headerText.gameObject, new Vector2(0, 0), new Vector2(1, 1), Vector2.zero, Vector2.zero);
@@ -567,12 +671,174 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             filterLayoutGroup.spacing = 10;
             filterLayoutGroup.padding = new RectOffset(10, 10, 10, 10);
             
-            CreateAdvancedButton(filterContainer.transform, "AllFilterButton", "All");
-            CreateAdvancedButton(filterContainer.transform, "WeaponFilterButton", "Weapons");
-            CreateAdvancedButton(filterContainer.transform, "ArmorFilterButton", "Armor");
-            CreateAdvancedButton(filterContainer.transform, "ConsumableFilterButton", "Consumables");
+            var sortButton = CreateAdvancedButton(filterContainer.transform, "SortButton", "Sort");
+            CreateAdvancedText(filterContainer.transform, "UsedSlotsText", "0/40", 14);
             
-            SaveAdvancedPrefab(rootCanvas.gameObject, "AdvancedInventoryUI");
+            // InventoryUI 스크립트에 UI 요소들 연결
+            ConnectInventoryUIReferences(inventoryUIScript, inventoryPanel, slotsContainer, closeButton, 
+                                       headerText, sortButton, filterContainer.transform.Find("UsedSlotsText").GetComponent<Text>());
+            
+                SaveAdvancedPrefab(rootCanvas.gameObject, "AdvancedInventoryUI");
+                
+                // 인벤토리 슬롯 프리팹 생성 (AdvancedInventoryUI 저장 후)
+                CreateInventorySlotPrefab();
+                
+                // AdvancedInventoryUI에 슬롯 프리팹 연결
+                UpdateInventoryUISlotPrefab();
+                
+                Debug.Log("✅ AdvancedInventoryUI generation completed successfully!");
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"❌ Error generating AdvancedInventoryUI: {ex.Message}");
+                Debug.LogError($"Stack trace: {ex.StackTrace}");
+            }
+        }
+        
+        /// <summary>
+        /// InventoryUI 스크립트에 UI 참조들 연결
+        /// </summary>
+        private void ConnectInventoryUIReferences(InventoryUI inventoryUI, GameObject inventoryPanel, 
+                                                 GameObject slotsContainer, Button closeButton, 
+                                                 Text headerText, Button sortButton, Text usedSlotsText)
+        {
+            // SerializedObject를 사용하여 private 필드들에 접근
+            var serializedObject = new SerializedObject(inventoryUI);
+            
+            // UI 참조 설정
+            serializedObject.FindProperty("inventoryPanel").objectReferenceValue = inventoryPanel;
+            serializedObject.FindProperty("slotContainer").objectReferenceValue = slotsContainer.transform;
+            serializedObject.FindProperty("closeButton").objectReferenceValue = closeButton;
+            serializedObject.FindProperty("inventoryTitle").objectReferenceValue = headerText;
+            serializedObject.FindProperty("sortButton").objectReferenceValue = sortButton;
+            serializedObject.FindProperty("usedSlotsText").objectReferenceValue = usedSlotsText;
+            
+            // slotPrefab은 나중에 설정 (아직 생성되지 않았음)
+            
+            // 설정값들
+            serializedObject.FindProperty("toggleKey").enumValueIndex = (int)KeyCode.I;
+            serializedObject.FindProperty("slotsPerRow").intValue = 8;
+            serializedObject.FindProperty("slotSize").floatValue = 64f;
+            serializedObject.FindProperty("slotSpacing").floatValue = 2f;
+            
+            serializedObject.ApplyModifiedProperties();
+            
+            Debug.Log("✅ InventoryUI references connected successfully!");
+        }
+        
+        /// <summary>
+        /// 인벤토리 슬롯 프리팹 생성
+        /// </summary>
+        private void CreateInventorySlotPrefab()
+        {
+            var slotObj = new GameObject("InventorySlot");
+            var rectTransform = slotObj.AddComponent<RectTransform>();
+            rectTransform.sizeDelta = new Vector2(64, 64);
+            
+            // 배경 이미지
+            var backgroundImage = slotObj.AddComponent<Image>();
+            backgroundImage.color = new Color(0.3f, 0.3f, 0.3f, 0.8f);
+            
+            // 아이템 아이콘 (InventorySlotUI가 찾는 이름으로 변경)
+            var iconObj = new GameObject("Icon");
+            iconObj.transform.SetParent(slotObj.transform, false);
+            iconObj.AddComponent<RectTransform>();
+            var iconRect = iconObj.GetComponent<RectTransform>();
+            iconRect.anchorMin = Vector2.zero;
+            iconRect.anchorMax = Vector2.one;
+            iconRect.offsetMin = Vector2.one * 4; // 4픽셀 패딩
+            iconRect.offsetMax = Vector2.one * -4;
+            
+            var itemIconImage = iconObj.AddComponent<Image>();
+            itemIconImage.color = Color.white;
+            
+            // 등급 프레임 (선택사항)
+            var gradeFrameObj = new GameObject("GradeFrame");
+            gradeFrameObj.transform.SetParent(slotObj.transform, false);
+            gradeFrameObj.AddComponent<RectTransform>();
+            var gradeFrameRect = gradeFrameObj.GetComponent<RectTransform>();
+            gradeFrameRect.anchorMin = Vector2.zero;
+            gradeFrameRect.anchorMax = Vector2.one;
+            gradeFrameRect.offsetMin = Vector2.zero;
+            gradeFrameRect.offsetMax = Vector2.zero;
+            var gradeFrameImage = gradeFrameObj.AddComponent<Image>();
+            gradeFrameImage.color = Color.clear;
+            gradeFrameImage.raycastTarget = false;
+            
+            // 하이라이트 이미지 (선택사항)
+            var highlightObj = new GameObject("Highlight");
+            highlightObj.transform.SetParent(slotObj.transform, false);
+            highlightObj.AddComponent<RectTransform>();
+            var highlightRect = highlightObj.GetComponent<RectTransform>();
+            highlightRect.anchorMin = Vector2.zero;
+            highlightRect.anchorMax = Vector2.one;
+            highlightRect.offsetMin = Vector2.zero;
+            highlightRect.offsetMax = Vector2.zero;
+            var highlightImage = highlightObj.AddComponent<Image>();
+            highlightImage.color = Color.clear;
+            highlightImage.raycastTarget = false;
+            
+            // 수량 텍스트 (InventorySlotUI가 찾는 이름으로 변경)
+            var countObj = new GameObject("Quantity");
+            countObj.transform.SetParent(slotObj.transform, false);
+            countObj.AddComponent<RectTransform>();
+            var countRect = countObj.GetComponent<RectTransform>();
+            countRect.anchorMin = new Vector2(1, 0);
+            countRect.anchorMax = new Vector2(1, 0);
+            countRect.pivot = new Vector2(1, 0);
+            countRect.anchoredPosition = new Vector2(-2, 2);
+            countRect.sizeDelta = new Vector2(30, 20);
+            
+            var countText = countObj.AddComponent<Text>();
+            countText.text = "";
+            countText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            countText.fontSize = 12;
+            countText.color = Color.white;
+            countText.alignment = TextAnchor.MiddleRight;
+            
+            // InventorySlotUI 스크립트 추가
+            var slotUIScript = slotObj.AddComponent<InventorySlotUI>();
+            
+            // SerializedObject로 private 필드들 연결
+            var serializedSlot = new SerializedObject(slotUIScript);
+            serializedSlot.FindProperty("backgroundImage").objectReferenceValue = backgroundImage;
+            serializedSlot.FindProperty("itemIconImage").objectReferenceValue = itemIconImage;
+            serializedSlot.FindProperty("quantityText").objectReferenceValue = countText;
+            serializedSlot.FindProperty("gradeFrame").objectReferenceValue = gradeFrameImage;
+            serializedSlot.FindProperty("highlightImage").objectReferenceValue = highlightImage;
+            serializedSlot.ApplyModifiedProperties();
+            
+            SaveAdvancedPrefab(slotObj, "InventorySlot");
+            Debug.Log("✅ InventorySlot prefab created successfully!");
+        }
+        
+        /// <summary>
+        /// AdvancedInventoryUI 프리팹에 슬롯 프리팹 연결
+        /// </summary>
+        private void UpdateInventoryUISlotPrefab()
+        {
+            // 생성된 프리팹들을 로드
+            GameObject inventoryPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/UI/AdvancedInventoryUI.prefab");
+            GameObject slotPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/UI/InventorySlot.prefab");
+            
+            if (inventoryPrefab == null || slotPrefab == null)
+            {
+                Debug.LogError("❌ Could not find generated prefabs to connect!");
+                return;
+            }
+            
+            // InventoryUI 스크립트의 slotPrefab 필드 업데이트
+            var inventoryUI = inventoryPrefab.GetComponent<InventoryUI>();
+            if (inventoryUI != null)
+            {
+                var serializedObject = new SerializedObject(inventoryUI);
+                serializedObject.FindProperty("slotPrefab").objectReferenceValue = slotPrefab;
+                serializedObject.ApplyModifiedProperties();
+                
+                // 프리팹 업데이트 저장
+                PrefabUtility.SavePrefabAsset(inventoryPrefab);
+                Debug.Log("✅ InventoryUI slotPrefab reference updated!");
+            }
         }
         
         // 고급 UI 생성 헬퍼 메서드들
@@ -616,7 +882,19 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             var rectTransform = panelObj.AddComponent<RectTransform>();
             var image = panelObj.AddComponent<Image>();
             
-            image.color = defaultBackgroundColor;
+            // 인벤토리 패널은 명확히 보이도록 설정
+            if (name == "InventoryPanel")
+            {
+                image.color = new Color(0.1f, 0.1f, 0.1f, 0.9f); // 어두운 배경
+            }
+            else if (name.Contains("Header"))
+            {
+                image.color = new Color(0.2f, 0.2f, 0.2f, 1f); // 헤더는 조금 더 밝게
+            }
+            else
+            {
+                image.color = defaultBackgroundColor.a == 0 ? new Color(0.15f, 0.15f, 0.15f, 0.8f) : defaultBackgroundColor;
+            }
             
             // 기본 앵커 설정 (전체 영역)
             rectTransform.anchorMin = Vector2.zero;
@@ -829,6 +1107,135 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         }
         
         /// <summary>
+        /// 스탯 섹션 생성 헬퍼
+        /// </summary>
+        private GameObject CreateStatsSection(Transform parent, string name, string title)
+        {
+            var section = CreateAdvancedUIPanel(parent, name);
+            var layout = section.AddComponent<VerticalLayoutGroup>();
+            layout.spacing = 5;
+            layout.padding = new RectOffset(5, 5, 5, 5);
+            layout.childControlHeight = false;
+            layout.childForceExpandHeight = false;
+            
+            var titleText = CreateAdvancedText(section.transform, "Title", title, 16);
+            titleText.color = Color.yellow;
+            
+            return section;
+        }
+        
+        /// <summary>
+        /// 개별 스탯 UI 요소 생성
+        /// </summary>
+        private StatUIElement CreateStatUIElement(Transform parent, string name, string statName)
+        {
+            var statContainer = CreateAdvancedUIPanel(parent, name);
+            var layout = statContainer.AddComponent<HorizontalLayoutGroup>();
+            layout.spacing = 5;
+            layout.padding = new RectOffset(5, 5, 2, 2);
+            layout.childControlWidth = false;
+            layout.childForceExpandWidth = false;
+            
+            // 스탯 이름 텍스트
+            var nameText = CreateAdvancedText(statContainer.transform, "StatName", statName, 12);
+            nameText.GetComponent<RectTransform>().sizeDelta = new Vector2(80, 20);
+            
+            // 기본 값 텍스트
+            var baseValueText = CreateAdvancedText(statContainer.transform, "BaseValue", "10", 12);
+            baseValueText.GetComponent<RectTransform>().sizeDelta = new Vector2(30, 20);
+            
+            // 보너스 값 텍스트
+            var bonusValueText = CreateAdvancedText(statContainer.transform, "BonusValue", "+0", 12);
+            bonusValueText.color = Color.green;
+            bonusValueText.GetComponent<RectTransform>().sizeDelta = new Vector2(30, 20);
+            
+            // 총합 값 텍스트
+            var totalValueText = CreateAdvancedText(statContainer.transform, "TotalValue", "10", 12);
+            totalValueText.color = Color.white;
+            totalValueText.GetComponent<RectTransform>().sizeDelta = new Vector2(30, 20);
+            
+            // 증가 버튼
+            var increaseButton = CreateAdvancedButton(statContainer.transform, "IncreaseButton", "+");
+            increaseButton.GetComponent<RectTransform>().sizeDelta = new Vector2(20, 20);
+            
+            // 감소 버튼
+            var decreaseButton = CreateAdvancedButton(statContainer.transform, "DecreaseButton", "-");
+            decreaseButton.GetComponent<RectTransform>().sizeDelta = new Vector2(20, 20);
+            
+            // StatUIElement 컴포넌트 추가 및 연결
+            var statUIElement = statContainer.AddComponent<StatUIElement>();
+            
+            // SerializedObject를 사용하여 private 필드들 연결
+            var serializedStatElement = new SerializedObject(statUIElement);
+            serializedStatElement.FindProperty("statNameText").objectReferenceValue = nameText;
+            serializedStatElement.FindProperty("baseValueText").objectReferenceValue = baseValueText;
+            serializedStatElement.FindProperty("bonusValueText").objectReferenceValue = bonusValueText;
+            serializedStatElement.FindProperty("totalValueText").objectReferenceValue = totalValueText;
+            serializedStatElement.FindProperty("increaseButton").objectReferenceValue = increaseButton;
+            serializedStatElement.FindProperty("decreaseButton").objectReferenceValue = decreaseButton;
+            serializedStatElement.ApplyModifiedProperties();
+            
+            return statUIElement;
+        }
+        
+        /// <summary>
+        /// StatsUI 스크립트에 UI 참조들 연결
+        /// </summary>
+        private void ConnectStatsUIReferences(StatsUI statsUI, GameObject statsPanel, Button toggleButton, Button closeButton,
+            Text playerNameText, Text levelText, Text expText, Slider expSlider, Text availablePointsText,
+            Slider healthSlider, Text healthText, Slider manaSlider, Text manaText,
+            StatUIElement strStat, StatUIElement agiStat, StatUIElement vitStat, StatUIElement intStat,
+            StatUIElement defStat, StatUIElement mdefStat, StatUIElement lukStat,
+            Text attackDamageText, Text magicDamageText, Text moveSpeedText, Text attackSpeedText,
+            Text critChanceText, Text critDamageText)
+        {
+            var serializedObject = new SerializedObject(statsUI);
+            
+            // UI References
+            serializedObject.FindProperty("statsPanel").objectReferenceValue = statsPanel;
+            serializedObject.FindProperty("toggleStatsButton").objectReferenceValue = toggleButton;
+            serializedObject.FindProperty("closeStatsButton").objectReferenceValue = closeButton;
+            
+            // Player Info
+            serializedObject.FindProperty("playerNameText").objectReferenceValue = playerNameText;
+            serializedObject.FindProperty("levelText").objectReferenceValue = levelText;
+            serializedObject.FindProperty("expText").objectReferenceValue = expText;
+            serializedObject.FindProperty("expSlider").objectReferenceValue = expSlider;
+            serializedObject.FindProperty("availablePointsText").objectReferenceValue = availablePointsText;
+            
+            // Health & Mana
+            serializedObject.FindProperty("healthSlider").objectReferenceValue = healthSlider;
+            serializedObject.FindProperty("healthText").objectReferenceValue = healthText;
+            serializedObject.FindProperty("manaSlider").objectReferenceValue = manaSlider;
+            serializedObject.FindProperty("manaText").objectReferenceValue = manaText;
+            
+            // Primary Stats
+            serializedObject.FindProperty("strStat").objectReferenceValue = strStat;
+            serializedObject.FindProperty("agiStat").objectReferenceValue = agiStat;
+            serializedObject.FindProperty("vitStat").objectReferenceValue = vitStat;
+            serializedObject.FindProperty("intStat").objectReferenceValue = intStat;
+            serializedObject.FindProperty("defStat").objectReferenceValue = defStat;
+            serializedObject.FindProperty("mdefStat").objectReferenceValue = mdefStat;
+            serializedObject.FindProperty("lukStat").objectReferenceValue = lukStat;
+            
+            // Derived Stats
+            serializedObject.FindProperty("attackDamageText").objectReferenceValue = attackDamageText;
+            serializedObject.FindProperty("magicDamageText").objectReferenceValue = magicDamageText;
+            serializedObject.FindProperty("moveSpeedText").objectReferenceValue = moveSpeedText;
+            serializedObject.FindProperty("attackSpeedText").objectReferenceValue = attackSpeedText;
+            serializedObject.FindProperty("critChanceText").objectReferenceValue = critChanceText;
+            serializedObject.FindProperty("critDamageText").objectReferenceValue = critDamageText;
+            
+            // Settings
+            serializedObject.FindProperty("toggleKey").enumValueIndex = (int)KeyCode.C;
+            serializedObject.FindProperty("showStatsOnStart").boolValue = false;
+            
+            serializedObject.ApplyModifiedProperties();
+            
+            Debug.Log("✅ StatsUI references connected successfully!");
+        }
+        
+        /// <summary>
         /// 고급 스킬 슬롯 프리팹 생성
         /// </summary>
         private void CreateAdvancedSkillSlotPrefab()
@@ -960,7 +1367,9 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         private void SaveAdvancedPrefab(GameObject obj, string name)
         {
-            string fullPath = Path.Combine(prefabSavePath, $"{name}.prefab");
+            // UIManager가 Resources 폴더에서 찾으므로 Resources/UI/ 경로에 저장
+            string resourcesUIPath = "Assets/Resources/UI/";
+            string fullPath = Path.Combine(resourcesUIPath, $"{name}.prefab");
             
             // 디렉토리가 없으면 생성
             string directory = Path.GetDirectoryName(fullPath);

@@ -291,6 +291,13 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             {
                 UIManager.Instance.HandleUIInput();
             }
+            else
+            {
+                if (Input.GetKeyDown(KeyCode.I))
+                {
+                    Debug.LogError("❌ UIManager.Instance is null! Cannot handle UI input.");
+                }
+            }
         }
         
         /// <summary>

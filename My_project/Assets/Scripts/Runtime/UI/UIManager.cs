@@ -13,7 +13,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         [Header("UI 프리팹 경로")]
         [SerializeField] private string playerHUDPrefabPath = "UI/PlayerHUD";
         [SerializeField] private string statsUIPrefabPath = "UI/StatsUI";
-        [SerializeField] private string inventoryUIPrefabPath = "UI/InventoryUI";
+        [SerializeField] private string inventoryUIPrefabPath = "UI/AdvancedInventoryUI";
         [SerializeField] private string equipmentUIPrefabPath = "UI/EquipmentUI";
         [SerializeField] private string partyUIPrefabPath = "UI/PartyUI";
         [SerializeField] private string dungeonUIPrefabPath = "UI/DungeonUI";
@@ -147,7 +147,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             GameObject prefab = Resources.Load<GameObject>(prefabPath);
             if (prefab == null)
             {
-                Debug.LogError($"❌ UI Prefab not found: {prefabPath}");
+                Debug.LogError($"❌ UI prefab not found: {prefabPath}. Make sure to generate UI prefabs first!");
                 return null;
             }
             
@@ -222,11 +222,47 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         public void ToggleUI<T>() where T : MonoBehaviour
         {
             var uiType = typeof(T);
+            Debug.Log($"🔍 ToggleUI called for: {uiType.Name}");
             
             if (loadedUIs.ContainsKey(uiType))
             {
                 var uiObject = loadedUIs[uiType];
-                uiObject.SetActive(!uiObject.activeInHierarchy);
+                var uiComponent = uiComponents[uiType];
+                bool currentState = uiObject.activeInHierarchy;
+                
+                Debug.Log($"🔍 UI Object: {uiObject.name}, Component: {uiComponent?.GetType().Name}");
+                Debug.Log($"🔍 UI Object Scale: {uiObject.transform.localScale}");
+                Debug.Log($"🔍 UI Object Position: {uiObject.transform.position}");
+                
+                // InventoryUI인 경우 특별 처리
+                if (uiType == typeof(InventoryUI))
+                {
+                    var inventoryUI = uiComponent as InventoryUI;
+                    if (inventoryUI != null)
+                    {
+                        Debug.Log($"🔍 Using InventoryUI.ToggleInventory() method");
+                        inventoryUI.ToggleInventory();
+                        return;
+                    }
+                }
+                
+                uiObject.SetActive(!currentState);
+                Debug.Log($"🔍 {uiType.Name} toggled from {currentState} to {!currentState}");
+            }
+            else
+            {
+                Debug.LogError($"❌ {uiType.Name} not found in loadedUIs! Attempting to load it now...");
+                
+                // 동적으로 로드 시도
+                if (uiType == typeof(InventoryUI))
+                {
+                    LoadUI<InventoryUI>(inventoryUIPrefabPath);
+                    if (loadedUIs.ContainsKey(uiType))
+                    {
+                        loadedUIs[uiType].SetActive(true);
+                        Debug.Log($"✅ {uiType.Name} dynamically loaded and shown");
+                    }
+                }
             }
         }
         
@@ -294,6 +330,11 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             // I키 - 인벤토리
             if (Input.GetKeyDown(KeyCode.I))
             {
+                Debug.Log("🔍 I key pressed! Attempting to toggle InventoryUI");
+                Debug.Log($"🔍 UIManager Instance exists: {Instance != null}");
+                Debug.Log($"🔍 Loaded UIs count: {loadedUIs.Count}");
+                Debug.Log($"🔍 Has InventoryUI: {loadedUIs.ContainsKey(typeof(InventoryUI))}");
+                
                 ToggleUI<InventoryUI>();
             }
             

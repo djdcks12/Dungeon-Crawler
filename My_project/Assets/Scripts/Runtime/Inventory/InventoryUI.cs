@@ -167,8 +167,22 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         public void ToggleInventory()
         {
+            Debug.Log($"🔍 ToggleInventory called. Current isOpen: {isOpen}");
+            Debug.Log($"🔍 inventoryPanel: {(inventoryPanel != null ? inventoryPanel.name : "NULL")}");
+            
+            if (inventoryPanel == null)
+            {
+                Debug.LogError("❌ inventoryPanel is null! Cannot toggle inventory.");
+                return;
+            }
+            
             isOpen = !isOpen;
             inventoryPanel.SetActive(isOpen);
+            
+            Debug.Log($"🔍 inventoryPanel.SetActive({isOpen}) called");
+            Debug.Log($"🔍 inventoryPanel.activeInHierarchy: {inventoryPanel.activeInHierarchy}");
+            Debug.Log($"🔍 inventoryPanel.transform.localScale: {inventoryPanel.transform.localScale}");
+            Debug.Log($"🔍 inventoryPanel RectTransform sizeDelta: {inventoryPanel.GetComponent<RectTransform>()?.sizeDelta}");
             
             if (isOpen)
             {
@@ -177,9 +191,9 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             
             OnInventoryToggled?.Invoke(isOpen);
             
-            // 커서 표시 상태 변경
-            Cursor.lockState = isOpen ? CursorLockMode.None : CursorLockMode.Locked;
-            Cursor.visible = isOpen;
+            // 커서는 항상 보이고 자유롭게 움직여야 함 (던전 크롤러 게임)
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
         }
         
         /// <summary>
@@ -209,9 +223,17 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             }
             
             // 각 슬롯 업데이트
+            Debug.Log($"🔍 Updating {slotUIs.Count} inventory slots");
+            
             for (int i = 0; i < slotUIs.Count; i++)
             {
                 var slot = inventory.GetSlot(i);
+                
+                if (slot != null && !slot.IsEmpty)
+                {
+                    Debug.Log($"🔍 Slot {i}: {slot.Item.ItemData.ItemName} x{slot.Item.Quantity}");
+                }
+                
                 slotUIs[i].UpdateSlot(slot);
             }
         }
