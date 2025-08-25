@@ -578,19 +578,47 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             switch (statType)
             {
                 case StatType.STR:
-                    return new StatInfo { baseValue = currentStats.TotalSTR, finalValue = currentStats.TotalSTR };
+                    return new StatInfo { 
+                        baseValue = currentStats.BaseSTR, 
+                        bonusValue = currentStats.TotalSTR - currentStats.BaseSTR, 
+                        finalValue = currentStats.TotalSTR 
+                    };
                 case StatType.AGI:
-                    return new StatInfo { baseValue = currentStats.TotalAGI, finalValue = currentStats.TotalAGI };
+                    return new StatInfo { 
+                        baseValue = currentStats.BaseAGI, 
+                        bonusValue = currentStats.TotalAGI - currentStats.BaseAGI, 
+                        finalValue = currentStats.TotalAGI 
+                    };
                 case StatType.VIT:
-                    return new StatInfo { baseValue = currentStats.TotalVIT, finalValue = currentStats.TotalVIT };
+                    return new StatInfo { 
+                        baseValue = currentStats.BaseVIT, 
+                        bonusValue = currentStats.TotalVIT - currentStats.BaseVIT, 
+                        finalValue = currentStats.TotalVIT 
+                    };
                 case StatType.INT:
-                    return new StatInfo { baseValue = currentStats.TotalINT, finalValue = currentStats.TotalINT };
+                    return new StatInfo { 
+                        baseValue = currentStats.BaseINT, 
+                        bonusValue = currentStats.TotalINT - currentStats.BaseINT, 
+                        finalValue = currentStats.TotalINT 
+                    };
                 case StatType.DEF:
-                    return new StatInfo { baseValue = currentStats.TotalDEF, finalValue = currentStats.TotalDEF };
+                    return new StatInfo { 
+                        baseValue = currentStats.BaseDEF, 
+                        bonusValue = currentStats.TotalDEF - currentStats.BaseDEF, 
+                        finalValue = currentStats.TotalDEF 
+                    };
                 case StatType.MDEF:
-                    return new StatInfo { baseValue = currentStats.TotalMDEF, finalValue = currentStats.TotalMDEF };
+                    return new StatInfo { 
+                        baseValue = currentStats.BaseMDEF, 
+                        bonusValue = currentStats.TotalMDEF - currentStats.BaseMDEF, 
+                        finalValue = currentStats.TotalMDEF 
+                    };
                 case StatType.LUK:
-                    return new StatInfo { baseValue = currentStats.TotalLUK, finalValue = currentStats.TotalLUK };
+                    return new StatInfo { 
+                        baseValue = currentStats.BaseLUK, 
+                        bonusValue = currentStats.TotalLUK - currentStats.BaseLUK, 
+                        finalValue = currentStats.TotalLUK 
+                    };
                 default:
                     return new StatInfo();
             }

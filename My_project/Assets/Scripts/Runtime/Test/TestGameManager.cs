@@ -131,8 +131,8 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 CheatAddGold(1000);
             }
             
-            // 테스트 아이템 생성
-            if (Input.GetKeyDown(KeyCode.I))
+            // 테스트 아이템 생성 (I키 대신 T키 사용)
+            if (Input.GetKeyDown(KeyCode.T))
             {
                 CheatCreateTestItem();
             }

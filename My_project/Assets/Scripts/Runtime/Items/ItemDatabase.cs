@@ -40,11 +40,23 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         {
             ItemData[] allItems = Resources.LoadAll<ItemData>("Items");
             
+            Debug.Log($"🔍 Loading {allItems.Length} ItemData assets from Resources/Items/");
+            
             foreach (var item in allItems)
             {
                 if (item != null && !string.IsNullOrEmpty(item.ItemId))
                 {
                     itemDatabase[item.ItemId] = item;
+                    Debug.Log($"📦 Loaded: {item.ItemName} (ID: {item.ItemId}) - Icon: {(item.ItemIcon != null ? "✅" : "❌")}");
+                    
+                    if (item.ItemIcon != null)
+                    {
+                        Debug.Log($"   🖼️ Icon: {item.ItemIcon.name} ({item.ItemIcon.texture.width}x{item.ItemIcon.texture.height})");
+                    }
+                }
+                else
+                {
+                    Debug.LogWarning($"⚠️ Invalid ItemData: {(item != null ? item.name : "null")}");
                 }
             }
         }
@@ -54,17 +66,23 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         private static void CreateDefaultItems()
         {
-            // 기본 무기들
-            CreateBasicWeapons();
+            // ScriptableObject 에셋들을 우선 사용하고, 없는 아이템들만 하드코딩으로 생성
+            Debug.Log("🔧 Creating fallback items (only if not loaded from assets)");
             
-            // 기본 방어구들
-            CreateBasicArmors();
+            // 기본 무기들 (에셋에 없으면 생성)
+            if (!itemDatabase.ContainsKey("weapon_sword_basic"))
+                CreateBasicWeapons();
             
-            // 기본 소모품들
-            CreateBasicConsumables();
+            // 기본 방어구들 (에셋에 없으면 생성)  
+            if (!itemDatabase.ContainsKey("armor_helmet_basic"))
+                CreateBasicArmors();
             
-            // 기본 재료들
-            CreateBasicMaterials();
+            // 기본 소모품들 (에셋에 없으면 생성)
+            if (!itemDatabase.ContainsKey("consumable_health_potion"))
+                CreateBasicConsumables();
+            
+            // 기본 재료들은 스킵 (ScriptableObject 에셋 사용)
+            // CreateBasicMaterials(); // 주석 처리
         }
         
         /// <summary>
@@ -144,27 +162,23 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         }
         
         /// <summary>
-        /// 기본 재료 생성
+        /// 기본 재료 생성 (ScriptableObject 에셋 사용으로 비활성화)
         /// </summary>
         private static void CreateBasicMaterials()
         {
-            // 철광석
-            var ironOre = CreateItem("material_iron_ore", "철광석", "무기와 방어구 제작에 사용되는 기본 재료이다.", 
-                ItemType.Material, ItemGrade.Common, EquipmentSlot.None, WeaponCategory.None,
-                new StatBlock(), new DamageRange(0, 0, 0), 5);
-            ironOre.GetType().GetField("stackSize", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.SetValue(ironOre, 99);
-                
-            // 마법석
-            var magicStone = CreateItem("material_magic_stone", "마법석", "마법 무기 제작에 필요한 신비한 돌이다.", 
-                ItemType.Material, ItemGrade.Rare, EquipmentSlot.None, WeaponCategory.None,
-                new StatBlock(), new DamageRange(0, 0, 0), 100);
-            magicStone.GetType().GetField("stackSize", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.SetValue(magicStone, 50);
+            // ScriptableObject 에셋들을 사용하므로 하드코딩된 재료 생성 불필요
+            Debug.Log("📦 Skipping hardcoded material creation - using ScriptableObject assets instead");
             
-            // 인챈트 북 (1% 드롭률 아이템)
-            var enchantBook = CreateItem("enchant_book", "인챈트 북", "장비에 마법적 효과를 부여할 수 있는 신비한 책이다.", 
-                ItemType.Other, ItemGrade.Rare, EquipmentSlot.None, WeaponCategory.None,
-                new StatBlock(), new DamageRange(0, 0, 0), 5000);
-            enchantBook.GetType().GetField("stackSize", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.SetValue(enchantBook, 10);
+            // 필요시 여기서 에셋이 제대로 로드되었는지 확인
+            if (itemDatabase.ContainsKey("material_iron_ore"))
+            {
+                Debug.Log("✅ 철광석 에셋 로드 확인됨");
+            }
+            
+            if (itemDatabase.ContainsKey("material_magic_stone"))
+            {
+                Debug.Log("✅ 마법석 에셋 로드 확인됨");  
+            }
         }
         
         /// <summary>

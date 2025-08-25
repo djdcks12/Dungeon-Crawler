@@ -122,8 +122,25 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             {
                 if (kvp.Value != null)
                 {
-                    kvp.Value.Initialize(kvp.Key, this);
+                    kvp.Value.Initialize(kvp.Key, GetStatDisplayName(kvp.Key));
+                    kvp.Value.OnStatIncreased += OnStatIncreaseClicked;
+                    kvp.Value.OnStatDecreased += OnStatDecreaseClicked;
                 }
+            }
+        }
+        
+        private string GetStatDisplayName(StatType statType)
+        {
+            switch (statType)
+            {
+                case StatType.STR: return "힘 (STR)";
+                case StatType.AGI: return "민첩 (AGI)";
+                case StatType.VIT: return "체력 (VIT)";
+                case StatType.INT: return "지능 (INT)";
+                case StatType.DEF: return "물리방어 (DEF)";
+                case StatType.MDEF: return "마법방어 (MDEF)";
+                case StatType.LUK: return "운 (LUK)";
+                default: return statType.ToString();
             }
         }
         
@@ -193,6 +210,13 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         public void OnStatIncreaseClicked(StatType statType)
         {
             // 더 이상 수동으로 스탯을 올릴 수 없음 
+            // 레벨업 시 종족별로 자동 성장
+            Debug.Log("Manual stat allocation is no longer available. Stats grow automatically based on race.");
+        }
+        
+        public void OnStatDecreaseClicked(StatType statType)
+        {
+            // 더 이상 수동으로 스탯을 내릴 수 없음 
             // 레벨업 시 종족별로 자동 성장
             Debug.Log("Manual stat allocation is no longer available. Stats grow automatically based on race.");
         }
@@ -272,7 +296,8 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 if (kvp.Value != null)
                 {
                     var statInfo = statsManager.GetStatInfo(kvp.Key);
-                    kvp.Value.UpdateUI(statInfo);
+                    kvp.Value.UpdateValues((int)statInfo.baseValue, (int)statInfo.bonusValue);
+                    kvp.Value.SetButtonsInteractable(false, false); // 수동 할당 불가
                 }
             }
         }
@@ -345,78 +370,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             if (isStatsVisible)
             {
                 UpdateAllUI();
-            }
-        }
-    }
-    
-    /// <summary>
-    /// 개별 스탯 UI 요소
-    /// </summary>
-    [System.Serializable]
-    public class StatUIElement
-    {
-        [SerializeField] private Text statNameText;
-        [SerializeField] private Text statValueText;
-        [SerializeField] private Button increaseButton;
-        [SerializeField] private Text bonusText;
-        
-        private StatType statType;
-        private StatsUI parentUI;
-        
-        public void Initialize(StatType type, StatsUI parent)
-        {
-            statType = type;
-            parentUI = parent;
-            
-            if (statNameText != null)
-            {
-                statNameText.text = GetStatDisplayName(type);
-            }
-            
-            if (increaseButton != null)
-            {
-                increaseButton.onClick.AddListener(() => parentUI.OnStatIncreaseClicked(statType));
-            }
-        }
-        
-        public void UpdateUI(StatInfo statInfo)
-        {
-            if (statValueText != null)
-            {
-                statValueText.text = statInfo.finalValue.ToString("F0");
-            }
-            
-            if (bonusText != null)
-            {
-                if (statInfo.bonusValue > 0)
-                {
-                    bonusText.text = $"(+{statInfo.bonusValue:F0})";
-                    bonusText.color = Color.green;
-                }
-                else if (statInfo.bonusValue < 0)
-                {
-                    bonusText.text = $"({statInfo.bonusValue:F0})";
-                    bonusText.color = Color.red;
-                }
-                else
-                {
-                    bonusText.text = "";
-                }
-            }
-        }
-        
-        private string GetStatDisplayName(StatType statType)
-        {
-            switch (statType)
-            {
-                case StatType.STR: return "힘 (STR)";
-                case StatType.AGI: return "민첩 (AGI)";
-                case StatType.VIT: return "체력 (VIT)";
-                case StatType.INT: return "지능 (INT)";
-                case StatType.DEF: return "물리방어 (DEF)";
-                case StatType.MDEF: return "마법방어 (MDEF)";
-                case StatType.LUK: return "운 (LUK)";
-                default: return statType.ToString();
             }
         }
     }
