@@ -7,8 +7,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
     /// 개별 스탯 UI 요소
     /// 스탯 표시 및 포인트 분배 버튼 포함
     /// </summary>
-    [System.Serializable]
-    public class StatUIElement
+    public class StatUIElement : MonoBehaviour
     {
         [Header("UI Components")]
         [SerializeField] private Text statNameText;

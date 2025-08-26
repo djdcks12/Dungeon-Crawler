@@ -180,6 +180,100 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 9ae46c35e3bf77445874ea3b2ad77686, type: 3}
+--- !u!1 &122415336
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 122415339}
+  - component: {fileID: 122415337}
+  - component: {fileID: 122415338}
+  m_Layer: 0
+  m_Name: MonsterEntitySpawner
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &122415337
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 122415336}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
+  GlobalObjectIdHash: 62706512
+  InScenePlacedSourceGlobalObjectIdHash: 0
+  DeferredDespawnTick: 0
+  Ownership: 1
+  AlwaysReplicateAsRoot: 0
+  SynchronizeTransform: 1
+  ActiveSceneSynchronization: 0
+  SceneMigrationSynchronization: 0
+  SpawnWithObservers: 1
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1
+  SyncOwnerTransformWhenParented: 1
+  AllowOwnerToParent: 0
+--- !u!114 &122415338
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 122415336}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 15312cccc1ac731439c4806c5e28180d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.MonsterEntitySpawner
+  ShowTopMostFoldoutHeaderGroup: 1
+  spawnDataSets:
+  - raceData: {fileID: 11400000, guid: feae23d149f14fb4482d9079a411c1ac, type: 2}
+    variantData: {fileID: 11400000, guid: 025892cb42177c540a14f10b6ba8974c, type: 2}
+    basePrefab: {fileID: 4045306120103667805, guid: 600a44738f3bb4c4e86918baee68cc37, type: 3}
+    spawnWeight: 1
+    description: 
+  spawnPoints:
+  - {fileID: 1650805222}
+  - {fileID: 1540168301}
+  - {fileID: 2093520456}
+  - {fileID: 1630473285}
+  maxActiveMonsters: 15
+  spawnInterval: 12
+  autoSpawn: 1
+  playerDetectionRange: 25
+  minPlayersNearby: 1
+  spawnOnlyWhenPlayersNear: 1
+  minGrade: 80
+  maxGrade: 120
+  averageGrade: 100
+  gradeStandardDeviation: 7
+  currentFloor: 1
+  floorDifficultyMultiplier: 1.2
+--- !u!4 &122415339
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 122415336}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 2.21652, y: 3.41578, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &155544386
 GameObject:
   m_ObjectHideFlags: 0
@@ -464,7 +558,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.UIManager
   ShowTopMostFoldoutHeaderGroup: 1
   playerHUDPrefabPath: UI/PlayerHUD
-  statsUIPrefabPath: UI/StatsUI
+  statsUIPrefabPath: UI/AdvancedStatsUI
   inventoryUIPrefabPath: UI/AdvancedInventoryUI
   equipmentUIPrefabPath: UI/EquipmentUI
   partyUIPrefabPath: UI/PartyUI
@@ -1099,96 +1193,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 498895748}
   m_CullTransparentMesh: 1
---- !u!1 &585554039
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 585554042}
-  - component: {fileID: 585554040}
-  - component: {fileID: 585554041}
-  m_Layer: 0
-  m_Name: MonsterSpawner
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &585554040
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 585554039}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 3857653221
-  InScenePlacedSourceGlobalObjectIdHash: 0
-  DeferredDespawnTick: 0
-  Ownership: 1
-  AlwaysReplicateAsRoot: 0
-  SynchronizeTransform: 1
-  ActiveSceneSynchronization: 0
-  SceneMigrationSynchronization: 0
-  SpawnWithObservers: 1
-  DontDestroyWithOwner: 0
-  AutoObjectParentSync: 1
-  SyncOwnerTransformWhenParented: 1
-  AllowOwnerToParent: 0
---- !u!114 &585554041
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 585554039}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5c2089c6d77a84740be573a4af57a8e0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.MonsterSpawner
-  ShowTopMostFoldoutHeaderGroup: 1
-  monsterPrefabs:
-  - {fileID: 4045306120103667805, guid: 600a44738f3bb4c4e86918baee68cc37, type: 3}
-  spawnPoints:
-  - {fileID: 1650805222}
-  - {fileID: 1540168301}
-  - {fileID: 2093520456}
-  - {fileID: 1630473285}
-  maxMonsters: 5
-  spawnRadius: 5
-  spawnInterval: 10
-  autoSpawn: 0
-  minLevel: 1
-  maxLevel: 5
-  levelVariance: 0.2
-  playerDetectionRange: 20
-  minPlayersNearby: 1
-  spawnOnlyWhenPlayersNear: 1
-  spawnData: []
-  difficultyMultiplier: 1
---- !u!4 &585554042
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 585554039}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1322.6942, y: 987.0005, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &671299222
 GameObject:
   m_ObjectHideFlags: 0
@@ -3549,5 +3553,5 @@ SceneRoots:
   - {fileID: 671299226}
   - {fileID: 1843134565}
   - {fileID: 434565000}
-  - {fileID: 585554042}
   - {fileID: 178890347}
+  - {fileID: 122415339}

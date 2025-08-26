@@ -285,14 +285,14 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 var playerNameText = CreateAdvancedText(playerInfoSection.transform, "PlayerNameText", "Player_12345", 16);
                 var levelText = CreateAdvancedText(playerInfoSection.transform, "LevelText", "Level 1", 14);
                 var expText = CreateAdvancedText(playerInfoSection.transform, "ExpText", "EXP: 0 / 100", 12);
-                var expSlider = CreateAdvancedSlider(playerInfoSection.transform, "ExpSlider", Color.yellow);
+                var expSlider = CreateAdvancedSlider(playerInfoSection.transform, "ExpSlider");
                 var availablePointsText = CreateAdvancedText(playerInfoSection.transform, "AvailablePointsText", "Race: Human (Auto Growth)", 12);
                 
                 // Health & Mana Section
                 var healthManaSection = CreateStatsSection(content.transform, "HealthManaSection", "체력 & 마나");
-                var healthSlider = CreateAdvancedSlider(healthManaSection.transform, "HealthSlider", Color.red);
+                var healthSlider = CreateAdvancedSlider(healthManaSection.transform, "HealthSlider");
                 var healthText = CreateAdvancedText(healthManaSection.transform, "HealthText", "HP: 100 / 100", 12);
-                var manaSlider = CreateAdvancedSlider(healthManaSection.transform, "ManaSlider", Color.blue);
+                var manaSlider = CreateAdvancedSlider(healthManaSection.transform, "ManaSlider");
                 var manaText = CreateAdvancedText(healthManaSection.transform, "ManaText", "MP: 50 / 50", 12);
                 
                 // Primary Stats Section

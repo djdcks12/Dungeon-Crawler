@@ -16,7 +16,7 @@ MonoBehaviour:
   itemName: "\uB9C8\uBC95\uC11D"
   description: "\uB9C8\uBC95 \uBB34\uAE30 \uC81C\uC791\uC5D0 \uD544\uC694\uD55C \uC2E0\uBE44\uD55C
     \uB3CC\uC774\uB2E4."
-  itemIcon: {fileID: 0}
+  itemIcon: {fileID: -6383520131764648611, guid: b7797a8734995e745a43844170569926, type: 3}
   itemType: 2
   grade: 3
   equipmentSlot: 0
@@ -45,4 +45,4 @@ MonoBehaviour:
   healAmount: 0
   manaAmount: 0
   consumableEffects: []
-  gradeColor: {r: 0, g: 0, b: 1, a: 1}
+  gradeColor: {r: 0.3, g: 0.3, b: 1, a: 1}

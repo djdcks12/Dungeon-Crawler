@@ -15,7 +15,7 @@ MonoBehaviour:
   itemId: weapon_sword_basic
   itemName: "\uB0A1\uC740 \uAC80"
   description: "\uCD08\uBCF4\uC790\uB97C \uC704\uD55C \uAE30\uBCF8\uC801\uC778 \uAC80\uC774\uB2E4."
-  itemIcon: {fileID: 0}
+  itemIcon: {fileID: -3022053096653589040, guid: 500f18e852d6f094bada205737873e99, type: 3}
   itemType: 0
   grade: 1
   equipmentSlot: 6
@@ -44,4 +44,4 @@ MonoBehaviour:
   healAmount: 0
   manaAmount: 0
   consumableEffects: []
-  gradeColor: {r: 1, g: 1, b: 1, a: 1}
+  gradeColor: {r: 0.8, g: 0.8, b: 0.8, a: 1}

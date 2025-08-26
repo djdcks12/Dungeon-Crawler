@@ -177,6 +177,8 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         private void ProcessAttackOnTarget(Collider2D target, Vector2 attackPosition)
         {
+            Debug.Log($"🎯 ProcessAttackOnTarget: target={target.name}, targetLayer={target.gameObject.layer}");
+            
             // 스탯 매니저에서 공격력 가져오기
             float attackDamage = 10f; // 기본값
             DamageType damageType = DamageType.Physical;
@@ -233,7 +235,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 return;
             }
             
-            // 타겟이 몬스터인 경우 (추후 몬스터 시스템 구현 시)
+            // 타겟이 구형 몬스터인 경우 (MonsterHealth 시스템)
             var targetMonster = target.GetComponent<MonsterHealth>();
             if (targetMonster != null)
             {
@@ -241,7 +243,13 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 return;
             }
             
-            // 추후 몬스터 시스템과 연동할 예정
+            // 타겟이 신형 몬스터인 경우 (MonsterEntity 시스템)
+            var targetMonsterEntity = target.GetComponent<MonsterEntity>();
+            if (targetMonsterEntity != null)
+            {
+                ApplyDamageToMonsterEntity(targetMonsterEntity, attackDamage, damageType, isCritical, attackPosition);
+                return;
+            }
             
             Debug.LogWarning($"Unknown target type: {target.name}");
         }
@@ -274,7 +282,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         }
         
         /// <summary>
-        /// 몬스터에게 데미지 적용
+        /// 구형 몬스터에게 데미지 적용 (MonsterHealth)
         /// </summary>
         private void ApplyDamageToMonster(MonsterHealth targetMonster, float damage, DamageType damageType, bool isCritical, Vector2 attackPosition)
         {
@@ -295,6 +303,42 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             
             // 피격 이펙트 표시
             ShowDamageEffectClientRpc(attackPosition, damage, isCritical, damageType);
+        }
+        
+        /// <summary>
+        /// 신형 몬스터에게 데미지 적용 (MonsterEntity)
+        /// </summary>
+        private void ApplyDamageToMonsterEntity(MonsterEntity targetMonster, float damage, DamageType damageType, bool isCritical, Vector2 attackPosition)
+        {
+            Debug.Log($"🗡️ ApplyDamageToMonsterEntity: damage={damage}, targetName={targetMonster.name}");
+            
+            var attackerController = GetComponent<PlayerController>();
+            
+            // 실제 데미지 적용 (방어력 계산 포함)
+            float actualDamage = targetMonster.TakeDamage(damage, damageType, attackerController);
+            
+            Debug.Log($"🗡️ ActualDamage returned: {actualDamage}");
+            
+            // 데미지 로그
+            string critText = isCritical ? " (CRITICAL)" : "";
+            Debug.Log($"⚔️ {name} dealt {actualDamage:F1} {damageType} damage to {targetMonster.VariantData?.variantName ?? "Monster"}{critText}");
+            
+            // 인챈트 효과 적용 (실제 가한 데미지 기반)
+            if (enchantManager != null && statsManager != null)
+            {
+                // 흡혈 인챈트 - 가한 데미지의 일정 비율만큼 체력 회복
+                float lifeStealBonus = enchantManager.GetEnchantEffect(EnchantType.LifeSteal);
+                if (lifeStealBonus > 0)
+                {
+                    float healAmount = actualDamage * (lifeStealBonus / 100f);
+                    statsManager.Heal(healAmount);
+                    Debug.Log($"💚 Life steal: Healed {healAmount:F1} HP ({lifeStealBonus}%)");
+                }
+            }
+            
+            // 피격 이펙트 표시 (실제 데미지로)
+            Vector2 hitPosition = targetMonster.transform.position;
+            ShowDamageEffectClientRpc(hitPosition, actualDamage, isCritical, damageType);
         }
         
         

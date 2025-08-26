@@ -112,7 +112,12 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         // 특수계
         ElementalMastery, // 속성 숙련
         StatusResistance, // 상태이상 저항
-        SpecialAbility    // 고유 능력
+        SpecialAbility,   // 고유 능력
+        
+        // 지원계
+        AllyBuff,         // 아군 버프
+        AuraEffect,       // 오라 효과 (주변 지속 버프)
+        Summoning         // 소환
     }
     
     /// <summary>
