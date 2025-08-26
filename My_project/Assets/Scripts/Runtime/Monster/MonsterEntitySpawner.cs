@@ -128,7 +128,13 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         public void SpawnRandomMonsterEntity()
         {
-            if (!IsServer || isSpawning) return;
+            Debug.Log($"🔧 SpawnRandomMonsterEntity called: IsServer={IsServer}, isSpawning={isSpawning}");
+            
+            if (!IsServer || isSpawning) 
+            {
+                Debug.LogWarning($"❌ SpawnRandomMonsterEntity skipped: IsServer={IsServer}, isSpawning={isSpawning}");
+                return;
+            }
             
             StartCoroutine(SpawnMonsterEntityCoroutine());
         }
@@ -254,6 +260,13 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         private void SetupMonsterEntity(GameObject monsterObject, MonsterEntitySpawnData spawnData, float grade)
         {
+            Debug.Log($"🔧 SetupMonsterEntity: IsServer={IsServer}, NetworkObjectId={NetworkObjectId}");
+            
+            if (!IsServer)
+            {
+                Debug.LogError($"❌ SetupMonsterEntity called on client! This should only run on server.");
+                return;
+            }
             // MonsterEntity 설정
             var monsterEntity = monsterObject.GetComponent<MonsterEntity>();
             if (monsterEntity == null)
@@ -275,6 +288,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             }
             
             // 몬스터 생성 (종족 + 개체 + 등급)
+            Debug.Log($"🔧 SetupMonsterEntity: Calling GenerateMonster with race={spawnData.raceData?.raceName}, variant={spawnData.variantData?.variantName}, grade={grade}");
             monsterEntity.GenerateMonster(spawnData.raceData, spawnData.variantData, grade);
             
             // 사망 이벤트 구독

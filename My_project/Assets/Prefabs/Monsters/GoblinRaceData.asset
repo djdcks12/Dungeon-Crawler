@@ -1,0 +1,74 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 828010b4834c18546ab4e8fa5b6e8eda, type: 3}
+  m_Name: GoblinRaceData
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.MonsterRaceData
+  raceType: 0
+  raceName: "\uACE0\uBE14\uB9B0\uC871"
+  description: "\uBBFC\uCCA9\uD558\uACE0 \uAD50\uD65C\uD55C \uC18C\uD615 \uC778\uAC04\uD615
+    \uBAAC\uC2A4\uD130. \uBB34\uB9AC\uB97C \uC9C0\uC5B4 \uB2E4\uB2C8\uBA70 \uBE60\uB978
+    \uACF5\uACA9\uC744 \uC120\uD638\uD55C\uB2E4."
+  raceIcon: {fileID: -3145328045451892686, guid: 07b877e68acdc7440a088e313606df98, type: 3}
+  baseStats:
+    strength: 12
+    agility: 18
+    vitality: 10
+    intelligence: 8
+    defense: 6
+    magicDefense: 4
+    luck: 12
+    stability: 10
+  gradeGrowth:
+    strengthGrowth: 0.8
+    agilityGrowth: 1.2
+    vitalityGrowth: 0.6
+    intelligenceGrowth: 0.4
+    defenseGrowth: 0.5
+    magicDefenseGrowth: 0.3
+    luckGrowth: 0.7
+    stabilityGrowth: 0.6
+  elementalAffinity:
+    fireAttack: 0
+    fireResist: 0
+    iceAttack: 0
+    iceResist: 0
+    lightningAttack: 0
+    lightningResist: 0
+    poisonAttack: 0
+    poisonResist: 0
+    darkAttack: 0
+    darkResist: 0
+    holyAttack: 0
+    holyResist: 0
+  mandatorySkills:
+  - skillData: {fileID: 11400000, guid: 5177920dc531c6643b11a4e39d2a2e51, type: 2}
+    minGrade: 80
+    maxGrade: 120
+    isMandatory: 1
+  - skillData: {fileID: 11400000, guid: a575aafdbe5b6e44db510d17304b89bd, type: 2}
+    minGrade: 80
+    maxGrade: 120
+    isMandatory: 1
+  availableSkills:
+  - skillData: {fileID: 11400000, guid: ecfaa1cb42d1d594cb4362ea55c6d6d8, type: 2}
+    minGrade: 80
+    maxGrade: 120
+    isMandatory: 1
+  - skillData: {fileID: 11400000, guid: 2e19986ab03fd064a9d919b3bee05303, type: 2}
+    minGrade: 80
+    maxGrade: 120
+    isMandatory: 0
+  baseExperience: 50
+  baseGold: 10
+  soulDropRate: 0.001
+  commonDrops: []
+  rareDrops: []

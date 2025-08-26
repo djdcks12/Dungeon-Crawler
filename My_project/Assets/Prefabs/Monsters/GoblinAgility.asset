@@ -1,0 +1,73 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c413d53cea4a5f84a901ab7e38d8cabe, type: 3}
+  m_Name: GoblinAgility
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.MonsterSkillData
+  skillName: "Goblin Agility"
+  description: "고블린의 타고난 민첩성으로 이동속도와 회피율이 증가합니다 (80등급: AGI+3, LUK+2, 속도 5% 증가 → 120등급: AGI+8, LUK+5, 속도 15% 증가)"
+  skillIcon: {fileID: 6445557737657708582, guid: 4b56f8b3379114e4bbbe33ec33b7c9dc, type: 3}
+  skillType: 0
+  category: 11
+  skillEffect:
+    strengthBonus:
+      minValue: 0
+      maxValue: 0
+    agilityBonus:
+      minValue: 3
+      maxValue: 8
+    vitalityBonus:
+      minValue: 0
+      maxValue: 0
+    intelligenceBonus:
+      minValue: 0
+      maxValue: 0
+    defenseBonus:
+      minValue: 0
+      maxValue: 0
+    magicDefenseBonus:
+      minValue: 0
+      maxValue: 0
+    luckBonus:
+      minValue: 2
+      maxValue: 5
+    stabilityBonus:
+      minValue: 0
+      maxValue: 0
+    damageMultiplierRange:
+      minValue: 0
+      maxValue: 0
+    defenseMultiplierRange:
+      minValue: 0
+      maxValue: 0
+    speedMultiplierRange:
+      minValue: 1.05
+      maxValue: 1.15
+    healingAmountRange:
+      minValue: 0
+      maxValue: 0
+    durationRange:
+      minValue: 0
+      maxValue: 0
+    inflictStatus: 0
+    statusDurationRange:
+      minValue: 0
+      maxValue: 0
+    statusChanceRange:
+      minValue: 0
+      maxValue: 0
+  cooldown: 0
+  manaCost: 0
+  range: 0
+  trigger: 0
+  effectPrefab: {fileID: 0}
+  skillColor: {r: 1, g: 1, b: 1, a: 1}
+  effectDuration: 1

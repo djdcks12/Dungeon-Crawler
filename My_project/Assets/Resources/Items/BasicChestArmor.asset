@@ -15,7 +15,7 @@ MonoBehaviour:
   itemId: armor_chest_basic
   itemName: "\uAC00\uC8FD \uAC11\uC637"
   description: "\uAE30\uBCF8\uC801\uC778 \uAC00\uC8FD\uC73C\uB85C \uB9CC\uB4E0 \uAC11\uC637\uC774\uB2E4."
-  itemIcon: {fileID: 0}
+  itemIcon: {fileID: 7847085357805857685, guid: 65e325c6e5145b54d9e1f2d07aeece73, type: 3}
   itemType: 0
   grade: 1
   equipmentSlot: 2
@@ -44,4 +44,4 @@ MonoBehaviour:
   healAmount: 0
   manaAmount: 0
   consumableEffects: []
-  gradeColor: {r: 1, g: 1, b: 1, a: 1}
+  gradeColor: {r: 0.8, g: 0.8, b: 0.8, a: 1}

@@ -14,6 +14,11 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         [SerializeField] private MonsterRaceData raceData;
         [SerializeField] private MonsterVariantData variantData;
         
+        [Header("Runtime Status (Read Only)")]
+        [SerializeField] private string currentRaceName = "Not Generated";
+        [SerializeField] private string currentVariantName = "Not Generated";
+        [SerializeField] private float currentGrade = 0f;
+        
         [Header("Generated Properties")]
         [SerializeField] private float grade = 100f; // 80~120 범위
         [SerializeField] private StatBlock finalStats;
@@ -67,6 +72,9 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         {
             base.OnNetworkSpawn();
             
+            Debug.Log($"🌐 MonsterEntity OnNetworkSpawn: IsServer={IsServer}, name={name}");
+            Debug.Log($"🌐 Initial Data: raceData={raceData?.raceName ?? "NULL"}, variantData={variantData?.variantName ?? "NULL"}");
+            
             // 컴포넌트 참조
             monsterAI = GetComponent<MonsterAI>();
             skillSystem = GetComponent<MonsterSkillSystem>();
@@ -78,7 +86,12 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 // 서버에서만 몬스터 생성 로직 실행
                 if (raceData != null && variantData != null)
                 {
+                    Debug.Log($"🌐 OnNetworkSpawn: Calling GenerateMonster with existing data");
                     GenerateMonster(raceData, variantData);
+                }
+                else
+                {
+                    Debug.LogWarning($"🌐 OnNetworkSpawn: raceData or variantData is null, waiting for external call");
                 }
             }
             
@@ -106,7 +119,14 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         public void GenerateMonster(MonsterRaceData race = null, MonsterVariantData variant = null, float? forceGrade = null)
         {
-            if (!IsServer) return;
+            Debug.Log($"🔧 GenerateMonster called: IsServer={IsServer}, race={race?.raceName}, variant={variant?.variantName}");
+            
+            // 임시로 서버 체크 주석처리 (데이터 전달 테스트용)
+            /*if (!IsServer) 
+            {
+                Debug.LogWarning($"❌ GenerateMonster skipped - not running on server (IsServer={IsServer})");
+                return;
+            }*/
             
             if (race != null) raceData = race;
             if (variant != null) variantData = variant;
@@ -138,7 +158,14 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             // 클라이언트에 동기화
             OnEntityGenerated?.Invoke(this);
             
+            // Inspector 표시용 업데이트
+            currentRaceName = raceData?.raceName ?? "Unknown Race";
+            currentVariantName = variantData?.variantName ?? "Unknown Variant";
+            currentGrade = grade;
+            
             Debug.Log($"✨ Generated {variantData.variantName} ({raceData.raceName}) - Grade: {grade}");
+            Debug.Log($"🔍 DEBUG: RaceData={raceData?.raceName ?? "NULL"}, VariantData={variantData?.variantName ?? "NULL"}");
+            Debug.Log($"📊 Final Stats: STR {finalStats.strength:F1}, HP {networkMaxHP.Value:F0}");
         }
         
         /// <summary>
@@ -303,7 +330,14 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         public float TakeDamage(float damage, DamageType damageType, PlayerController attacker = null)
         {
-            if (!IsServer || networkIsDead.Value) return 0f;
+            Debug.Log($"🩸 TakeDamage called: damage={damage}, attacker={attacker?.name}, IsServer={IsServer}, isDead={networkIsDead.Value}");
+            Debug.Log($"🩸 Monster Data: variantData={variantData?.variantName ?? "NULL"}, raceData={raceData?.raceName ?? "NULL"}");
+            
+            if (!IsServer || networkIsDead.Value) 
+            {
+                Debug.LogWarning($"🩸 TakeDamage blocked: IsServer={IsServer}, isDead={networkIsDead.Value}");
+                return 0f;
+            }
             
             float finalDamage = damage;
             

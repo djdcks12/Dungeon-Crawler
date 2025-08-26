@@ -1,0 +1,73 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c413d53cea4a5f84a901ab7e38d8cabe, type: 3}
+  m_Name: DarkAura
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.MonsterSkillData
+  skillName: "Dark Aura"
+  description: "어둠의 오라로 주변 적들의 능력치를 감소시키고 공포감을 조성합니다 (80등급: 5m 범위, 약화 확률 10% → 120등급: 8m 범위, 약화 확률 25%)"
+  skillIcon: {fileID: 0}
+  skillType: 0
+  category: 16
+  skillEffect:
+    strengthBonus:
+      minValue: 0
+      maxValue: 0
+    agilityBonus:
+      minValue: 0
+      maxValue: 0
+    vitalityBonus:
+      minValue: 0
+      maxValue: 0
+    intelligenceBonus:
+      minValue: 2
+      maxValue: 6
+    defenseBonus:
+      minValue: 0
+      maxValue: 0
+    magicDefenseBonus:
+      minValue: 0
+      maxValue: 0
+    luckBonus:
+      minValue: 0
+      maxValue: 0
+    stabilityBonus:
+      minValue: 0
+      maxValue: 0
+    damageMultiplierRange:
+      minValue: 0
+      maxValue: 0
+    defenseMultiplierRange:
+      minValue: 0
+      maxValue: 0
+    speedMultiplierRange:
+      minValue: 0
+      maxValue: 0
+    healingAmountRange:
+      minValue: 0
+      maxValue: 0
+    durationRange:
+      minValue: 8
+      maxValue: 15
+    inflictStatus: 6
+    statusDurationRange:
+      minValue: 8
+      maxValue: 15
+    statusChanceRange:
+      minValue: 0.1
+      maxValue: 0.25
+  cooldown: 0
+  manaCost: 0
+  range: 8
+  trigger: 0
+  effectPrefab: {fileID: 0}
+  skillColor: {r: 0.2, g: 0.1, b: 0.4, a: 1}
+  effectDuration: 1

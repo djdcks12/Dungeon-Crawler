@@ -579,44 +579,44 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             {
                 case StatType.STR:
                     return new StatInfo { 
-                        baseValue = currentStats.BaseSTR, 
-                        bonusValue = currentStats.TotalSTR - currentStats.BaseSTR, 
+                        baseValue = currentStats.CurrentStats.strength, 
+                        bonusValue = currentStats.TotalSTR - currentStats.CurrentStats.strength, 
                         finalValue = currentStats.TotalSTR 
                     };
                 case StatType.AGI:
                     return new StatInfo { 
-                        baseValue = currentStats.BaseAGI, 
-                        bonusValue = currentStats.TotalAGI - currentStats.BaseAGI, 
+                        baseValue = currentStats.CurrentStats.agility, 
+                        bonusValue = currentStats.TotalAGI - currentStats.CurrentStats.agility, 
                         finalValue = currentStats.TotalAGI 
                     };
                 case StatType.VIT:
                     return new StatInfo { 
-                        baseValue = currentStats.BaseVIT, 
-                        bonusValue = currentStats.TotalVIT - currentStats.BaseVIT, 
+                        baseValue = currentStats.CurrentStats.vitality, 
+                        bonusValue = currentStats.TotalVIT - currentStats.CurrentStats.vitality, 
                         finalValue = currentStats.TotalVIT 
                     };
                 case StatType.INT:
                     return new StatInfo { 
-                        baseValue = currentStats.BaseINT, 
-                        bonusValue = currentStats.TotalINT - currentStats.BaseINT, 
+                        baseValue = currentStats.CurrentStats.intelligence, 
+                        bonusValue = currentStats.TotalINT - currentStats.CurrentStats.intelligence, 
                         finalValue = currentStats.TotalINT 
                     };
                 case StatType.DEF:
                     return new StatInfo { 
-                        baseValue = currentStats.BaseDEF, 
-                        bonusValue = currentStats.TotalDEF - currentStats.BaseDEF, 
+                        baseValue = currentStats.CurrentStats.defense, 
+                        bonusValue = currentStats.TotalDEF - currentStats.CurrentStats.defense, 
                         finalValue = currentStats.TotalDEF 
                     };
                 case StatType.MDEF:
                     return new StatInfo { 
-                        baseValue = currentStats.BaseMDEF, 
-                        bonusValue = currentStats.TotalMDEF - currentStats.BaseMDEF, 
+                        baseValue = currentStats.CurrentStats.magicDefense, 
+                        bonusValue = currentStats.TotalMDEF - currentStats.CurrentStats.magicDefense, 
                         finalValue = currentStats.TotalMDEF 
                     };
                 case StatType.LUK:
                     return new StatInfo { 
-                        baseValue = currentStats.BaseLUK, 
-                        bonusValue = currentStats.TotalLUK - currentStats.BaseLUK, 
+                        baseValue = currentStats.CurrentStats.luck, 
+                        bonusValue = currentStats.TotalLUK - currentStats.CurrentStats.luck, 
                         finalValue = currentStats.TotalLUK 
                     };
                 default:

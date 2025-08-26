@@ -15,7 +15,7 @@ MonoBehaviour:
   itemId: weapon_bow_basic
   itemName: "\uB0A1\uC740 \uD65C"
   description: "\uCD08\uBCF4\uC790\uB97C \uC704\uD55C \uAE30\uBCF8\uC801\uC778 \uD65C\uC774\uB2E4."
-  itemIcon: {fileID: 0}
+  itemIcon: {fileID: 1490122312239849419, guid: e172d2f967d29c54d8d1d9324051b7bf, type: 3}
   itemType: 0
   grade: 1
   equipmentSlot: 8
@@ -44,4 +44,4 @@ MonoBehaviour:
   healAmount: 0
   manaAmount: 0
   consumableEffects: []
-  gradeColor: {r: 1, g: 1, b: 1, a: 1}
+  gradeColor: {r: 0.8, g: 0.8, b: 0.8, a: 1}

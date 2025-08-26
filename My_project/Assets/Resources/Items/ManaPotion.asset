@@ -15,7 +15,7 @@ MonoBehaviour:
   itemId: consumable_mp_small
   itemName: "\uC18C\uD615 \uB9C8\uB098 \uD3EC\uC158"
   description: "\uB9C8\uB098\uB97C 30 \uD68C\uBCF5\uC2DC\uCF1C\uC900\uB2E4."
-  itemIcon: {fileID: 0}
+  itemIcon: {fileID: 8342919615913629809, guid: 390dea33bec46d544b10945237c638b2, type: 3}
   itemType: 1
   grade: 1
   equipmentSlot: 0
@@ -44,4 +44,4 @@ MonoBehaviour:
   healAmount: 0
   manaAmount: 30
   consumableEffects: []
-  gradeColor: {r: 1, g: 1, b: 1, a: 1}
+  gradeColor: {r: 0.8, g: 0.8, b: 0.8, a: 1}

@@ -1,0 +1,73 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c413d53cea4a5f84a901ab7e38d8cabe, type: 3}
+  m_Name: SummonUndead
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.MonsterSkillData
+  skillName: "Summon Undead"
+  description: "언데드 네크로맨서가 스켈레톤을 소환하여 전투를 지원합니다 (80등급: 1마리, 30초 지속 → 120등급: 2마리, 60초 지속)"
+  skillIcon: {fileID: 0}
+  skillType: 1
+  category: 17
+  skillEffect:
+    strengthBonus:
+      minValue: 0
+      maxValue: 0
+    agilityBonus:
+      minValue: 0
+      maxValue: 0
+    vitalityBonus:
+      minValue: 0
+      maxValue: 0
+    intelligenceBonus:
+      minValue: 0
+      maxValue: 0
+    defenseBonus:
+      minValue: 0
+      maxValue: 0
+    magicDefenseBonus:
+      minValue: 0
+      maxValue: 0
+    luckBonus:
+      minValue: 0
+      maxValue: 0
+    stabilityBonus:
+      minValue: 0
+      maxValue: 0
+    damageMultiplierRange:
+      minValue: 0
+      maxValue: 0
+    defenseMultiplierRange:
+      minValue: 0
+      maxValue: 0
+    speedMultiplierRange:
+      minValue: 0
+      maxValue: 0
+    healingAmountRange:
+      minValue: 1
+      maxValue: 2
+    durationRange:
+      minValue: 30
+      maxValue: 60
+    inflictStatus: 0
+    statusDurationRange:
+      minValue: 0
+      maxValue: 0
+    statusChanceRange:
+      minValue: 0
+      maxValue: 0
+  cooldown: 45
+  manaCost: 40
+  range: 3
+  trigger: 0
+  effectPrefab: {fileID: 0}
+  skillColor: {r: 0.1, g: 0.1, b: 0.1, a: 1}
+  effectDuration: 3
