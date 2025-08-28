@@ -27,17 +27,20 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         [Header("Combat Stats")]
         [SerializeField] private CombatStats combatStats;
         
-        // 네트워크 동기화된 기본 정보
-        private NetworkVariable<float> networkCurrentHP = new NetworkVariable<float>(100f,
-            NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
-        private NetworkVariable<float> networkMaxHP = new NetworkVariable<float>(100f,
-            NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
-        private NetworkVariable<float> networkCurrentMP = new NetworkVariable<float>(50f,
-            NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
-        private NetworkVariable<float> networkMaxMP = new NetworkVariable<float>(50f,
-            NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
-        private NetworkVariable<bool> networkIsDead = new NetworkVariable<bool>(false,
-            NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+        // 네트워크 동기화 스탯 정보
+        private NetworkVariable<float> networkCurrentHP = new NetworkVariable<float>(100f, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+        private NetworkVariable<float> networkMaxHP = new NetworkVariable<float>(100f, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+        private NetworkVariable<bool> networkIsDead = new NetworkVariable<bool>(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+        
+        // 서버 전용 변수들
+        private float currentMP = 50f;
+        private float maxMP = 50f;
+        private bool itemsDropped = false; // 아이템 드롭 중복 방지
+        
+        // 프로퍼티로 접근
+        public float CurrentHP => networkCurrentHP.Value;
+        public float MaxHP => networkMaxHP.Value;
+        public bool IsDead => networkIsDead.Value;
         
         // 컴포넌트 참조
         private MonsterAI monsterAI;
@@ -62,17 +65,12 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         public List<MonsterSkillInstance> ActiveSkills => activeSkills;
         public CombatStats CombatStats => combatStats;
         
-        public float CurrentHP => networkCurrentHP.Value;
-        public float MaxHP => networkMaxHP.Value;
-        public float CurrentMP => networkCurrentMP.Value;
-        public float MaxMP => networkMaxMP.Value;
-        public bool IsDead => networkIsDead.Value;
+        public float CurrentMP => currentMP;
+        public float MaxMP => maxMP;
         
-        public override void OnNetworkSpawn()
+        private void Start()
         {
-            base.OnNetworkSpawn();
-            
-            Debug.Log($"🌐 MonsterEntity OnNetworkSpawn: IsServer={IsServer}, name={name}");
+            Debug.Log($"🌐 MonsterEntity Start: name={name}");
             Debug.Log($"🌐 Initial Data: raceData={raceData?.raceName ?? "NULL"}, variantData={variantData?.variantName ?? "NULL"}");
             
             // 컴포넌트 참조
@@ -81,37 +79,22 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             spriteRenderer = GetComponent<SpriteRenderer>();
             rb = GetComponent<Rigidbody2D>();
             
-            if (IsServer)
+            // 몬스터 생성 로직 (서버 체크는 GenerateMonster 내부에서)
+            if (raceData != null && variantData != null)
             {
-                // 서버에서만 몬스터 생성 로직 실행
-                if (raceData != null && variantData != null)
-                {
-                    Debug.Log($"🌐 OnNetworkSpawn: Calling GenerateMonster with existing data");
-                    GenerateMonster(raceData, variantData);
-                }
-                else
-                {
-                    Debug.LogWarning($"🌐 OnNetworkSpawn: raceData or variantData is null, waiting for external call");
-                }
+                Debug.Log($"🌐 Start: Calling GenerateMonster with existing data");
+                GenerateMonster(raceData, variantData);
             }
-            
-            // 네트워크 변수 이벤트 구독
-            networkCurrentHP.OnValueChanged += OnNetworkHPChanged;
-            networkMaxHP.OnValueChanged += OnNetworkMaxHPChanged;
-            networkCurrentMP.OnValueChanged += OnNetworkMPChanged;
-            networkMaxMP.OnValueChanged += OnNetworkMaxMPChanged;
-            networkIsDead.OnValueChanged += OnNetworkDeathChanged;
+            else
+            {
+                Debug.LogWarning($"🌐 Start: raceData or variantData is null, waiting for external call");
+            }
         }
         
-        public override void OnNetworkDespawn()
+        public override void OnNetworkSpawn()
         {
-            networkCurrentHP.OnValueChanged -= OnNetworkHPChanged;
-            networkMaxHP.OnValueChanged -= OnNetworkMaxHPChanged;
-            networkCurrentMP.OnValueChanged -= OnNetworkMPChanged;
-            networkMaxMP.OnValueChanged -= OnNetworkMaxMPChanged;
-            networkIsDead.OnValueChanged -= OnNetworkDeathChanged;
-            
-            base.OnNetworkDespawn();
+            base.OnNetworkSpawn();
+            Debug.Log($"🌟 MonsterEntity {name} OnNetworkSpawn called! IsSpawned={IsSpawned}, IsServer={IsServer}");
         }
         
         /// <summary>
@@ -119,14 +102,15 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         public void GenerateMonster(MonsterRaceData race = null, MonsterVariantData variant = null, float? forceGrade = null)
         {
-            Debug.Log($"🔧 GenerateMonster called: IsServer={IsServer}, race={race?.raceName}, variant={variant?.variantName}");
+            bool isServer = NetworkManager.Singleton != null ? NetworkManager.Singleton.IsServer : true; // 네트워크가 없으면 로컬로 처리
             
-            // 임시로 서버 체크 주석처리 (데이터 전달 테스트용)
-            /*if (!IsServer) 
+            Debug.Log($"🔧 GenerateMonster called: IsServer={isServer}, race={race?.raceName}, variant={variant?.variantName}");
+            
+            if (!isServer) 
             {
-                Debug.LogWarning($"❌ GenerateMonster skipped - not running on server (IsServer={IsServer})");
+                Debug.LogWarning($"❌ GenerateMonster skipped - not running on server (IsServer={isServer})");
                 return;
-            }*/
+            }
             
             if (race != null) raceData = race;
             if (variant != null) variantData = variant;
@@ -165,7 +149,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             
             Debug.Log($"✨ Generated {variantData.variantName} ({raceData.raceName}) - Grade: {grade}");
             Debug.Log($"🔍 DEBUG: RaceData={raceData?.raceName ?? "NULL"}, VariantData={variantData?.variantName ?? "NULL"}");
-            Debug.Log($"📊 Final Stats: STR {finalStats.strength:F1}, HP {networkMaxHP.Value:F0}");
+            Debug.Log($"📊 Final Stats: STR {finalStats.strength:F1}, HP {MaxHP:F0}");
         }
         
         /// <summary>
@@ -304,11 +288,17 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             float maxHealth = 100f + (finalStats.vitality * 10f);
             float maxMana = 50f + (finalStats.intelligence * 5f);
             
-            networkMaxHP.Value = maxHealth;
-            networkCurrentHP.Value = maxHealth;
-            networkMaxMP.Value = maxMana;
-            networkCurrentMP.Value = maxMana;
-            networkIsDead.Value = false;
+            // 서버에서만 NetworkVariable 값 설정
+            if (IsServer)
+            {
+                networkMaxHP.Value = maxHealth;
+                networkCurrentHP.Value = maxHealth;
+                networkIsDead.Value = false;
+            }
+            
+            maxMP = maxMana;
+            currentMP = maxMana;
+            itemsDropped = false; // 아이템 드롭 플래그 초기화
         }
         
         /// <summary>
@@ -326,19 +316,34 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         }
         
         /// <summary>
-        /// 데미지 받기 (플레이어와 동일한 계산식)
+        /// 데미지 받기 - ServerRpc로 호출
         /// </summary>
-        public float TakeDamage(float damage, DamageType damageType, PlayerController attacker = null)
+        [ServerRpc(RequireOwnership = false)]
+        public void TakeDamageServerRpc(float damage, DamageType damageType, ulong attackerClientId = 0)
         {
-            Debug.Log($"🩸 TakeDamage called: damage={damage}, attacker={attacker?.name}, IsServer={IsServer}, isDead={networkIsDead.Value}");
-            Debug.Log($"🩸 Monster Data: variantData={variantData?.variantName ?? "NULL"}, raceData={raceData?.raceName ?? "NULL"}");
+            Debug.Log($"🩸 TakeDamageServerRpc: damage={damage}, attackerClientId={attackerClientId}, isDead={IsDead}, IsServer={IsServer}");
             
-            if (!IsServer || networkIsDead.Value) 
+            if (!IsServer)
             {
-                Debug.LogWarning($"🩸 TakeDamage blocked: IsServer={IsServer}, isDead={networkIsDead.Value}");
-                return 0f;
+                Debug.LogWarning($"🩸 TakeDamageServerRpc called on non-server, ignoring");
+                return;
             }
             
+            if (IsDead) 
+            {
+                Debug.LogWarning($"🩸 Monster already dead, ignoring damage");
+                return;
+            }
+            
+            // 서버에서만 실제 데미지 처리
+            ProcessDamage(damage, damageType, attackerClientId);
+        }
+        
+        /// <summary>
+        /// 서버에서 실제 데미지 처리
+        /// </summary>
+        private void ProcessDamage(float damage, DamageType damageType, ulong attackerClientId)
+        {
             float finalDamage = damage;
             
             // 방어력 적용
@@ -358,63 +363,98 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             if (Random.value < dodgeChance)
             {
                 Debug.Log($"{variantData.variantName} dodged the attack!");
-                return 0f;
+                return;
             }
             
             // 최소 1 데미지
             finalDamage = Mathf.Max(1f, finalDamage);
             
-            // HP 감소
-            float newHP = Mathf.Max(0f, networkCurrentHP.Value - finalDamage);
+            // HP 감소 (NetworkVariable 업데이트)
+            float oldHP = networkCurrentHP.Value;
+            float newHP = Mathf.Max(0f, oldHP - finalDamage);
             networkCurrentHP.Value = newHP;
             
+            Debug.Log($"🩸 HP change: {oldHP:F1} → {newHP:F1} (damage: {finalDamage:F1})");
+            
             // 공격자를 참여자로 추가 (데미지가 실제로 들어갔을 때만)
-            if (attacker != null && finalDamage > 0f)
+            if (attackerClientId != 0 && finalDamage > 0f)
             {
-                ulong attackerId = attacker.NetworkObject.NetworkObjectId;
-                participatingPlayers.Add(attackerId);
+                participatingPlayers.Add(attackerClientId);
                 
                 // 데미지 기여도 추적
-                if (playerDamageContribution.ContainsKey(attackerId))
+                if (playerDamageContribution.ContainsKey(attackerClientId))
                 {
-                    playerDamageContribution[attackerId] += finalDamage;
+                    playerDamageContribution[attackerClientId] += finalDamage;
                 }
                 else
                 {
-                    playerDamageContribution[attackerId] = finalDamage;
+                    playerDamageContribution[attackerClientId] = finalDamage;
                 }
             }
             
             OnDamageTaken?.Invoke(finalDamage);
             
             // 사망 처리
-            if (newHP <= 0f && !networkIsDead.Value)
-            {
-                Die(attacker);
-            }
+            Debug.Log($"🩸 Death check: newHP={newHP:F1}, isDead={IsDead}, shouldDie={newHP <= 0f && !IsDead}");
             
-            return finalDamage;
+            if (newHP <= 0f && !IsDead)
+            {
+                Debug.Log($"☠️ Monster dying: {variantData?.variantName ?? "Unknown"}");
+                Die(attackerClientId);
+            }
         }
         
         /// <summary>
-        /// 사망 처리
+        /// 사망 처리 (서버에서만)
         /// </summary>
-        private void Die(PlayerController killer = null)
+        private void Die(ulong killerClientId = 0)
         {
-            if (networkIsDead.Value) return;
+            Debug.Log($"💀 Die() called: killerClientId={killerClientId}, alreadyDead={IsDead}");
             
+            if (IsDead) 
+            {
+                Debug.LogWarning($"💀 Die() skipped - already dead");
+                return;
+            }
+            
+            Debug.Log($"💀 Setting networkIsDead to true...");
             networkIsDead.Value = true;
-            OnDeath?.Invoke();
+            Debug.Log($"💀 networkIsDead successfully set to: {IsDead}");
             
-            // 보상 지급
-            GiveRewardsToNearbyPlayers(killer);
+            // 즉시 콜라이더와 AI 비활성화 (더 이상 공격받지 않도록)
+            var collider = GetComponent<Collider2D>();
+            if (collider != null)
+            {
+                collider.enabled = false;
+                Debug.Log($"💀 Collider disabled for {name}");
+            }
             
-            // MonsterAI 사망 상태 동기화
             var monsterAI = GetComponent<MonsterAI>();
             if (monsterAI != null)
             {
-                // MonsterAI의 OnMonsterDeath는 MonsterEntity가 있으면 자동으로 스킵함
+                monsterAI.enabled = false;
+                Debug.Log($"💀 MonsterAI disabled for {name}");
             }
+            
+            // 시각적 표시 (투명하게)
+            var spriteRenderer = GetComponent<SpriteRenderer>();
+            if (spriteRenderer != null)
+            {
+                var color = spriteRenderer.color;
+                color.a = 0.3f; // 30% 투명도
+                spriteRenderer.color = color;
+            }
+            
+            Debug.Log($"💀 Invoking OnDeath event...");
+            OnDeath?.Invoke();
+            
+            // 보상 지급
+            Debug.Log($"💀 Giving rewards to nearby players...");
+            GiveRewardsToNearbyPlayers(killerClientId);
+            
+            // 아이템 드롭 (ClientRpc로 모든 클라이언트에 알림)
+            Debug.Log($"🎁 Dropping items...");
+            DropItemsForAllClients();
             
             Debug.Log($"☠️ {variantData.variantName} has died!");
         }
@@ -422,15 +462,24 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// <summary>
         /// 보상 지급 (공격에 참여한 플레이어들에게만)
         /// </summary>
-        private void GiveRewardsToNearbyPlayers(PlayerController killer = null)
+        private void GiveRewardsToNearbyPlayers(ulong killerClientId = 0)
         {
-            if (!IsServer) return;
+            bool isServer = NetworkManager.Singleton != null ? NetworkManager.Singleton.IsServer : true;
+            
+            Debug.Log($"🎁 GiveRewardsToNearbyPlayers: IsServer={isServer}, participatingPlayers={participatingPlayers.Count}");
+            
+            if (!isServer) 
+            {
+                Debug.LogWarning($"🎁 GiveRewardsToNearbyPlayers skipped - not server");
+                return;
+            }
             
             // 경험치와 골드 계산
             long expReward = raceData.CalculateExperienceForGrade(grade);
             long goldReward = raceData.CalculateGoldForGrade(grade);
             
-            ulong monsterId = NetworkObject.NetworkObjectId;
+            var monsterNetworkObject = GetComponent<NetworkObject>();
+            ulong monsterId = monsterNetworkObject != null ? monsterNetworkObject.NetworkObjectId : 0;
             int playersRewarded = 0;
             
             // 공격에 참여한 플레이어들에게만 경험치 지급
@@ -459,9 +508,11 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             Debug.Log($"🎯 {variantData.variantName} defeated! {playersRewarded}/{participatingPlayers.Count} players rewarded with {expReward} EXP");
             
             // 아이템 드롭
+            Debug.Log($"🎁 About to call TryDropItems...");
             TryDropItems();
             
             // 영혼 드롭 (스킬 포함)
+            Debug.Log($"🎁 About to call TryDropSoul...");
             TryDropSoul();
         }
         
@@ -470,24 +521,55 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         private void TryDropItems()
         {
+            Debug.Log($"🎲 TryDropItems called for {variantData?.variantName ?? "NULL"}");
+            
+            // 이미 아이템을 드롭했는지 체크
+            if (itemsDropped)
+            {
+                Debug.LogWarning($"🎲 Items already dropped for {variantData?.variantName}, skipping...");
+                return;
+            }
+            Debug.Log($"🎲 Grade: {grade}, VariantData: {variantData != null}");
+            
+            if (variantData == null)
+            {
+                Debug.LogError($"🎲 VariantData is null! Cannot drop items.");
+                return;
+            }
+            
             // 개체별 전체 드롭 계산 (종족 + 개체)
             var droppedItems = variantData.CalculateAllItemDrops(grade);
+            Debug.Log($"🎲 CalculateAllItemDrops returned {droppedItems?.Count ?? -1} items");
             
-            if (droppedItems.Count > 0)
+            if (droppedItems != null && droppedItems.Count > 0)
             {
                 Vector3 dropPosition = transform.position;
+                Debug.Log($"🎲 Dropping {droppedItems.Count} items at position {dropPosition}");
                 
                 foreach (var item in droppedItems)
                 {
                     if (item != null)
                     {
+                        Debug.Log($"🎲 Spawning item: {item.ItemName} (Grade: {item.Grade})");
                         // 드롭된 아이템을 월드에 생성
                         SpawnDroppedItem(item, dropPosition);
+                    }
+                    else
+                    {
+                        Debug.LogWarning($"🎲 Null item in dropped items list");
                     }
                 }
                 
                 Debug.Log($"💰 {variantData.variantName} dropped {droppedItems.Count} items!");
             }
+            else
+            {
+                Debug.Log($"🎲 No items to drop for {variantData.variantName} (grade: {grade})");
+            }
+            
+            // 드롭 완료 플래그 설정
+            itemsDropped = true;
+            Debug.Log($"🎲 itemsDropped flag set to true for {variantData?.variantName}");
         }
         
         /// <summary>
@@ -495,15 +577,16 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         private void SpawnDroppedItem(ItemData itemData, Vector3 position)
         {
-            // DroppedItem 프리팹 찾기
-            var droppedItemPrefab = Resources.Load<GameObject>("DroppedItem");
-            if (droppedItemPrefab == null)
+            Debug.Log($"🎁 SpawnDroppedItem called: item={itemData?.ItemName ?? "NULL"}, position={position}");
+            
+            // 서버 체크
+            if (NetworkManager.Singleton != null && !NetworkManager.Singleton.IsServer)
             {
-                Debug.LogWarning("DroppedItem prefab not found in Resources folder!");
+                Debug.LogWarning($"🎁 Not server, ignoring item drop for {itemData?.ItemName}");
                 return;
             }
             
-            // 약간의 랜덤 오프셋 추가 (여러 아이템이 같은 위치에 드롭되지 않도록)
+            // 간단한 아이템 드롭 생성 (프리팹 없이)
             Vector3 randomOffset = new Vector3(
                 Random.Range(-1f, 1f), 
                 Random.Range(-1f, 1f), 
@@ -511,21 +594,74 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             );
             Vector3 spawnPosition = position + randomOffset;
             
-            // 드롭된 아이템 생성
-            GameObject droppedItemObj = Instantiate(droppedItemPrefab, spawnPosition, Quaternion.identity);
-            var networkObject = droppedItemObj.GetComponent<NetworkObject>();
+            Debug.Log($"🎁 Creating ItemDrop GameObject at {spawnPosition}...");
+            GameObject droppedItemObj = new GameObject($"DroppedItem_{itemData.ItemName}");
+            droppedItemObj.transform.position = spawnPosition;
             
-            if (networkObject != null)
+            // ItemDrop 컴포넌트 추가
+            var itemDrop = droppedItemObj.AddComponent<ItemDrop>();
+            var itemInstance = new ItemInstance(itemData, 1);
+            itemDrop.SetItemInstance(itemInstance);
+            itemDrop.SetDropPosition(spawnPosition);
+            
+            Debug.Log($"🎁 ItemDrop created successfully with {itemData.ItemName}");
+        }
+        
+        /// <summary>
+        /// 모든 클라이언트에서 아이템 드롭 생성
+        /// </summary>
+        private void DropItemsForAllClients()
+        {
+            // 드롭할 아이템들 계산
+            var droppedItems = variantData?.CalculateAllItemDrops(grade);
+            if (droppedItems != null && droppedItems.Count > 0)
             {
-                networkObject.Spawn();
-                
-                // DroppedItem 컴포넌트에 아이템 데이터 설정
-                var droppedItem = droppedItemObj.GetComponent<DroppedItem>();
-                if (droppedItem != null)
+                foreach (var itemData in droppedItems)
                 {
-                    var itemInstance = new ItemInstance(itemData, 1); // ItemData를 ItemInstance로 변환
-                    droppedItem.Initialize(itemInstance, NetworkObjectId); // 기본 1개 수량
+                    if (itemData != null)
+                    {
+                        // 모든 클라이언트에 아이템 드롭 알림
+                        SpawnItemClientRpc(transform.position, itemData.ItemId, itemData.ItemName, itemData.GradeColor);
+                    }
                 }
+            }
+        }
+        
+        /// <summary>
+        /// 클라이언트에서 아이템 생성
+        /// </summary>
+        [ClientRpc]
+        private void SpawnItemClientRpc(Vector3 position, string itemId, string itemName, Color gradeColor)
+        {
+            Debug.Log($"🎁 [ClientRpc] Spawning item: {itemName} at {position}");
+            
+            // 랜덤 오프셋 적용
+            Vector3 randomOffset = new Vector3(
+                Random.Range(-1f, 1f), 
+                Random.Range(-1f, 1f), 
+                0f
+            );
+            Vector3 spawnPosition = position + randomOffset;
+            
+            // 아이템 GameObject 생성
+            GameObject itemObject = new GameObject($"DroppedItem_{itemName}");
+            itemObject.transform.position = spawnPosition;
+            
+            // ItemDrop 컴포넌트 추가
+            var itemDrop = itemObject.AddComponent<ItemDrop>();
+            var itemData = ItemDatabase.GetItem(itemId);
+            if (itemData != null)
+            {
+                var itemInstance = new ItemInstance(itemData, 1);
+                itemDrop.SetItemInstance(itemInstance);
+                itemDrop.SetDropPosition(spawnPosition);
+                
+                Debug.Log($"🎁 Item created successfully: {itemName}");
+            }
+            else
+            {
+                Debug.LogError($"❌ ItemData not found for {itemId}");
+                Destroy(itemObject);
             }
         }
         
@@ -560,35 +696,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             Debug.Log($"💎 {variantData.variantName} soul drop will be handled by MonsterSoulDropSystem!");
         }
         
-        // 네트워크 이벤트 처리
-        private void OnNetworkHPChanged(float previousValue, float newValue)
-        {
-            // 클라이언트에서 UI 업데이트 등
-        }
-        
-        private void OnNetworkMaxHPChanged(float previousValue, float newValue)
-        {
-            // 클라이언트에서 UI 업데이트 등
-        }
-        
-        private void OnNetworkMPChanged(float previousValue, float newValue)
-        {
-            // 클라이언트에서 UI 업데이트 등
-        }
-        
-        private void OnNetworkMaxMPChanged(float previousValue, float newValue)
-        {
-            // 클라이언트에서 UI 업데이트 등
-        }
-        
-        private void OnNetworkDeathChanged(bool previousValue, bool newValue)
-        {
-            if (newValue && !IsServer)
-            {
-                // 클라이언트에서 사망 처리
-                OnDeath?.Invoke();
-            }
-        }
         
         /// <summary>
         /// 디버그 정보
@@ -621,12 +728,22 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         }
         
         /// <summary>
-        /// 기존 MonsterHealth.TakeDamageServerRpc 호환
+        /// 기존 MonsterHealth.TakeDamage 호환 메서드
+        /// </summary>
+        public float TakeDamage(float damage, DamageType damageType, PlayerController attacker = null)
+        {
+            ulong attackerClientId = attacker?.OwnerClientId ?? 0;
+            TakeDamageServerRpc(damage, damageType, attackerClientId);
+            return damage; // 실제 데미지 반환
+        }
+        
+        /// <summary>
+        /// 기존 MonsterHealth.TakeDamageServerRpc 호환 (로컬 호출로 변경)
         /// </summary>
         [ServerRpc(RequireOwnership = false)]
-        public void TakeDamageServerRpc(float damage, DamageType damageType = DamageType.Physical)
+        public void TakeDamageCompatServerRpc(float damage, DamageType damageType = DamageType.Physical)
         {
-            TakeDamage(damage, damageType);
+            TakeDamageServerRpc(damage, damageType, 0);
         }
     }
     

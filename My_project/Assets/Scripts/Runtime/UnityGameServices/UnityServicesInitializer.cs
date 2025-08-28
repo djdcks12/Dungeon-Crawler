@@ -61,7 +61,11 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             {
                 MetagameApplication.Instance.Broadcast(new PlayerSignedIn(signedIn, UnityServiceAuthenticator.PlayerId));
             }
-
+            else
+            {
+                Debug.Log($"MetagameApplication not found - running in test mode. Signed in: {signedIn}");
+            }
+            
             if (!signedIn)
             {
                 return;

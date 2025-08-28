@@ -224,9 +224,10 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             
             foreach (var monster in monsters)
             {
-                if (monster.NetworkObject == null || monster.CurrentHP <= 0) continue;
+                var networkObject = monster.GetComponent<NetworkObject>();
+                if (networkObject == null || monster.CurrentHP <= 0) continue;
                 
-                int monsterId = (int)monster.NetworkObject.NetworkObjectId;
+                int monsterId = (int)networkObject.NetworkObjectId;
                 currentMonsterIds.Add(monsterId);
                 
                 if (!monsterIcons.ContainsKey(monsterId))

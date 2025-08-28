@@ -392,9 +392,13 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             
             foreach (var monster in activeMonsters)
             {
-                if (monster != null && monster.NetworkObject != null)
+                if (monster != null)
                 {
-                    monster.NetworkObject.Despawn();
+                    var networkObject = monster.GetComponent<NetworkObject>();
+                    if (networkObject != null)
+                    {
+                        networkObject.Despawn();
+                    }
                 }
             }
             

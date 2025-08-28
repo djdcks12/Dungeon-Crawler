@@ -101,6 +101,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             HandleAttack();
             HandleSkill();
             HandleUI();
+            HandleItemPickup();
         }
         
         private void FixedUpdate()
@@ -513,6 +514,51 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 {
                     dungeonManager.OnPlayerDied(OwnerClientId);
                     Debug.Log($"🏰 Notified DungeonManager: Player {OwnerClientId} died");
+                }
+            }
+        }
+        
+        /// <summary>
+        /// Z키로 아이템 픽업 처리
+        /// </summary>
+        private void HandleItemPickup()
+        {
+            if (!IsLocalPlayer) return;
+            if (playerInput == null) return;
+            
+            // Z키 입력 체크
+            if (Input.GetKeyDown(KeyCode.Z))
+            {
+                TryPickupNearbyItems();
+            }
+        }
+        
+        /// <summary>
+        /// 근처 아이템 픽업 시도
+        /// </summary>
+        private void TryPickupNearbyItems()
+        {
+            // 근처 드롭된 아이템 찾기
+            Collider2D[] nearbyColliders = Physics2D.OverlapCircleAll(transform.position, 2f); // 2미터 반경
+            
+            foreach (var collider in nearbyColliders)
+            {
+                // DroppedItem 체크
+                var droppedItem = collider.GetComponent<DroppedItem>();
+                if (droppedItem != null)
+                {
+                    Debug.Log($"📦 Found DroppedItem: {droppedItem.ItemInstance?.ItemData?.ItemName}");
+                    droppedItem.ManualPickup(this);
+                    return; // 한 번에 하나씩만 픽업
+                }
+                
+                // ItemDrop 체크 (레거시)
+                var itemDrop = collider.GetComponent<ItemDrop>();
+                if (itemDrop != null)
+                {
+                    Debug.Log($"📦 Found ItemDrop: {itemDrop.ItemInstance?.ItemData?.ItemName}");
+                    itemDrop.PickupItem(this);
+                    return; // 한 번에 하나씩만 픽업
                 }
             }
         }

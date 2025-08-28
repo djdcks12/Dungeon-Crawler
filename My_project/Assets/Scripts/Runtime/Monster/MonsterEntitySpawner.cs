@@ -50,6 +50,9 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         {
             base.OnNetworkSpawn();
             
+            Debug.Log($"🏭 MonsterEntitySpawner OnNetworkSpawn: IsServer={IsServer}, NetworkObjectId={NetworkObjectId}");
+            Debug.Log($"🏭 NetworkObject Owner: {OwnerClientId}, IsHost={IsHost}, IsClient={IsClient}");
+            
             // 스폰 포인트가 없으면 자신의 위치를 사용
             if (spawnPoints == null || spawnPoints.Length == 0)
             {
@@ -59,7 +62,12 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             // 서버에서만 스폰 관리
             if (IsServer && autoSpawn)
             {
+                Debug.Log($"🏭 Starting spawn coroutine on server...");
                 StartCoroutine(SpawnCoroutine());
+            }
+            else
+            {
+                Debug.LogWarning($"🏭 Spawn coroutine NOT started: IsServer={IsServer}, autoSpawn={autoSpawn}");
             }
             
             Debug.Log($"MonsterEntitySpawner initialized: {name} with {spawnDataSets?.Length ?? 0} spawn sets");
@@ -146,42 +154,66 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         {
             isSpawning = true;
             
-            // 스폰 데이터 선택
-            var spawnData = SelectSpawnData();
-            if (spawnData.raceData == null || spawnData.variantData == null)
+            try 
             {
-                Debug.LogWarning("No valid spawn data found");
+                // 스폰 데이터 선택
+                var spawnData = SelectSpawnData();
+                if (spawnData.raceData == null || spawnData.variantData == null)
+                {
+                    Debug.LogWarning("No valid spawn data found");
+                    yield break;
+                }
+                
+                // 스폰 위치 선택
+                Vector3 spawnPosition = GetRandomSpawnPosition();
+                
+                // 등급 결정
+                float grade = DetermineMonsterGrade();
+                
+                // 몬스터 엔티티 생성
+                var monsterObject = Instantiate(spawnData.basePrefab, spawnPosition, Quaternion.identity);
+                var networkObject = monsterObject.GetComponent<NetworkObject>();
+                
+                // NetworkObject가 없으면 추가
+                if (networkObject == null)
+                {
+                    networkObject = monsterObject.AddComponent<NetworkObject>();
+                    Debug.Log($"🔧 Added NetworkObject to {monsterObject.name}");
+                }
+                
+                if (networkObject != null)
+                {
+                    // 서버에서 스폰
+                    Debug.Log($"🔧 Attempting to spawn NetworkObject for {monsterObject.name}...");
+                    try 
+                    {
+                        networkObject.Spawn(true);
+                        Debug.Log($"✅ Successfully spawned {monsterObject.name}, IsSpawned: {networkObject.IsSpawned}");
+                    }
+                    catch (System.Exception e)
+                    {
+                        Debug.LogError($"❌ Failed to spawn {monsterObject.name}: {e.Message}");
+                    }
+                    
+                    // 컴포넌트 설정
+                    yield return null; // 한 프레임 대기
+                    
+                    SetupMonsterEntity(monsterObject, spawnData, grade);
+                }
+                else
+                {
+                    Debug.LogError($"Monster prefab {spawnData.basePrefab.name} is missing NetworkObject component");
+                    Destroy(monsterObject);
+                }
+                
+                lastSpawnTime = Time.time;
+            }
+            finally
+            {
+                // 항상 isSpawning을 false로 설정 (오류가 발생해도)
                 isSpawning = false;
-                yield break;
+                Debug.Log($"🔧 SpawnCoroutine completed: isSpawning reset to false");
             }
-            
-            // 스폰 위치 선택
-            Vector3 spawnPosition = GetRandomSpawnPosition();
-            
-            // 등급 결정
-            float grade = DetermineMonsterGrade();
-            
-            // 몬스터 엔티티 생성
-            var monsterObject = Instantiate(spawnData.basePrefab, spawnPosition, Quaternion.identity);
-            var networkObject = monsterObject.GetComponent<NetworkObject>();
-            
-            if (networkObject != null)
-            {
-                networkObject.Spawn();
-                
-                // 컴포넌트 설정
-                yield return null; // 한 프레임 대기
-                
-                SetupMonsterEntity(monsterObject, spawnData, grade);
-            }
-            else
-            {
-                Debug.LogError($"Monster prefab {spawnData.basePrefab.name} is missing NetworkObject component");
-                Destroy(monsterObject);
-            }
-            
-            lastSpawnTime = Time.time;
-            isSpawning = false;
         }
         
         /// <summary>
@@ -189,15 +221,28 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         private MonsterEntitySpawnData SelectSpawnData()
         {
-            if (spawnDataSets == null || spawnDataSets.Length == 0) return new MonsterEntitySpawnData();
+            Debug.Log($"🎲 SelectSpawnData: spawnDataSets.Length={spawnDataSets?.Length ?? 0}");
+            
+            if (spawnDataSets == null || spawnDataSets.Length == 0) 
+            {
+                Debug.LogError($"🎲 No spawn data sets configured!");
+                return new MonsterEntitySpawnData();
+            }
             
             // 현재 층에 적합한 스폰 데이터 필터링
             var validSpawnData = new List<MonsterEntitySpawnData>();
             foreach (var data in spawnDataSets)
             {
-                if (data.variantData.CanSpawnOnFloor(currentFloor))
+                Debug.Log($"🎲 Checking spawn data: race={data.raceData?.raceName ?? "NULL"}, variant={data.variantData?.variantName ?? "NULL"}");
+                
+                if (data.variantData?.CanSpawnOnFloor(currentFloor) == true)
                 {
                     validSpawnData.Add(data);
+                    Debug.Log($"🎲 ✅ Added valid spawn data: {data.variantData.variantName}");
+                }
+                else
+                {
+                    Debug.LogWarning($"🎲 ❌ Spawn data rejected: variantData is null or can't spawn on floor {currentFloor}");
                 }
             }
             
@@ -261,10 +306,18 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         private void SetupMonsterEntity(GameObject monsterObject, MonsterEntitySpawnData spawnData, float grade)
         {
             Debug.Log($"🔧 SetupMonsterEntity: IsServer={IsServer}, NetworkObjectId={NetworkObjectId}");
+            Debug.Log($"🔧 SpawnData: race={spawnData.raceData?.raceName ?? "NULL"}, variant={spawnData.variantData?.variantName ?? "NULL"}, grade={grade}");
             
             if (!IsServer)
             {
-                Debug.LogError($"❌ SetupMonsterEntity called on client! This should only run on server.");
+                Debug.LogWarning($"⚠️ SetupMonsterEntity called on client (IsServer={IsServer}). Continuing anyway for testing...");
+                // return을 주석처리해서 계속 진행하도록 함 (테스트용)
+            }
+            
+            // SpawnData 유효성 검증
+            if (spawnData.raceData == null || spawnData.variantData == null)
+            {
+                Debug.LogError($"❌ SetupMonsterEntity: Invalid spawn data! race={spawnData.raceData?.raceName ?? "NULL"}, variant={spawnData.variantData?.variantName ?? "NULL"}");
                 return;
             }
             // MonsterEntity 설정
@@ -324,6 +377,8 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         {
             if (monsterEntity == null) return;
             
+            Debug.Log($"💀 MonsterEntity died: {monsterEntity.VariantData?.variantName ?? "Unknown"} ({monsterEntity.Grade})");
+            
             // 몬스터 영혼 드롭 체크
             var soulDropSystem = monsterEntity.GetComponent<MonsterSoulDropSystem>();
             if (soulDropSystem != null)
@@ -331,8 +386,24 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 soulDropSystem.CheckMonsterSoulDrop(monsterEntity);
             }
             
-            // 활성 몬스터 목록에서 제거 (CleanupDeadMonsters에서 처리됨)
-            Debug.Log($"💀 MonsterEntity died: {monsterEntity.VariantData?.variantName ?? "Unknown"} ({monsterEntity.Grade})");
+            // NetworkObject가 있으면 네트워크에서 삭제
+            var networkObject = monsterEntity.GetComponent<NetworkObject>();
+            if (networkObject != null && networkObject.IsSpawned)
+            {
+                Debug.Log($"💀 Despawning NetworkObject for {monsterEntity.name}");
+                networkObject.Despawn();
+            }
+            else
+            {
+                // 일반 GameObject로 삭제
+                Debug.Log($"💀 Destroying GameObject for {monsterEntity.name}");
+                Destroy(monsterEntity.gameObject);
+            }
+            
+            // 활성 몬스터 목록에서 즉시 제거
+            activeMonsters.Remove(monsterEntity);
+            
+            Debug.Log($"💀 Monster cleanup completed. Active monsters: {activeMonsters.Count}");
         }
         
         /// <summary>
@@ -368,9 +439,25 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             var monsterObject = Instantiate(variantData.prefab, position, Quaternion.identity);
             var networkObject = monsterObject.GetComponent<NetworkObject>();
             
+            // NetworkObject가 없으면 추가
+            if (networkObject == null)
+            {
+                networkObject = monsterObject.AddComponent<NetworkObject>();
+                Debug.Log($"🔧 Added NetworkObject to {monsterObject.name} (manual spawn)");
+            }
+            
             if (networkObject != null)
             {
-                networkObject.Spawn();
+                Debug.Log($"🔧 Attempting to spawn NetworkObject for {monsterObject.name} (manual)...");
+                try 
+                {
+                    networkObject.Spawn(true);
+                    Debug.Log($"✅ Successfully spawned {monsterObject.name}, IsSpawned: {networkObject.IsSpawned}");
+                }
+                catch (System.Exception e)
+                {
+                    Debug.LogError($"❌ Failed to spawn {monsterObject.name}: {e.Message}");
+                }
                 
                 var spawnData = new MonsterEntitySpawnData
                 {
@@ -422,9 +509,13 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             
             foreach (var monster in activeMonsters.ToArray())
             {
-                if (monster != null && monster.NetworkObject != null)
+                if (monster != null)
                 {
-                    monster.NetworkObject.Despawn();
+                    var networkObject = monster.GetComponent<NetworkObject>();
+                    if (networkObject != null)
+                    {
+                        networkObject.Despawn();
+                    }
                 }
             }
             

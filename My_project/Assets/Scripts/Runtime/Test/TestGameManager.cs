@@ -18,6 +18,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         [SerializeField] private GameObject playerPrefab;
         [SerializeField] private Transform[] spawnPoints;
         [SerializeField] private DebugUI debugUI;
+        [SerializeField] private MonsterEntitySpawner monsterSpawner;
         
         private bool isCheatMenuVisible = false;
         
@@ -44,6 +45,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             {
                 Debug.Log("🎮 Test Game Manager spawned on Server");
                 InitializeTestEnvironment();
+                InitializeMonsterSpawner();
             }
             else
             {
@@ -228,7 +230,44 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         }
         
         /// <summary>
-        /// 몬스터 스폰 치트
+        /// MonsterSpawner를 서버 권한으로 초기화
+        /// </summary>
+        private void InitializeMonsterSpawner()
+        {
+            if (!IsServer) return;
+            
+            Debug.Log("🏭 Initializing MonsterEntitySpawner with server authority...");
+            
+            if (monsterSpawner != null)
+            {
+                // MonsterEntitySpawner가 이미 있으면 서버에서 직접 제어
+                Debug.Log($"🏭 Found existing MonsterEntitySpawner: {monsterSpawner.name}");
+                bool spawnerIsServer = NetworkManager.Singleton != null ? NetworkManager.Singleton.IsServer : true;
+                Debug.Log($"🏭 MonsterSpawner IsServer check: {spawnerIsServer}");
+                
+                // 서버에서 스폰 활성화
+                monsterSpawner.SetSpawningEnabled(true);
+            }
+            else
+            {
+                Debug.LogWarning("🏭 MonsterEntitySpawner reference not set in TestGameManager");
+            }
+        }
+        
+        /// <summary>
+        /// 서버에서 몬스터 수동 스폰 (치트 기능)
+        /// </summary>
+        [ServerRpc(RequireOwnership = false)]
+        public void SpawnTestMonsterServerRpc()
+        {
+            if (!IsServer || monsterSpawner == null) return;
+            
+            Debug.Log("🧪 Spawning test monster via ServerRpc...");
+            monsterSpawner.SpawnRandomMonsterEntity();
+        }
+        
+        /// <summary>
+        /// 몬스터 스폰 치트 (MonsterEntitySpawner 사용)
         /// </summary>
         [ContextMenu("Cheat: Spawn Monster")]
         public void CheatSpawnMonster()
@@ -239,10 +278,20 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 return;
             }
             
+            // MonsterEntitySpawner 우선 시도
+            if (monsterSpawner != null)
+            {
+                Debug.Log("👹 Attempting to spawn test monster using MonsterEntitySpawner...");
+                monsterSpawner.SpawnRandomMonsterEntity();
+                Debug.Log($"✅ Monster spawn requested via MonsterEntitySpawner. Active: {monsterSpawner.CurrentMonsterCount}/{monsterSpawner.MaxActiveMonsters}");
+                return;
+            }
+            
+            // 구형 MonsterSpawner 폴백
             var spawner = FindFirstObjectByType<MonsterSpawner>();
             if (spawner != null)
             {
-                Debug.Log("👹 Attempting to spawn test monster...");
+                Debug.Log("👹 Attempting to spawn test monster using legacy MonsterSpawner...");
                 
                 // MonsterSpawner의 공개 메서드로 랜덤 몬스터 스폰
                 spawner.SpawnRandomMonster();
@@ -251,8 +300,77 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             }
             else
             {
-                Debug.LogWarning("⚠️ No MonsterSpawner found in scene. Please add MonsterSpawner to TestScene.");
+                Debug.LogWarning("⚠️ No MonsterEntitySpawner or MonsterSpawner found in scene.");
             }
+        }
+        
+        /// <summary>
+        /// 스폰된 몬스터의 서버 권한 상태 체크
+        /// </summary>
+        [ContextMenu("Test: Check Monster Server Authority")]
+        public void TestMonsterServerAuthority()
+        {
+            var monsters = FindObjectsByType<MonsterEntity>(FindObjectsSortMode.None);
+            if (monsters.Length == 0)
+            {
+                Debug.LogWarning("🔍 No MonsterEntity found in scene");
+                return;
+            }
+            
+            bool isServer = NetworkManager.Singleton != null ? NetworkManager.Singleton.IsServer : true;
+            
+            Debug.Log($"🔍 Found {monsters.Length} MonsterEntity objects:");
+            for (int i = 0; i < monsters.Length; i++)
+            {
+                var monster = monsters[i];
+                var networkObject = monster.GetComponent<NetworkObject>();
+                
+                Debug.Log($"🔍 Monster {i}: {monster.name}");
+                Debug.Log($"🔍   - IsServer: {isServer}");
+                Debug.Log($"🔍   - NetworkObject: {networkObject != null}");
+                if (networkObject != null)
+                {
+                    Debug.Log($"🔍   - NetworkObjectId: {networkObject.NetworkObjectId}");
+                    Debug.Log($"🔍   - OwnerClientId: {networkObject.OwnerClientId}");
+                }
+                Debug.Log($"🔍   - VariantName: {monster.VariantData?.variantName ?? "NULL"}");
+                Debug.Log($"🔍   - RaceName: {monster.RaceData?.raceName ?? "NULL"}");
+                Debug.Log($"🔍   - Current HP: {monster.CurrentHP}/{monster.MaxHP}");
+                Debug.Log($"🔍   - IsDead: {monster.IsDead}");
+            }
+        }
+        
+        /// <summary>
+        /// 몬스터 데미지 테스트 (서버 권한 검증용)
+        /// </summary>
+        [ContextMenu("Test: Damage Monster")]
+        public void TestDamageMonster()
+        {
+            if (!IsServer)
+            {
+                Debug.LogWarning("⚠️ Damage test can only be done on Server/Host");
+                return;
+            }
+            
+            var monsters = FindObjectsByType<MonsterEntity>(FindObjectsSortMode.None);
+            if (monsters.Length == 0)
+            {
+                Debug.LogWarning("🔍 No MonsterEntity found for damage test");
+                return;
+            }
+            
+            var monster = monsters[0];
+            var localPlayer = GetLocalPlayer();
+            
+            Debug.Log($"🗡️ Testing damage on monster: {monster.name}");
+            bool isServer = NetworkManager.Singleton != null ? NetworkManager.Singleton.IsServer : true;
+            Debug.Log($"🗡️ Monster IsServer: {isServer}, HP: {monster.CurrentHP}/{monster.MaxHP}");
+            
+            float testDamage = 50f;
+            float actualDamage = monster.TakeDamage(testDamage, DamageType.Physical, localPlayer);
+            
+            Debug.Log($"🗡️ Damage test result: {testDamage} requested → {actualDamage} actual");
+            Debug.Log($"🗡️ Monster HP after damage: {monster.CurrentHP}/{monster.MaxHP}");
         }
         
         /// <summary>

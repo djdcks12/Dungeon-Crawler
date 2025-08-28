@@ -39,7 +39,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         private void Update()
         {
             UpdateBobAnimation();
-            CheckForPickup();
         }
         
         /// <summary>
@@ -130,41 +129,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             transform.position = originalPosition + Vector3.up * yOffset;
         }
         
-        /// <summary>
-        /// 플레이어 픽업 감지
-        /// </summary>
-        private void CheckForPickup()
-        {
-            if (!IsServer) return;
-            
-            Collider2D[] players = Physics2D.OverlapCircleAll(transform.position, pickupRange, playerLayerMask);
-            
-            foreach (var playerCollider in players)
-            {
-                var playerController = playerCollider.GetComponent<PlayerController>();
-                if (playerController != null)
-                {
-                    // 플레이어 인벤토리에 아이템 추가 시도
-                    var inventoryManager = playerController.GetComponent<InventoryManager>();
-                    if (inventoryManager != null && TryPickupItem(inventoryManager))
-                    {
-                        // 픽업 성공 시 드롭 제거
-                        PlayPickupEffectClientRpc();
-                        
-                        // 네트워크 객체 소멸
-                        if (NetworkObject.IsSpawned)
-                        {
-                            NetworkObject.Despawn();
-                        }
-                        else
-                        {
-                            Destroy(gameObject);
-                        }
-                        return;
-                    }
-                }
-            }
-        }
         
         /// <summary>
         /// 아이템 픽업 시도

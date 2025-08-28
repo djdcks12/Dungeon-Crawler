@@ -362,14 +362,22 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 // 플레이어는 제외
                 if (target.GetComponent<PlayerController>() != null) continue;
                 
-                // 데미지 계산 (새로운 민댐/맥댐 시스템 사용)
-                float damage = statsManager.CurrentStats.CalculateSkillDamage(
-                    skillData.minDamagePercent, skillData.maxDamagePercent, skillData.damageType);
-                
-                // 타겟에 데미지 적용
-                // 몬스터 체력 시스템이 구현되면 연동
-                // 임시로 로그만 출력
-                Debug.Log($"💥 Skill damage: {damage:F0} to {target.name}");
+                // 몬스터 타겟인지 확인
+                var monsterEntity = target.GetComponent<MonsterEntity>();
+                if (monsterEntity != null)
+                {
+                    // 데미지 계산 (새로운 민댐/맥댐 시스템 사용)
+                    float damage = statsManager.CurrentStats.CalculateSkillDamage(
+                        skillData.minDamagePercent, skillData.maxDamagePercent, skillData.damageType);
+                    
+                    // NetworkManager를 통한 클라이언트 ID 가져오기
+                    ulong attackerClientId = NetworkManager.Singleton?.LocalClientId ?? 0;
+                    
+                    // 몬스터에 데미지 적용 (새로운 네트워킹 시스템 사용)
+                    monsterEntity.TakeDamageServerRpc(damage, skillData.damageType, attackerClientId);
+                    
+                    Debug.Log($"🔥 Skill damage: {damage:F0} to {target.name} via {skillData.skillName}");
+                }
             }
         }
         
