@@ -341,39 +341,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         }
         
         /// <summary>
-        /// 몬스터 데미지 테스트 (서버 권한 검증용)
-        /// </summary>
-        [ContextMenu("Test: Damage Monster")]
-        public void TestDamageMonster()
-        {
-            if (!IsServer)
-            {
-                Debug.LogWarning("⚠️ Damage test can only be done on Server/Host");
-                return;
-            }
-            
-            var monsters = FindObjectsByType<MonsterEntity>(FindObjectsSortMode.None);
-            if (monsters.Length == 0)
-            {
-                Debug.LogWarning("🔍 No MonsterEntity found for damage test");
-                return;
-            }
-            
-            var monster = monsters[0];
-            var localPlayer = GetLocalPlayer();
-            
-            Debug.Log($"🗡️ Testing damage on monster: {monster.name}");
-            bool isServer = NetworkManager.Singleton != null ? NetworkManager.Singleton.IsServer : true;
-            Debug.Log($"🗡️ Monster IsServer: {isServer}, HP: {monster.CurrentHP}/{monster.MaxHP}");
-            
-            float testDamage = 50f;
-            float actualDamage = monster.TakeDamage(testDamage, DamageType.Physical, localPlayer);
-            
-            Debug.Log($"🗡️ Damage test result: {testDamage} requested → {actualDamage} actual");
-            Debug.Log($"🗡️ Monster HP after damage: {monster.CurrentHP}/{monster.MaxHP}");
-        }
-        
-        /// <summary>
         /// 플레이어 체력 회복 치트
         /// </summary>
         [ContextMenu("Cheat: Heal Player")]
