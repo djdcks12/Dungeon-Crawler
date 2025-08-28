@@ -235,23 +235,25 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 return;
             }
             
-            // 타겟이 구형 몬스터인 경우 (MonsterHealth 시스템)
-            var targetMonster = target.GetComponent<MonsterHealth>();
-            if (targetMonster != null)
-            {
-                ApplyDamageToMonster(targetMonster, attackDamage, damageType, isCritical, attackPosition);
-                return;
-            }
-            
-            // 타겟이 신형 몬스터인 경우 (MonsterEntity 시스템)
+            // 타겟이 신형 몬스터인 경우 (MonsterEntity 시스템) - 우선 처리
             var targetMonsterEntity = target.GetComponent<MonsterEntity>();
             if (targetMonsterEntity != null)
             {
+                Debug.Log($"🗡️ Found MonsterEntity: {targetMonsterEntity.name}");
                 ApplyDamageToMonsterEntity(targetMonsterEntity, attackDamage, damageType, isCritical, attackPosition);
                 return;
             }
             
-            Debug.LogWarning($"Unknown target type: {target.name}");
+            // 타겟이 구형 몬스터인 경우 (MonsterHealth 시스템) - 폴백
+            var targetMonster = target.GetComponent<MonsterHealth>();
+            if (targetMonster != null)
+            {
+                Debug.Log($"🗡️ Found MonsterHealth: {targetMonster.name}");
+                ApplyDamageToMonster(targetMonster, attackDamage, damageType, isCritical, attackPosition);
+                return;
+            }
+            
+            Debug.LogWarning($"🗡️ No valid damage target found on {target.name}");
         }
         
         /// <summary>
@@ -323,11 +325,15 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             try 
             {
                 Debug.Log($"🗡️ About to call TakeDamageServerRpc...");
+                Debug.Log($"🗡️ MonsterEntity NetworkObject: {targetMonster.NetworkObject != null}");
+                Debug.Log($"🗡️ MonsterEntity IsSpawned: {targetMonster.IsSpawned}");
+                
                 // 서버로 데미지 요청 전송 (NetworkBehaviour이므로 RPC 사용)
                 var attackerNetworkObject = GetComponent<NetworkObject>();
                 ulong attackerClientId = attackerNetworkObject != null ? attackerNetworkObject.OwnerClientId : 0;
+                Debug.Log($"🗡️ AttackerClientId: {attackerClientId}");
                 
-                targetMonster.TakeDamageServerRpc(damage, damageType, attackerClientId);
+                targetMonster.TakeDamageServer(damage, damageType, attackerClientId);
                 Debug.Log($"🗡️ TakeDamageServerRpc sent successfully");
                 
                 // RPC는 비동기이므로 actualDamage는 예상치로 설정
@@ -335,7 +341,8 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             }
             catch (System.Exception e)
             {
-                Debug.LogError($"🗡️ Exception in TakeDamageServerRpc: {e.Message}\n{e.StackTrace}");
+                Debug.LogError($"🗡️ Exception in TakeDamageServerRpc: {e.Message}");
+                Debug.LogError($"🗡️ StackTrace: {e.StackTrace}");
                 actualDamage = 0f;
             }
             

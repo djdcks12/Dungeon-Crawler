@@ -183,6 +183,15 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 
                 if (networkObject != null)
                 {
+                    // NetworkPrefab으로 등록 (런타임)
+                    if (NetworkManager.Singleton != null && !NetworkManager.Singleton.NetworkConfig.Prefabs.Contains(monsterObject))
+                    {
+                        var networkPrefab = new NetworkPrefab();
+                        networkPrefab.Prefab = monsterObject;
+                        NetworkManager.Singleton.NetworkConfig.Prefabs.Add(networkPrefab);
+                        Debug.Log($"🔧 Added {monsterObject.name} to NetworkPrefabs list");
+                    }
+                    
                     // 서버에서 스폰
                     Debug.Log($"🔧 Attempting to spawn NetworkObject for {monsterObject.name}...");
                     try 
@@ -448,6 +457,15 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             
             if (networkObject != null)
             {
+                // NetworkPrefab으로 등록 (런타임)
+                if (NetworkManager.Singleton != null && !NetworkManager.Singleton.NetworkConfig.Prefabs.Contains(monsterObject))
+                {
+                    var networkPrefab = new NetworkPrefab();
+                    networkPrefab.Prefab = monsterObject;
+                    NetworkManager.Singleton.NetworkConfig.Prefabs.Add(networkPrefab);
+                    Debug.Log($"🔧 Added {monsterObject.name} to NetworkPrefabs list (manual)");
+                }
+                
                 Debug.Log($"🔧 Attempting to spawn NetworkObject for {monsterObject.name} (manual)...");
                 try 
                 {
