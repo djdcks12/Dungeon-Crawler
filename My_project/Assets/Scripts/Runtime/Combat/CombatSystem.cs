@@ -333,7 +333,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 ulong attackerClientId = attackerNetworkObject != null ? attackerNetworkObject.OwnerClientId : 0;
                 Debug.Log($"🗡️ AttackerClientId: {attackerClientId}");
                 
-                targetMonster.TakeDamageServer(damage, damageType, attackerClientId);
+                targetMonster.TakeDamage(damage, damageType, attackerClientId);
                 Debug.Log($"🗡️ TakeDamageServerRpc sent successfully");
                 
                 // RPC는 비동기이므로 actualDamage는 예상치로 설정

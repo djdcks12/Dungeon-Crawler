@@ -374,7 +374,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                     ulong attackerClientId = NetworkManager.Singleton?.LocalClientId ?? 0;
                     
                     // 몬스터에 데미지 적용 (새로운 네트워킹 시스템 사용)
-                    monsterEntity.TakeDamageServer(damage, skillData.damageType, attackerClientId);
+                    monsterEntity.TakeDamage(damage, skillData.damageType, attackerClientId);
                     
                     Debug.Log($"🔥 Skill damage: {damage:F0} to {target.name} via {skillData.skillName}");
                 }

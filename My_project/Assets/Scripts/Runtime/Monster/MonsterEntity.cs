@@ -318,7 +318,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// <summary>
         /// 데미지 받기
         /// </summary>
-        public void TakeDamageServer(float damage, DamageType damageType, ulong attackerClientId = 0)
+        public void TakeDamage(float damage, DamageType damageType, ulong attackerClientId = 0)
         {   
             Debug.Log($"🩸 TakeDamageServerRpc: damage={damage}, attackerClientId={attackerClientId}, isDead={IsDead}, IsServer={NetworkManager.Singleton.IsServer}");
 
@@ -727,24 +727,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             Debug.Log($"MonsterEntity {monsterName} info set (compatibility mode)");
         }
         
-        /// <summary>
-        /// 기존 MonsterHealth.TakeDamage 호환 메서드
-        /// </summary>
-        public float TakeDamage(float damage, DamageType damageType, PlayerController attacker = null)
-        {
-            ulong attackerClientId = attacker?.OwnerClientId ?? 0;
-            TakeDamageServer(damage, damageType, attackerClientId);
-            return damage; // 실제 데미지 반환
-        }
-        
-        /// <summary>
-        /// 기존 MonsterHealth.TakeDamageServerRpc 호환 (로컬 호출로 변경)
-        /// </summary>
-        [ServerRpc(RequireOwnership = false)]
-        public void TakeDamageCompatServerRpc(float damage, DamageType damageType = DamageType.Physical)
-        {
-            TakeDamageServer(damage, damageType, 0);
-        }
     }
     
     /// <summary>
