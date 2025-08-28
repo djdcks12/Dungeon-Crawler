@@ -60,7 +60,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             acquisitionTime = System.DateTimeOffset.UtcNow.ToUnixTimeSeconds();
             customData = new Dictionary<string, string>();
         }
-        
+
         /// <summary>
         /// ItemData로부터 새 인스턴스 생성
         /// </summary>

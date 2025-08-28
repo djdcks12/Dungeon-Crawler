@@ -96,7 +96,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             base.OnNetworkSpawn();
             Debug.Log($"🌟 MonsterEntity {name} OnNetworkSpawn called! IsSpawned={IsSpawned}, IsServer={IsServer}");
         }
-        
+
         /// <summary>
         /// 몬스터 생성 및 초기화 (서버에서만)
         /// </summary>
@@ -314,27 +314,37 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 monsterAI.SetAttackDamage(combatStats.physicalDamage.maxDamage);
             }
         }
+
+        /// <summary>
+        /// 데미지 받기
+        /// </summary>
+        public void TakeDamageServer(float damage, DamageType damageType, ulong attackerClientId = 0)
+        {   
+            Debug.Log($"🩸 TakeDamageServerRpc: damage={damage}, attackerClientId={attackerClientId}, isDead={IsDead}, IsServer={NetworkManager.Singleton.IsServer}");
+
+            if (IsDead)
+            {
+                Debug.LogWarning($"🩸 Monster already dead, ignoring damage");
+                return;
+            }
+
+            if (!NetworkManager.Singleton.IsServer)
+            {
+                TakeDamageServerRPC(damage, damageType, attackerClientId);
+            }
+            else
+            {
+                // 서버에서만 실제 데미지 처리
+                ProcessDamage(damage, damageType, attackerClientId);
+            }
+        }
         
         /// <summary>
         /// 데미지 받기 - ServerRpc로 호출
         /// </summary>
         [ServerRpc(RequireOwnership = false)]
-        public void TakeDamageServerRpc(float damage, DamageType damageType, ulong attackerClientId = 0)
-        {
-            Debug.Log($"🩸 TakeDamageServerRpc: damage={damage}, attackerClientId={attackerClientId}, isDead={IsDead}, IsServer={IsServer}");
-            
-            if (!IsServer)
-            {
-                Debug.LogWarning($"🩸 TakeDamageServerRpc called on non-server, ignoring");
-                return;
-            }
-            
-            if (IsDead) 
-            {
-                Debug.LogWarning($"🩸 Monster already dead, ignoring damage");
-                return;
-            }
-            
+        public void TakeDamageServerRPC(float damage, DamageType damageType, ulong attackerClientId = 0)
+        {   
             // 서버에서만 실제 데미지 처리
             ProcessDamage(damage, damageType, attackerClientId);
         }
@@ -345,7 +355,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         private void ProcessDamage(float damage, DamageType damageType, ulong attackerClientId)
         {
             float finalDamage = damage;
-            
+
             // 방어력 적용
             if (damageType == DamageType.Physical)
             {
@@ -357,7 +367,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 float magicDefenseRate = finalStats.magicDefense / (finalStats.magicDefense + 100f);
                 finalDamage *= (1f - magicDefenseRate);
             }
-            
+
             // 회피 체크
             float dodgeChance = finalStats.agility * 0.001f; // 0.1% per AGI
             if (Random.value < dodgeChance)
@@ -365,22 +375,28 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 Debug.Log($"{variantData.variantName} dodged the attack!");
                 return;
             }
-            
+
             // 최소 1 데미지
             finalDamage = Mathf.Max(1f, finalDamage);
-            
+
             // HP 감소 (NetworkVariable 업데이트)
             float oldHP = networkCurrentHP.Value;
             float newHP = Mathf.Max(0f, oldHP - finalDamage);
             networkCurrentHP.Value = newHP;
-            
+
             Debug.Log($"🩸 HP change: {oldHP:F1} → {newHP:F1} (damage: {finalDamage:F1})");
-            
+
             // 공격자를 참여자로 추가 (데미지가 실제로 들어갔을 때만)
-            if (attackerClientId != 0 && finalDamage > 0f)
+            if (finalDamage > 0f)
             {
-                participatingPlayers.Add(attackerClientId);
-                
+                foreach(var spawnedObject in NetworkManager.Singleton.SpawnManager.SpawnedObjects)
+                {
+                    if(spawnedObject.Value.IsPlayerObject && spawnedObject.Value.OwnerClientId == attackerClientId)
+                    {
+                        participatingPlayers.Add(spawnedObject.Key);
+                    }
+                }
+
                 // 데미지 기여도 추적
                 if (playerDamageContribution.ContainsKey(attackerClientId))
                 {
@@ -391,12 +407,12 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                     playerDamageContribution[attackerClientId] = finalDamage;
                 }
             }
-            
+
             OnDamageTaken?.Invoke(finalDamage);
-            
+
             // 사망 처리
             Debug.Log($"🩸 Death check: newHP={newHP:F1}, isDead={IsDead}, shouldDie={newHP <= 0f && !IsDead}");
-            
+
             if (newHP <= 0f && !IsDead)
             {
                 Debug.Log($"☠️ Monster dying: {variantData?.variantName ?? "Unknown"}");
@@ -451,10 +467,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             // 보상 지급
             Debug.Log($"💀 Giving rewards to nearby players...");
             GiveRewardsToNearbyPlayers(killerClientId);
-            
-            // 아이템 드롭 (ClientRpc로 모든 클라이언트에 알림)
-            Debug.Log($"🎁 Dropping items...");
-            DropItemsForAllClients();
             
             Debug.Log($"☠️ {variantData.variantName} has died!");
         }
@@ -579,13 +591,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         {
             Debug.Log($"🎁 SpawnDroppedItem called: item={itemData?.ItemName ?? "NULL"}, position={position}");
             
-            // 서버 체크
-            if (NetworkManager.Singleton != null && !NetworkManager.Singleton.IsServer)
-            {
-                Debug.LogWarning($"🎁 Not server, ignoring item drop for {itemData?.ItemName}");
-                return;
-            }
-            
             // 간단한 아이템 드롭 생성 (프리팹 없이)
             Vector3 randomOffset = new Vector3(
                 Random.Range(-1f, 1f), 
@@ -595,14 +600,14 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             Vector3 spawnPosition = position + randomOffset;
             
             Debug.Log($"🎁 Creating ItemDrop GameObject at {spawnPosition}...");
-            GameObject droppedItemObj = new GameObject($"DroppedItem_{itemData.ItemName}");
+            GameObject droppedItemObj = Instantiate<GameObject>(Resources.Load<GameObject>("DroppedItem"));
             droppedItemObj.transform.position = spawnPosition;
-            
+
+            droppedItemObj.GetComponent<NetworkObject>().Spawn(true); // 네트워크에 스폰
             // ItemDrop 컴포넌트 추가
-            var itemDrop = droppedItemObj.AddComponent<ItemDrop>();
+            var itemDrop = droppedItemObj.GetComponent<DroppedItem>();
             var itemInstance = new ItemInstance(itemData, 1);
-            itemDrop.SetItemInstance(itemInstance);
-            itemDrop.SetDropPosition(spawnPosition);
+            itemDrop.Initialize(itemInstance);
             
             Debug.Log($"🎁 ItemDrop created successfully with {itemData.ItemName}");
         }
@@ -621,32 +626,27 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                     if (itemData != null)
                     {
                         // 모든 클라이언트에 아이템 드롭 알림
-                        SpawnItemClientRpc(transform.position, itemData.ItemId, itemData.ItemName, itemData.GradeColor);
+                        SpawnItemClient(transform.position, itemData.ItemId, itemData.ItemName, itemData.GradeColor);
                     }
                 }
             }
         }
-        
-        /// <summary>
-        /// 클라이언트에서 아이템 생성
-        /// </summary>
-        [ClientRpc]
-        private void SpawnItemClientRpc(Vector3 position, string itemId, string itemName, Color gradeColor)
+        private void SpawnItemClient(Vector3 position, string itemId, string itemName, Color gradeColor)
         {
-            Debug.Log($"🎁 [ClientRpc] Spawning item: {itemName} at {position}");
-            
+            Debug.Log($"🎁 [Server] Spawning item: {itemName} at {position}");
+
             // 랜덤 오프셋 적용
             Vector3 randomOffset = new Vector3(
-                Random.Range(-1f, 1f), 
-                Random.Range(-1f, 1f), 
+                Random.Range(-1f, 1f),
+                Random.Range(-1f, 1f),
                 0f
             );
             Vector3 spawnPosition = position + randomOffset;
-            
+
             // 아이템 GameObject 생성
             GameObject itemObject = new GameObject($"DroppedItem_{itemName}");
             itemObject.transform.position = spawnPosition;
-            
+
             // ItemDrop 컴포넌트 추가
             var itemDrop = itemObject.AddComponent<ItemDrop>();
             var itemData = ItemDatabase.GetItem(itemId);
@@ -655,7 +655,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 var itemInstance = new ItemInstance(itemData, 1);
                 itemDrop.SetItemInstance(itemInstance);
                 itemDrop.SetDropPosition(spawnPosition);
-                
+
                 Debug.Log($"🎁 Item created successfully: {itemName}");
             }
             else
@@ -671,7 +671,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         private void TryDropSoul()
         {
             float dropRate = raceData.CalculateSoulDropRateForGrade(grade);
-            
+
             if (Random.value < dropRate)
             {
                 // 몬스터가 가진 스킬들을 포함한 영혼 생성
@@ -733,7 +733,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         public float TakeDamage(float damage, DamageType damageType, PlayerController attacker = null)
         {
             ulong attackerClientId = attacker?.OwnerClientId ?? 0;
-            TakeDamageServerRpc(damage, damageType, attackerClientId);
+            TakeDamageServer(damage, damageType, attackerClientId);
             return damage; // 실제 데미지 반환
         }
         
@@ -743,7 +743,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         [ServerRpc(RequireOwnership = false)]
         public void TakeDamageCompatServerRpc(float damage, DamageType damageType = DamageType.Physical)
         {
-            TakeDamageServerRpc(damage, damageType, 0);
+            TakeDamageServer(damage, damageType, 0);
         }
     }
     
