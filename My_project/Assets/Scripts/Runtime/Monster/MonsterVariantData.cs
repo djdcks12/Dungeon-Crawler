@@ -168,30 +168,60 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         {
             var droppedItems = new List<ItemData>();
             
+            Debug.Log($"🎲 CalculateAllItemDrops: variant={variantName}, grade={grade}");
+            
             // 종족 기본 드롭
             if (baseRace != null)
             {
-                droppedItems.AddRange(baseRace.CalculateItemDrops(grade));
+                Debug.Log($"🎲 Checking base race drops: {baseRace.raceName}");
+                var raceDrops = baseRace.CalculateItemDrops(grade);
+                droppedItems.AddRange(raceDrops);
+                Debug.Log($"🎲 Base race dropped {raceDrops.Count} items");
+            }
+            else
+            {
+                Debug.LogWarning($"🎲 baseRace is null for {variantName}!");
             }
             
             // 개체별 특별 드롭
-            if (variantDrops != null)
+            if (variantDrops != null && variantDrops.Length > 0)
             {
+                Debug.Log($"🎲 Checking variant drops: {variantDrops.Length} drop entries");
                 float gradeMultiplier = grade / 100f;
+                Debug.Log($"🎲 Grade multiplier: {gradeMultiplier}");
                 
                 foreach (var dropItem in variantDrops)
                 {
+                    Debug.Log($"🎲 Checking drop: {dropItem.item?.ItemName ?? "NULL"}, dropRate={dropItem.dropRate}");
+                    
                     if (dropItem.CanDropAtLevel(grade))
                     {
                         float adjustedDropRate = dropItem.dropRate * gradeMultiplier;
-                        if (Random.value < adjustedDropRate)
+                        float randomValue = Random.value;
+                        Debug.Log($"🎲 Drop check: adjustedRate={adjustedDropRate}, random={randomValue}, success={randomValue < adjustedDropRate}");
+                        
+                        if (randomValue < adjustedDropRate)
                         {
                             droppedItems.Add(dropItem.item);
+                            Debug.Log($"🎲 ✅ Dropped: {dropItem.item.ItemName}");
                         }
+                        else
+                        {
+                            Debug.Log($"🎲 ❌ Failed to drop: {dropItem.item?.ItemName ?? "NULL"}");
+                        }
+                    }
+                    else
+                    {
+                        Debug.Log($"🎲 ❌ Item cannot drop at grade {grade}");
                     }
                 }
             }
+            else
+            {
+                Debug.LogWarning($"🎲 variantDrops is null or empty for {variantName}!");
+            }
             
+            Debug.Log($"🎲 Total items calculated: {droppedItems.Count}");
             return droppedItems;
         }
         

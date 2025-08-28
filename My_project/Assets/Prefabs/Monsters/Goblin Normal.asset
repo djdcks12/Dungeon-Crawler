@@ -42,4 +42,10 @@ MonoBehaviour:
   maxFloor: 1
   preferredAIType: 2
   aggressionMultiplier: 1.2
-  variantDrops: []
+  variantDrops:
+  - item: {fileID: 11400000, guid: 884ed9098db2b3b4d9c6c316b86235b3, type: 2}
+    dropRate: 100
+    minQuantity: 1
+    maxQuantity: 1
+    minLevel: 80
+    maxLevel: 120

@@ -12,8 +12,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
     {
         [Header("인벤토리 설정")]
         [SerializeField] private int inventorySize = 30;
-        [SerializeField] private bool enableAutoPickup = true;
-        [SerializeField] private float pickupRange = 2f;
         
         // 인벤토리 데이터
         private InventoryData inventory;
@@ -351,10 +349,13 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 Vector2 randomOffset = Random.insideUnitCircle * 1.5f;
                 Vector3 dropPosition = position + new Vector3(randomOffset.x, randomOffset.y, 0);
                 
-                // TODO: SpawnItemDrop 메서드가 없음 - CreateItemDrop로 수정하되 파라미터 호환성 확인 필요
-                // itemDropSystem.CreateItemDrop(dropPosition, item, null);
-                Debug.LogWarning($"Item drop system needs to be implemented for {item.ItemData.ItemName}");
-                Debug.Log($"Dropped {item.ItemData.ItemName} x{item.Quantity} at {dropPosition}");
+                // ItemDropSystem의 DropItemAtPosition 메서드 사용
+                itemDropSystem.DropItemAtPosition(dropPosition, item, GetComponent<PlayerController>());
+                Debug.Log($"🎒 Dropped {item.ItemData.ItemName} x{item.Quantity} at {dropPosition} via ItemDropSystem");
+            }
+            else
+            {
+                Debug.LogError($"❌ ItemDropSystem not found! Cannot drop {item.ItemData.ItemName}");
             }
         }
         
@@ -383,47 +384,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         public bool HasItem(string itemId, int requiredQuantity = 1)
         {
             return inventory?.HasItem(itemId, requiredQuantity) ?? false;
-        }
-        
-        /// <summary>
-        /// 드롭된 아이템 자동 픽업 체크
-        /// </summary>
-        private void Update()
-        {
-            if (!IsOwner || !enableAutoPickup) return;
-            
-            CheckForNearbyItems();
-        }
-        
-        /// <summary>
-        /// 근처 아이템 확인 및 자동 픽업
-        /// </summary>
-        private void CheckForNearbyItems()
-        {
-            var nearbyItems = Physics2D.OverlapCircleAll(transform.position, pickupRange);
-            
-            foreach (var collider in nearbyItems)
-            {
-                var droppedItem = collider.GetComponent<DroppedItem>();
-                if (droppedItem != null)
-                {
-                    TryPickupItem(droppedItem);
-                }
-            }
-        }
-        
-        /// <summary>
-        /// 아이템 픽업 시도
-        /// </summary>
-        public void TryPickupItem(DroppedItem droppedItem)
-        {
-            if (!IsOwner || droppedItem?.ItemInstance == null) return;
-            
-            if (inventory.TryAddItem(droppedItem.ItemInstance, out int slotIndex))
-            {
-                // 성공적으로 픽업
-                droppedItem.ManualPickup(playerController);
-            }
         }
         
         /// <summary>
@@ -562,15 +522,11 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         }
         
         /// <summary>
-        /// 기즈모 그리기
+        /// 기즈모 그리기 (자동 픽업 제거됨)
         /// </summary>
         private void OnDrawGizmosSelected()
         {
-            if (enableAutoPickup)
-            {
-                Gizmos.color = Color.cyan;
-                Gizmos.DrawWireSphere(transform.position, pickupRange);
-            }
+            // 자동 픽업 기능 제거로 기즈모 표시 안함
         }
     }
 }

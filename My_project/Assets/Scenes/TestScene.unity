@@ -219,9 +219,9 @@ MonoBehaviour:
   ActiveSceneSynchronization: 0
   SceneMigrationSynchronization: 0
   SpawnWithObservers: 1
-  DontDestroyWithOwner: 0
-  AutoObjectParentSync: 1
-  SyncOwnerTransformWhenParented: 1
+  DontDestroyWithOwner: 1
+  AutoObjectParentSync: 0
+  SyncOwnerTransformWhenParented: 0
   AllowOwnerToParent: 0
 --- !u!114 &122415338
 MonoBehaviour:
@@ -248,7 +248,7 @@ MonoBehaviour:
   - {fileID: 2093520456}
   - {fileID: 1630473285}
   maxActiveMonsters: 15
-  spawnInterval: 12
+  spawnInterval: 9999
   autoSpawn: 1
   playerDetectionRange: 25
   minPlayersNearby: 1
@@ -267,8 +267,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 122415336}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 2.21652, y: 3.41578, z: 0}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 2.21652, y: 3.4157798, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2818,6 +2818,7 @@ MonoBehaviour:
   - {fileID: 2093520456}
   - {fileID: 1630473285}
   debugUI: {fileID: 0}
+  monsterSpawner: {fileID: 122415338}
 --- !u!114 &1707888497
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3537,6 +3538,7 @@ SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
   - {fileID: 166703545}
+  - {fileID: 122415339}
   - {fileID: 26878720}
   - {fileID: 1699324014}
   - {fileID: 1707888495}
@@ -3554,4 +3556,3 @@ SceneRoots:
   - {fileID: 1843134565}
   - {fileID: 434565000}
   - {fileID: 178890347}
-  - {fileID: 122415339}

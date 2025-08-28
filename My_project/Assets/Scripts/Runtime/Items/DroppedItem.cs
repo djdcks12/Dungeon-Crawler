@@ -11,8 +11,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
     {
         [Header("픽업 설정")]
         [SerializeField] private float pickupRange = 1.5f;
-        [SerializeField] private float autoPickupDelay = 1f; // 드롭 후 1초 대기
-        [SerializeField] private bool enableAutoPickup = true;
         
         [Header("시각적 효과")]
         [SerializeField] private float bobSpeed = 2f;       // 위아래 움직임 속도
@@ -30,9 +28,8 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         private SpriteRenderer spriteRenderer;
         private float bobTimer = 0f;
         
-        // 픽업 쿨다운
-        private float lastPickupAttempt = 0f;
-        private const float pickupCooldown = 0.5f;
+        // 픽업 상태 플래그 (중복 픽업 방지)
+        private bool isPickedUp = false;
         
         // 프로퍼티
         public ItemInstance ItemInstance => itemInstance;
@@ -42,6 +39,8 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         public override void OnNetworkSpawn()
         {
             base.OnNetworkSpawn();
+            
+            Debug.Log($"🎁 DroppedItem OnNetworkSpawn: {itemInstance?.ItemData?.ItemName ?? "Unknown"} at {transform.position}");
             
             spriteRenderer = GetComponent<SpriteRenderer>();
             basePosition = transform.position;
@@ -155,12 +154,8 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         
         private void Update()
         {
+            if (!gameObject.activeInHierarchy) return;
             UpdateVisualEffects();
-            
-            if (IsServer)
-            {
-                CheckForPlayerPickup();
-            }
         }
         
         /// <summary>
@@ -179,115 +174,103 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             transform.Rotate(Vector3.forward, rotateSpeed * Time.deltaTime);
         }
         
+        
         /// <summary>
-        /// 플레이어 픽업 체크 (서버에서만)
+        /// 수동 픽업 (플레이어가 Z키로 직접 픽업)
         /// </summary>
-        private void CheckForPlayerPickup()
+        public void ManualPickup(PlayerController player)
         {
-            if (!enableAutoPickup) return;
-            if (Time.time < dropTime + autoPickupDelay) return;
-            if (Time.time < lastPickupAttempt + pickupCooldown) return;
+            Debug.Log($"📦 ManualPickup called by {player?.OwnerClientId}");
             
-            // 근처 플레이어 찾기
-            Collider2D[] nearbyColliders = Physics2D.OverlapCircleAll(transform.position, pickupRange);
-            
-            foreach (var collider in nearbyColliders)
+            // 서버에서만 처리 또는 로컬 플레이어가 서버에 요청
+            if (IsServer)
             {
-                var player = collider.GetComponent<PlayerController>();
-                if (player != null && player.IsOwner)
+                // 서버에서 직접 처리
+                ProcessManualPickup(player);
+            }
+            else if (player.IsLocalPlayer)
+            {
+                // 클라이언트에서 서버에 픽업 요청
+                RequestPickupServerRpc(player.OwnerClientId);
+            }
+        }
+        
+        [ServerRpc(RequireOwnership = false)]
+        private void RequestPickupServerRpc(ulong playerClientId)
+        {
+            Debug.Log($"📦 RequestPickupServerRpc from client {playerClientId}");
+            
+            // 플레이어 찾기
+            var networkManager = NetworkManager.Singleton;
+            if (networkManager != null && networkManager.ConnectedClients.TryGetValue(playerClientId, out var clientData))
+            {
+                var playerObject = clientData.PlayerObject;
+                if (playerObject != null)
                 {
-                    Debug.Log($"🎯 Found player {player.OwnerClientId} near item {itemInstance?.ItemData?.ItemName}");
-                    
-                    // 플레이어가 살아있는지 확인
-                    var statsManager = player.GetComponent<PlayerStatsManager>();
-                    if (statsManager != null && !statsManager.IsDead)
+                    var player = playerObject.GetComponent<PlayerController>();
+                    if (player != null)
                     {
-                        Debug.Log($"🎯 Attempting pickup for player {player.OwnerClientId}");
-                        AttemptPickup(player);
-                        return;
-                    }
-                    else
-                    {
-                        Debug.Log($"❌ Player {player.OwnerClientId} is dead or no statsManager");
+                        ProcessManualPickup(player);
                     }
                 }
             }
         }
         
-        /// <summary>
-        /// 픽업 시도
-        /// </summary>
-        private void AttemptPickup(PlayerController player)
+        private void ProcessManualPickup(PlayerController player)
         {
-            if (!IsServer) return;
-            
-            lastPickupAttempt = Time.time;
-            
-            Debug.Log($"🎯 AttemptPickup called for player {player.OwnerClientId}");
-            
-            // 아이템 드롭 시스템에 픽업 요청
-            var itemDropSystem = FindObjectOfType<ItemDropSystem>();
-            if (itemDropSystem != null)
+            if (isPickedUp) 
             {
-                Debug.Log($"🎯 Using ItemDropSystem for pickup");
-                itemDropSystem.PickupItem(this, player);
-            }
-            else
-            {
-                Debug.Log($"🎯 Using direct pickup (no ItemDropSystem)");
-                // ItemDropSystem이 없으면 직접 처리
-                ProcessDirectPickup(player);
-            }
-        }
-        
-        /// <summary>
-        /// 직접 픽업 처리 (ItemDropSystem이 없을 때)
-        /// </summary>
-        private void ProcessDirectPickup(PlayerController player)
-        {
-            if (itemInstance == null) 
-            {
-                Debug.LogError("❌ itemInstance is null in ProcessDirectPickup");
+                Debug.Log($"📦 Pickup blocked - already processed");
                 return;
             }
-            
-            var inventoryManager = player.GetComponent<InventoryManager>();
-            if (inventoryManager == null) 
-            {
-                Debug.LogError($"❌ No InventoryManager found on player {player.OwnerClientId}");
-                return;
-            }
-            
-            Debug.Log($"🎯 ProcessDirectPickup: Adding {itemInstance.ItemData.ItemName} to player {player.OwnerClientId} inventory");
-            
-            // ServerRpc를 통해 아이템 추가 요청
-            inventoryManager.AddItemServerRpc(itemInstance.ItemId, itemInstance.Quantity);
-            
-            NotifyPickupClientRpc(player.OwnerClientId, 
-                $"{itemInstance.ItemData.ItemName} x{itemInstance.Quantity} 획득", 
-                itemInstance.ItemData.GradeColor);
-            
-            Debug.Log($"✅ Player {player.OwnerClientId} picked up {itemInstance.ItemData.ItemName} x{itemInstance.Quantity}");
-            
-            // 오브젝트 제거
-            if (NetworkObject != null)
-            {
-                NetworkObject.Despawn();
-            }
-        }
-        
-        /// <summary>
-        /// 수동 픽업 (플레이어가 E키 등으로 직접 픽업)
-        /// </summary>
-        public void ManualPickup(PlayerController player)
-        {
-            if (!IsServer) return;
             
             // 거리 체크
             float distance = Vector3.Distance(transform.position, player.transform.position);
-            if (distance > pickupRange * 1.5f) return;
+            if (distance > pickupRange * 2f) 
+            {
+                Debug.Log($"📦 Too far: {distance:F1}m > {pickupRange * 2f}m");
+                return;
+            }
             
-            AttemptPickup(player);
+            Debug.Log($"📦 Processing manual pickup for {player.OwnerClientId}");
+            
+            // 수동 픽업은 전역 플래그 무시하고 직접 처리
+            ManualAttemptPickup(player);
+        }
+        
+        /// <summary>
+        /// 수동 픽업 전용 - 전역 플래그 무시
+        /// </summary>
+        private void ManualAttemptPickup(PlayerController player)
+        {
+            if (!IsServer) return;
+            if (isPickedUp) return;
+            
+            // 즉시 픽업 플래그 설정
+            isPickedUp = true;
+            
+            Debug.Log($"📦 Manual pickup by {player.OwnerClientId}");
+            
+            // 인벤토리에 추가
+            var inventoryManager = player.GetComponent<InventoryManager>();
+            if (inventoryManager != null && itemInstance != null)
+            {
+                bool addSuccess = inventoryManager.AddItem(itemInstance);
+                if (!addSuccess)
+                {
+                    inventoryManager.AddItemServerRpc(itemInstance.ItemId, itemInstance.Quantity);
+                }
+                
+                // 픽업 알림
+                NotifyPickupClientRpc(player.OwnerClientId, 
+                    $"{itemInstance.ItemData.ItemName} x{itemInstance.Quantity} 획득", 
+                    itemInstance.ItemData.GradeColor);
+                
+                Debug.Log($"✅ {itemInstance.ItemData.ItemName} picked up by {player.OwnerClientId}");
+            }
+            
+            // 즉시 오브젝트 제거
+            DestroyImmediate(gameObject);
         }
         
         /// <summary>
@@ -329,22 +312,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             Gizmos.DrawWireSphere(transform.position, pickupRange);
         }
         
-        /// <summary>
-        /// 트리거 기반 픽업 (대안)
-        /// </summary>
-        private void OnTriggerEnter2D(Collider2D other)
-        {
-            if (!IsServer) return;
-            
-            var player = other.GetComponent<PlayerController>();
-            if (player != null && player.IsOwner)
-            {
-                if (Time.time >= dropTime + autoPickupDelay)
-                {
-                    AttemptPickup(player);
-                }
-            }
-        }
     }
     
     /// <summary>

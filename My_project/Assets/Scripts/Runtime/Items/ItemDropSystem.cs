@@ -53,7 +53,8 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         public void CheckItemDrop(Vector3 dropPosition, int monsterLevel, string monsterType, PlayerController killer)
         {
-            if (!IsServer || !enableItemDrop) return;
+            bool isServer = NetworkManager.Singleton != null ? NetworkManager.Singleton.IsServer : true;
+            if (!isServer || !enableItemDrop) return;
             
             float finalDropRate = CalculateFinalDropRate(killer);
             
@@ -88,7 +89,8 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         public void DropPlayerItems(Vector3 dropPosition, List<ItemInstance> items)
         {
-            if (!IsServer) return;
+            bool isServer = NetworkManager.Singleton != null ? NetworkManager.Singleton.IsServer : true;
+            if (!isServer) return;
             
             foreach (var item in items)
             {
@@ -104,7 +106,13 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         private void CreateItemDrop(Vector3 position, ItemInstance itemInstance, PlayerController dropper)
         {
-            if (!IsServer) return;
+            // NetworkManager를 통한 서버 체크
+            bool isServer = NetworkManager.Singleton != null ? NetworkManager.Singleton.IsServer : true;
+            if (!isServer) 
+            {
+                Debug.LogWarning($"🎁 CreateItemDrop blocked - not server for {itemInstance.ItemData.ItemName}");
+                return;
+            }
             
             // 드롭 위치 계산 (랜덤 스캐터)
             Vector2 randomOffset = Random.insideUnitCircle * dropScatterRadius;
@@ -114,42 +122,22 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             GameObject dropObject = new GameObject($"DroppedItem_{itemInstance.ItemData.ItemName}");
             dropObject.transform.position = finalPosition;
             
-            // 네트워크 오브젝트로 설정
-            var networkObject = dropObject.AddComponent<NetworkObject>();
-            
-            // DroppedItem 컴포넌트 추가
-            var droppedItem = dropObject.AddComponent<DroppedItem>();
-            droppedItem.Initialize(itemInstance, dropper?.OwnerClientId);
-            
-            // 콜라이더 추가 (픽업용)
-            var collider = dropObject.AddComponent<CircleCollider2D>();
-            collider.isTrigger = true;
-            collider.radius = 0.5f;
-            
-            // 스프라이트 렌더러 추가
-            var spriteRenderer = dropObject.AddComponent<SpriteRenderer>();
-            spriteRenderer.sprite = itemInstance.ItemData.ItemIcon;
-            spriteRenderer.sortingLayerName = "Items";
-            spriteRenderer.color = itemInstance.ItemData.GradeColor;
-            
-            // 네트워크 스폰
-            networkObject.Spawn();
-            
-            // 드롭된 아이템 목록에 추가
-            droppedItems.Add(droppedItem);
-            
-            // 클라이언트에 드롭 알림
-            NotifyItemDroppedClientRpc(finalPosition, itemInstance.ItemData.ItemName, itemInstance.ItemData.GradeColor);
+            // ItemDrop 컴포넌트 추가
+            var itemDrop = dropObject.AddComponent<ItemDrop>();
+            itemDrop.SetItemInstance(itemInstance);
+            itemDrop.SetDropPosition(finalPosition);
             
             Debug.Log($"💎 Item dropped: {itemInstance.ItemData.ItemName} (Grade: {itemInstance.ItemData.Grade})");
         }
+        
         
         /// <summary>
         /// 골드 드롭 생성
         /// </summary>
         private void CreateGoldDrop(Vector3 position, int monsterLevel, PlayerController killer)
         {
-            if (!IsServer) return;
+            bool isServer = NetworkManager.Singleton != null ? NetworkManager.Singleton.IsServer : true;
+            if (!isServer) return;
             
             // 골드량 계산
             int goldAmount = CalculateGoldDrop(monsterLevel, killer);
@@ -242,11 +230,31 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         }
         
         /// <summary>
+        /// 특정 위치에 아이템 드롭 (공용 메서드)
+        /// </summary>
+        public void DropItemAtPosition(Vector3 position, ItemInstance itemInstance, PlayerController dropper)
+        {
+            // NetworkManager를 통한 서버 체크 (더 안전함)
+            bool isServer = NetworkManager.Singleton != null ? NetworkManager.Singleton.IsServer : true;
+            Debug.Log($"🎁 DropItemAtPosition: IsServer={isServer}, NetworkManager.IsServer={NetworkManager.Singleton?.IsServer}, this.IsServer={IsServer}");
+            
+            if (!isServer) 
+            {
+                Debug.LogWarning($"🎁 DropItemAtPosition blocked - not server for {itemInstance.ItemData.ItemName}");
+                return;
+            }
+            
+            Debug.Log($"🎁 DropItemAtPosition proceeding: {itemInstance.ItemData.ItemName} at {position}");
+            CreateItemDrop(position, itemInstance, dropper);
+        }
+        
+        /// <summary>
         /// 아이템 픽업 처리
         /// </summary>
         public void PickupItem(DroppedItem droppedItem, PlayerController picker)
         {
-            if (!IsServer) return;
+            bool isServer = NetworkManager.Singleton != null ? NetworkManager.Singleton.IsServer : true;
+            if (!isServer) return;
             
             if (droppedItem == null || picker == null) return;
             
@@ -295,7 +303,8 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         private void Update()
         {
-            if (!IsServer) return;
+            bool isServer = NetworkManager.Singleton != null ? NetworkManager.Singleton.IsServer : true;
+            if (!isServer) return;
             
             float currentTime = Time.time;
             var itemsToRemove = new List<DroppedItem>();

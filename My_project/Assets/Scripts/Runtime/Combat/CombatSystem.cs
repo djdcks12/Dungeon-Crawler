@@ -311,13 +311,33 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         private void ApplyDamageToMonsterEntity(MonsterEntity targetMonster, float damage, DamageType damageType, bool isCritical, Vector2 attackPosition)
         {
             Debug.Log($"🗡️ ApplyDamageToMonsterEntity: damage={damage}, targetName={targetMonster.name}");
+            Debug.Log($"🗡️ MonsterEntity null check: {targetMonster == null}");
+            Debug.Log($"🗡️ MonsterEntity IsSpawned: {targetMonster.IsSpawned}");
+            Debug.Log($"🗡️ MonsterEntity NetworkObject: {targetMonster.NetworkObject != null}");
             
             var attackerController = GetComponent<PlayerController>();
+            Debug.Log($"🗡️ AttackerController: {attackerController?.name ?? "NULL"}");
             
-            // 실제 데미지 적용 (방어력 계산 포함)
-            float actualDamage = targetMonster.TakeDamage(damage, damageType, attackerController);
+            float actualDamage = 0f;
             
-            Debug.Log($"🗡️ ActualDamage returned: {actualDamage}");
+            try 
+            {
+                Debug.Log($"🗡️ About to call TakeDamageServerRpc...");
+                // 서버로 데미지 요청 전송 (NetworkBehaviour이므로 RPC 사용)
+                var attackerNetworkObject = GetComponent<NetworkObject>();
+                ulong attackerClientId = attackerNetworkObject != null ? attackerNetworkObject.OwnerClientId : 0;
+                
+                targetMonster.TakeDamageServerRpc(damage, damageType, attackerClientId);
+                Debug.Log($"🗡️ TakeDamageServerRpc sent successfully");
+                
+                // RPC는 비동기이므로 actualDamage는 예상치로 설정
+                actualDamage = damage; // 실제 데미지는 서버에서 계산됨
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"🗡️ Exception in TakeDamageServerRpc: {e.Message}\n{e.StackTrace}");
+                actualDamage = 0f;
+            }
             
             // 데미지 로그
             string critText = isCritical ? " (CRITICAL)" : "";
