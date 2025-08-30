@@ -31,9 +31,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 ItemDatabase.Initialize();
                 
                 if (logInitialization)
-                {
-                    Debug.Log("✅ ItemDatabase initialized successfully");
-                    
+                {   
                     // 기본 아이템들이 로드되었는지 확인
                     var commonItems = ItemDatabase.GetItemsByGrade(ItemGrade.Common);
                     var rareItems = ItemDatabase.GetItemsByGrade(ItemGrade.Rare);

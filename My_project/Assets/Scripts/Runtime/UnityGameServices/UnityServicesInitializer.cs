@@ -56,16 +56,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             Debug.Log($"Initializing services with externalPlayerID: {externalPlayerID}");
             bool signedIn = await UnityServiceAuthenticator.TrySignInAsync(k_Environment, serviceProfileName);
             
-            // Only broadcast if MetagameApplication exists (test environments may not have it)
-            if (MetagameApplication.Instance != null)
-            {
-                MetagameApplication.Instance.Broadcast(new PlayerSignedIn(signedIn, UnityServiceAuthenticator.PlayerId));
-            }
-            else
-            {
-                Debug.Log($"MetagameApplication not found - running in test mode. Signed in: {signedIn}");
-            }
-            
             if (!signedIn)
             {
                 return;
