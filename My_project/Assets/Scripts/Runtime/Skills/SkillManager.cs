@@ -158,7 +158,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         }
         
         /// <summary>
-        /// 스킬 학습
+        /// 스킬 학습 (클라이언트/서버 공통 진입점)
         /// </summary>
         public bool LearnSkill(string skillId)
         {
@@ -179,25 +179,39 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 return false;
             }
             
-            // 서버에서 스킬 학습 처리
-            LearnSkillServerRpc(skillId);
-            return true;
+            // 서버/클라이언트 분기
+            if (!IsServer)
+            {
+                LearnSkillServerRpc(skillId);
+                return true; // 클라이언트는 요청만 전송
+            }
+            
+            // 서버에서 직접 처리
+            return ProcessSkillLearning(skillId);
         }
         
         /// <summary>
-        /// 서버에서 스킬 학습 처리
+        /// 스킬 학습 ServerRpc (클라이언트에서 호출)
         /// </summary>
         [ServerRpc]
         private void LearnSkillServerRpc(string skillId)
         {
-            if (!availableSkills.ContainsKey(skillId)) return;
+            ProcessSkillLearning(skillId);
+        }
+        
+        /// <summary>
+        /// 서버에서 실제 스킬 학습 처리
+        /// </summary>
+        private bool ProcessSkillLearning(string skillId)
+        {
+            if (!availableSkills.ContainsKey(skillId)) return false;
             
             var skillData = availableSkills[skillId];
             
-            // 재검증
+            // 재검증 (서버에서만)
             if (!skillData.CanLearn(statsManager.CurrentStats, learnedSkillIds))
             {
-                return;
+                return false;
             }
             
             // 골드 차감
@@ -222,11 +236,14 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 NotifySkillLearnedClientRpc(skillId);
                 
                 Debug.Log($"✅ Skill learned: {skillData.skillName} for {skillData.goldCost} gold");
+                return true;
             }
+            
+            return false;
         }
         
         /// <summary>
-        /// 스킬 사용
+        /// 스킬 사용 (클라이언트/서버 공통 진입점)
         /// </summary>
         public bool UseSkill(string skillId, Vector3 targetPosition = default)
         {
@@ -260,18 +277,32 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 return false;
             }
             
-            // 서버에서 스킬 사용 처리
-            UseSkillServerRpc(skillId, targetPosition);
-            return true;
+            // 서버/클라이언트 분기
+            if (!IsServer)
+            {
+                UseSkillServerRpc(skillId, targetPosition);
+                return true; // 클라이언트는 요청만 전송
+            }
+            
+            // 서버에서 직접 처리
+            return ProcessSkillUse(skillId, targetPosition);
         }
         
         /// <summary>
-        /// 서버에서 스킬 사용 처리
+        /// 스킬 사용 ServerRpc (클라이언트에서 호출)
         /// </summary>
         [ServerRpc]
         private void UseSkillServerRpc(string skillId, Vector3 targetPosition)
         {
-            if (!availableSkills.ContainsKey(skillId) || !learnedSkillIds.Contains(skillId)) return;
+            ProcessSkillUse(skillId, targetPosition);
+        }
+        
+        /// <summary>
+        /// 서버에서 실제 스킬 사용 처리
+        /// </summary>
+        private bool ProcessSkillUse(string skillId, Vector3 targetPosition)
+        {
+            if (!availableSkills.ContainsKey(skillId) || !learnedSkillIds.Contains(skillId)) return false;
             
             var skillData = availableSkills[skillId];
             
@@ -295,6 +326,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             NotifySkillUsedClientRpc(skillId, targetPosition);
             
             Debug.Log($"🔥 Skill used: {skillData.skillName}");
+            return true;
         }
         
         /// <summary>
@@ -544,9 +576,15 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 return false;
             }
             
-            // 서버에서 몬스터 스킬 학습 처리
-            LearnMonsterSkillServerRpc(convertedSkill.skillId, skillGrade);
-            return true;
+            // 서버/클라이언트 분기
+            if (!IsServer)
+            {
+                LearnMonsterSkillServerRpc(convertedSkill.skillId, skillGrade);
+                return true;
+            }
+            
+            // 서버에서 직접 처리
+            return ProcessMonsterSkillLearning(convertedSkill.skillId, skillGrade);
         }
         
         /// <summary>
@@ -632,10 +670,18 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         }
         
         /// <summary>
-        /// 서버에서 몬스터 스킬 학습 처리
+        /// 몬스터 스킬 학습 ServerRpc (클라이언트에서 호출)
         /// </summary>
         [ServerRpc]
         private void LearnMonsterSkillServerRpc(string skillId, float skillGrade)
+        {
+            ProcessMonsterSkillLearning(skillId, skillGrade);
+        }
+        
+        /// <summary>
+        /// 서버에서 실제 몬스터 스킬 학습 처리
+        /// </summary>
+        private bool ProcessMonsterSkillLearning(string skillId, float skillGrade)
         {
             // 스킬 학습 (골드 없이)
             learnedSkillIds.Add(skillId);
@@ -654,6 +700,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             NotifyMonsterSkillLearnedClientRpc(skillId, skillGrade);
             
             Debug.Log($"✅ Monster skill learned: {skillId} (Grade {skillGrade:F0})");
+            return true;
         }
         
         /// <summary>

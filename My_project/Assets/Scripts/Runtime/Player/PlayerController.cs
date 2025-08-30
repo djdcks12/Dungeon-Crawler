@@ -38,23 +38,11 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         {
             base.OnNetworkSpawn();
             
-            Debug.Log($"🚀 PlayerController OnNetworkSpawn called for {gameObject.name}, IsLocalPlayer: {IsLocalPlayer}, OwnerClientId: {OwnerClientId}, IsOwner: {IsOwner}, IsServer: {IsServer}");
-            
             // 컴포넌트 초기화
             rb = GetComponent<Rigidbody2D>();
             
             // PlayerInput이 없으면 자동 추가
             playerInput = GetComponent<PlayerInput>();
-            if (playerInput == null)
-            {
-                playerInput = gameObject.AddComponent<PlayerInput>();
-                Debug.Log($"✅ PlayerInput component automatically added to {gameObject.name}");
-            }
-            else
-            {
-                Debug.Log($"✅ PlayerInput component already exists on {gameObject.name}");
-            }
-            
             playerNetwork = GetComponent<PlayerNetwork>();
             statsManager = GetComponent<PlayerStatsManager>();
             combatSystem = GetComponent<CombatSystem>();

@@ -40,7 +40,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         }
         
         /// <summary>
-        /// 기본 공격 실행 (PlayerController에서 호출)
+        /// 기본 공격 실행 (클라이언트/서버 공통 진입점)
         /// </summary>
         public void PerformBasicAttack()
         {
@@ -59,8 +59,17 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 attackDirection = playerController.GetMouseDirection();
             }
             
-            // 서버에서 공격 처리
-            PerformAttackServerRpc(transform.position, attackDirection);
+            Vector2 attackPosition = transform.position;
+            
+            // 서버/클라이언트 분기
+            if (!IsServer)
+            {
+                PerformAttackServerRpc(attackPosition, attackDirection);
+                return;
+            }
+            
+            // 서버에서 직접 처리
+            ProcessBasicAttack(attackPosition, attackDirection);
         }
         
         /// <summary>
@@ -88,13 +97,19 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         }
         
         /// <summary>
-        /// 서버에서 공격 처리
+        /// 기본 공격 ServerRpc (클라이언트에서 호출)
         /// </summary>
         [ServerRpc]
         private void PerformAttackServerRpc(Vector2 attackPosition, Vector2 attackDirection, ServerRpcParams rpcParams = default)
         {
-            var clientId = rpcParams.Receive.SenderClientId;
-            
+            ProcessBasicAttack(attackPosition, attackDirection, rpcParams.Receive.SenderClientId);
+        }
+        
+        /// <summary>
+        /// 서버에서 실제 기본 공격 처리
+        /// </summary>
+        private void ProcessBasicAttack(Vector2 attackPosition, Vector2 attackDirection, ulong clientId = 0)
+        {
             // 공격 범위 내 타겟 감지
             var targets = DetectTargetsInRange(attackPosition, attackDirection);
             
@@ -177,8 +192,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         private void ProcessAttackOnTarget(Collider2D target, Vector2 attackPosition)
         {
-            Debug.Log($"🎯 ProcessAttackOnTarget: target={target.name}, targetLayer={target.gameObject.layer}");
-            
             // 스탯 매니저에서 공격력 가져오기
             float attackDamage = 10f; // 기본값
             DamageType damageType = DamageType.Physical;
@@ -235,7 +248,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 return;
             }
             
-            // 타겟이 신형 몬스터인 경우 (MonsterEntity 시스템) - 우선 처리
+            // 타겟이 MonsterEntity 시스템
             var targetMonsterEntity = target.GetComponent<MonsterEntity>();
             if (targetMonsterEntity != null)
             {
@@ -244,21 +257,12 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 return;
             }
             
-            // 타겟이 구형 몬스터인 경우 (MonsterHealth 시스템) - 폴백
-            var targetMonster = target.GetComponent<MonsterHealth>();
-            if (targetMonster != null)
-            {
-                Debug.Log($"🗡️ Found MonsterHealth: {targetMonster.name}");
-                ApplyDamageToMonster(targetMonster, attackDamage, damageType, isCritical, attackPosition);
-                return;
-            }
-            
             Debug.LogWarning($"🗡️ No valid damage target found on {target.name}");
         }
         
         /// <summary>
         /// 플레이어에게 데미지 적용
-        /// </summary>
+        /// </summary>//
         private void ApplyDamageToPlayer(PlayerStatsManager targetStatsManager, float damage, DamageType damageType, bool isCritical, Vector2 attackPosition)
         {
             // 실제 데미지 적용 (방어력 계산 포함)
@@ -282,59 +286,22 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 }
             }
         }
-        
         /// <summary>
-        /// 구형 몬스터에게 데미지 적용 (MonsterHealth)
-        /// </summary>
-        private void ApplyDamageToMonster(MonsterHealth targetMonster, float damage, DamageType damageType, bool isCritical, Vector2 attackPosition)
-        {
-            targetMonster.TakeDamage(damage, damageType);
-            
-            // 인챈트 효과 적용
-            if (enchantManager != null && statsManager != null)
-            {
-                // 흡혈 인챈트 - 가한 데미지의 일정 비율만큼 체력 회복
-                float lifeStealBonus = enchantManager.GetEnchantEffect(EnchantType.LifeSteal);
-                if (lifeStealBonus > 0)
-                {
-                    float healAmount = damage * (lifeStealBonus / 100f);
-                    statsManager.Heal(healAmount);
-                    Debug.Log($"💚 Life steal: Healed {healAmount:F1} HP ({lifeStealBonus}%)");
-                }
-            }
-            
-            // 피격 이펙트 표시
-            ShowDamageEffectClientRpc(attackPosition, damage, isCritical, damageType);
-        }
-        
-        /// <summary>
-        /// 신형 몬스터에게 데미지 적용 (MonsterEntity)
+        /// 몬스터에게 데미지 적용 (MonsterEntity)
         /// </summary>
         private void ApplyDamageToMonsterEntity(MonsterEntity targetMonster, float damage, DamageType damageType, bool isCritical, Vector2 attackPosition)
         {
-            Debug.Log($"🗡️ ApplyDamageToMonsterEntity: damage={damage}, targetName={targetMonster.name}");
-            Debug.Log($"🗡️ MonsterEntity null check: {targetMonster == null}");
-            Debug.Log($"🗡️ MonsterEntity IsSpawned: {targetMonster.IsSpawned}");
-            Debug.Log($"🗡️ MonsterEntity NetworkObject: {targetMonster.NetworkObject != null}");
-            
             var attackerController = GetComponent<PlayerController>();
-            Debug.Log($"🗡️ AttackerController: {attackerController?.name ?? "NULL"}");
-            
             float actualDamage = 0f;
             
             try 
             {
-                Debug.Log($"🗡️ About to call TakeDamageServerRpc...");
-                Debug.Log($"🗡️ MonsterEntity NetworkObject: {targetMonster.NetworkObject != null}");
-                Debug.Log($"🗡️ MonsterEntity IsSpawned: {targetMonster.IsSpawned}");
                 
                 // 서버로 데미지 요청 전송 (NetworkBehaviour이므로 RPC 사용)
                 var attackerNetworkObject = GetComponent<NetworkObject>();
                 ulong attackerClientId = attackerNetworkObject != null ? attackerNetworkObject.OwnerClientId : 0;
-                Debug.Log($"🗡️ AttackerClientId: {attackerClientId}");
                 
                 targetMonster.TakeDamage(damage, damageType, attackerClientId);
-                Debug.Log($"🗡️ TakeDamageServerRpc sent successfully");
                 
                 // RPC는 비동기이므로 actualDamage는 예상치로 설정
                 actualDamage = damage; // 실제 데미지는 서버에서 계산됨
@@ -416,6 +383,28 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         {
             if (!IsOwner) return;
             
+            // 서버/클라이언트 분기
+            if (!IsServer)
+            {
+                PerformSkillAttackServerRpc(skillId, targetPosition);
+                return;
+            }
+            
+            // 서버에서 직접 처리
+            ProcessSkillAttack(skillId, targetPosition);
+        }
+        
+        [ServerRpc]
+        private void PerformSkillAttackServerRpc(string skillId, Vector2 targetPosition)
+        {
+            ProcessSkillAttack(skillId, targetPosition);
+        }
+        
+        /// <summary>
+        /// 서버에서 실제 스킬 공격 처리
+        /// </summary>
+        private void ProcessSkillAttack(string skillId, Vector2 targetPosition)
+        {
             // 스킬별 데미지 계산 (추후 스킬 시스템에서 구현)
             float minPercent = 80f; // 스킬별 설정값
             float maxPercent = 200f; // 스킬별 설정값
@@ -427,14 +416,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 Debug.Log($"Skill {skillId} would deal {skillDamage:F1} damage");
             }
             
-            // 서버에서 스킬 공격 처리
-            PerformSkillAttackServerRpc(skillId, targetPosition);
-        }
-        
-        [ServerRpc]
-        private void PerformSkillAttackServerRpc(string skillId, Vector2 targetPosition)
-        {
-            // 추후 스킬 시스템 구현 시 작성
             Debug.Log($"Skill attack: {skillId} at {targetPosition}");
         }
         

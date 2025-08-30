@@ -104,8 +104,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         {
             bool isServer = NetworkManager.Singleton != null ? NetworkManager.Singleton.IsServer : true; // 네트워크가 없으면 로컬로 처리
             
-            Debug.Log($"🔧 GenerateMonster called: IsServer={isServer}, race={race?.raceName}, variant={variant?.variantName}");
-            
             if (!isServer) 
             {
                 Debug.LogWarning($"❌ GenerateMonster skipped - not running on server (IsServer={isServer})");
@@ -146,10 +144,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             currentRaceName = raceData?.raceName ?? "Unknown Race";
             currentVariantName = variantData?.variantName ?? "Unknown Variant";
             currentGrade = grade;
-            
-            Debug.Log($"✨ Generated {variantData.variantName} ({raceData.raceName}) - Grade: {grade}");
-            Debug.Log($"🔍 DEBUG: RaceData={raceData?.raceName ?? "NULL"}, VariantData={variantData?.variantName ?? "NULL"}");
-            Debug.Log($"📊 Final Stats: STR {finalStats.strength:F1}, HP {MaxHP:F0}");
         }
         
         /// <summary>
@@ -320,8 +314,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         public void TakeDamage(float damage, DamageType damageType, ulong attackerClientId = 0)
         {   
-            Debug.Log($"🩸 TakeDamageServerRpc: damage={damage}, attackerClientId={attackerClientId}, isDead={IsDead}, IsServer={NetworkManager.Singleton.IsServer}");
-
             if (IsDead)
             {
                 Debug.LogWarning($"🩸 Monster already dead, ignoring damage");
@@ -329,7 +321,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             }
 
             if (!NetworkManager.Singleton.IsServer)
-            {
+            {   
                 TakeDamageServerRPC(damage, damageType, attackerClientId);
             }
             else
@@ -411,8 +403,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             OnDamageTaken?.Invoke(finalDamage);
 
             // 사망 처리
-            Debug.Log($"🩸 Death check: newHP={newHP:F1}, isDead={IsDead}, shouldDie={newHP <= 0f && !IsDead}");
-
             if (newHP <= 0f && !IsDead)
             {
                 Debug.Log($"☠️ Monster dying: {variantData?.variantName ?? "Unknown"}");
@@ -433,23 +423,19 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 return;
             }
             
-            Debug.Log($"💀 Setting networkIsDead to true...");
             networkIsDead.Value = true;
-            Debug.Log($"💀 networkIsDead successfully set to: {IsDead}");
             
             // 즉시 콜라이더와 AI 비활성화 (더 이상 공격받지 않도록)
             var collider = GetComponent<Collider2D>();
             if (collider != null)
             {
                 collider.enabled = false;
-                Debug.Log($"💀 Collider disabled for {name}");
             }
             
             var monsterAI = GetComponent<MonsterAI>();
             if (monsterAI != null)
             {
                 monsterAI.enabled = false;
-                Debug.Log($"💀 MonsterAI disabled for {name}");
             }
             
             // 시각적 표시 (투명하게)
@@ -461,24 +447,18 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 spriteRenderer.color = color;
             }
             
-            Debug.Log($"💀 Invoking OnDeath event...");
             OnDeath?.Invoke();
             
             // 보상 지급
-            Debug.Log($"💀 Giving rewards to nearby players...");
             GiveRewardsToNearbyPlayers(killerClientId);
-            
-            Debug.Log($"☠️ {variantData.variantName} has died!");
         }
-        
-        /// <summary>
+
         /// 보상 지급 (공격에 참여한 플레이어들에게만)
         /// </summary>
         private void GiveRewardsToNearbyPlayers(ulong killerClientId = 0)
         {
             bool isServer = NetworkManager.Singleton != null ? NetworkManager.Singleton.IsServer : true;
             
-            Debug.Log($"🎁 GiveRewardsToNearbyPlayers: IsServer={isServer}, participatingPlayers={participatingPlayers.Count}");
             
             if (!isServer) 
             {
@@ -493,7 +473,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             var monsterNetworkObject = GetComponent<NetworkObject>();
             ulong monsterId = monsterNetworkObject != null ? monsterNetworkObject.NetworkObjectId : 0;
             int playersRewarded = 0;
-            
+
             // 공격에 참여한 플레이어들에게만 경험치 지급
             foreach (ulong playerId in participatingPlayers)
             {
@@ -517,14 +497,11 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 }
             }
             
-            Debug.Log($"🎯 {variantData.variantName} defeated! {playersRewarded}/{participatingPlayers.Count} players rewarded with {expReward} EXP");
             
             // 아이템 드롭
-            Debug.Log($"🎁 About to call TryDropItems...");
             TryDropItems();
             
             // 영혼 드롭 (스킬 포함)
-            Debug.Log($"🎁 About to call TryDropSoul...");
             TryDropSoul();
         }
         
@@ -533,7 +510,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         private void TryDropItems()
         {
-            Debug.Log($"🎲 TryDropItems called for {variantData?.variantName ?? "NULL"}");
             
             // 이미 아이템을 드롭했는지 체크
             if (itemsDropped)
@@ -541,7 +517,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 Debug.LogWarning($"🎲 Items already dropped for {variantData?.variantName}, skipping...");
                 return;
             }
-            Debug.Log($"🎲 Grade: {grade}, VariantData: {variantData != null}");
             
             if (variantData == null)
             {
@@ -551,18 +526,14 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             
             // 개체별 전체 드롭 계산 (종족 + 개체)
             var droppedItems = variantData.CalculateAllItemDrops(grade);
-            Debug.Log($"🎲 CalculateAllItemDrops returned {droppedItems?.Count ?? -1} items");
-            
             if (droppedItems != null && droppedItems.Count > 0)
             {
                 Vector3 dropPosition = transform.position;
-                Debug.Log($"🎲 Dropping {droppedItems.Count} items at position {dropPosition}");
                 
                 foreach (var item in droppedItems)
                 {
                     if (item != null)
                     {
-                        Debug.Log($"🎲 Spawning item: {item.ItemName} (Grade: {item.Grade})");
                         // 드롭된 아이템을 월드에 생성
                         SpawnDroppedItem(item, dropPosition);
                     }
@@ -571,8 +542,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                         Debug.LogWarning($"🎲 Null item in dropped items list");
                     }
                 }
-                
-                Debug.Log($"💰 {variantData.variantName} dropped {droppedItems.Count} items!");
             }
             else
             {
@@ -581,7 +550,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             
             // 드롭 완료 플래그 설정
             itemsDropped = true;
-            Debug.Log($"🎲 itemsDropped flag set to true for {variantData?.variantName}");
         }
         
         /// <summary>
@@ -589,8 +557,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         private void SpawnDroppedItem(ItemData itemData, Vector3 position)
         {
-            Debug.Log($"🎁 SpawnDroppedItem called: item={itemData?.ItemName ?? "NULL"}, position={position}");
-            
             // 간단한 아이템 드롭 생성 (프리팹 없이)
             Vector3 randomOffset = new Vector3(
                 Random.Range(-1f, 1f), 
@@ -599,7 +565,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             );
             Vector3 spawnPosition = position + randomOffset;
             
-            Debug.Log($"🎁 Creating ItemDrop GameObject at {spawnPosition}...");
             GameObject droppedItemObj = Instantiate<GameObject>(Resources.Load<GameObject>("DroppedItem"));
             droppedItemObj.transform.position = spawnPosition;
 
@@ -608,8 +573,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             var itemDrop = droppedItemObj.GetComponent<DroppedItem>();
             var itemInstance = new ItemInstance(itemData, 1);
             itemDrop.Initialize(itemInstance);
-            
-            Debug.Log($"🎁 ItemDrop created successfully with {itemData.ItemName}");
         }
         
         /// <summary>
@@ -633,8 +596,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         }
         private void SpawnItemClient(Vector3 position, string itemId, string itemName, Color gradeColor)
         {
-            Debug.Log($"🎁 [Server] Spawning item: {itemName} at {position}");
-
             // 랜덤 오프셋 적용
             Vector3 randomOffset = new Vector3(
                 Random.Range(-1f, 1f),
@@ -655,8 +616,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 var itemInstance = new ItemInstance(itemData, 1);
                 itemDrop.SetItemInstance(itemInstance);
                 itemDrop.SetDropPosition(spawnPosition);
-
-                Debug.Log($"🎁 Item created successfully: {itemName}");
             }
             else
             {

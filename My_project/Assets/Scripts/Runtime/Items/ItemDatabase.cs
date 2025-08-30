@@ -26,11 +26,9 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             if (isInitialized) return;
             
             LoadAllItems();
-            CreateDefaultItems();
             BuildIndexes();
             
             isInitialized = true;
-            Debug.Log($"ItemDatabase initialized with {itemDatabase.Count} items");
         }
         
         /// <summary>
@@ -47,175 +45,12 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 if (item != null && !string.IsNullOrEmpty(item.ItemId))
                 {
                     itemDatabase[item.ItemId] = item;
-                    Debug.Log($"📦 Loaded: {item.ItemName} (ID: {item.ItemId}) - Icon: {(item.ItemIcon != null ? "✅" : "❌")}");
-                    
-                    if (item.ItemIcon != null)
-                    {
-                        Debug.Log($"   🖼️ Icon: {item.ItemIcon.name} ({item.ItemIcon.texture.width}x{item.ItemIcon.texture.height})");
-                    }
                 }
                 else
                 {
                     Debug.LogWarning($"⚠️ Invalid ItemData: {(item != null ? item.name : "null")}");
                 }
             }
-        }
-        
-        /// <summary>
-        /// 기본 아이템들 생성 (하드코딩된 기본 아이템들)
-        /// </summary>
-        private static void CreateDefaultItems()
-        {
-            // ScriptableObject 에셋들을 우선 사용하고, 없는 아이템들만 하드코딩으로 생성
-            Debug.Log("🔧 Creating fallback items (only if not loaded from assets)");
-            
-            // 기본 무기들 (에셋에 없으면 생성)
-            if (!itemDatabase.ContainsKey("weapon_sword_basic"))
-                CreateBasicWeapons();
-            
-            // 기본 방어구들 (에셋에 없으면 생성)  
-            if (!itemDatabase.ContainsKey("armor_helmet_basic"))
-                CreateBasicArmors();
-            
-            // 기본 소모품들 (에셋에 없으면 생성)
-            if (!itemDatabase.ContainsKey("consumable_health_potion"))
-                CreateBasicConsumables();
-            
-            // 기본 재료들은 스킵 (ScriptableObject 에셋 사용)
-            // CreateBasicMaterials(); // 주석 처리
-        }
-        
-        /// <summary>
-        /// 기본 무기 생성
-        /// </summary>
-        private static void CreateBasicWeapons()
-        {
-            // 1등급 검
-            var basicSword = CreateItem("weapon_sword_basic", "낡은 검", "초보자를 위한 기본적인 검이다.", 
-                ItemType.Equipment, ItemGrade.Common, EquipmentSlot.MainHand, WeaponCategory.Sword,
-                new StatBlock { strength = 2 }, new DamageRange(8, 12, 0), 100);
-                
-            // 1등급 활
-            var basicBow = CreateItem("weapon_bow_basic", "낡은 활", "초보자를 위한 기본적인 활이다.", 
-                ItemType.Equipment, ItemGrade.Common, EquipmentSlot.TwoHand, WeaponCategory.Bow,
-                new StatBlock { agility = 2 }, new DamageRange(6, 10, 0), 80);
-                
-            // 1등급 지팡이
-            var basicStaff = CreateItem("weapon_staff_basic", "낡은 지팡이", "초보자를 위한 기본적인 지팡이다.", 
-                ItemType.Equipment, ItemGrade.Common, EquipmentSlot.TwoHand, WeaponCategory.Staff,
-                new StatBlock { intelligence = 2 }, new DamageRange(5, 8, 0), 90);
-                
-            // 2등급 검
-            var uncommonSword = CreateItem("weapon_sword_uncommon", "강철 검", "잘 단련된 강철로 만든 검이다.", 
-                ItemType.Equipment, ItemGrade.Uncommon, EquipmentSlot.MainHand, WeaponCategory.Sword,
-                new StatBlock { strength = 5, defense = 1 }, new DamageRange(15, 20, 0), 300);
-                
-            // 3등급 검
-            var rareSword = CreateItem("weapon_sword_rare", "마법 검", "마법의 힘이 깃든 희귀한 검이다.", 
-                ItemType.Equipment, ItemGrade.Rare, EquipmentSlot.MainHand, WeaponCategory.Sword,
-                new StatBlock { strength = 8, intelligence = 3 }, new DamageRange(25, 35, 10), 1000);
-        }
-        
-        /// <summary>
-        /// 기본 방어구 생성
-        /// </summary>
-        private static void CreateBasicArmors()
-        {
-            // 1등급 헬멧
-            var basicHelmet = CreateItem("armor_helmet_basic", "가죽 모자", "기본적인 가죽으로 만든 모자이다.", 
-                ItemType.Equipment, ItemGrade.Common, EquipmentSlot.Head, WeaponCategory.None,
-                new StatBlock { defense = 2, vitality = 1 }, new DamageRange(0, 0, 0), 50);
-                
-            // 1등급 갑옷
-            var basicChest = CreateItem("armor_chest_basic", "가죽 갑옷", "기본적인 가죽으로 만든 갑옷이다.", 
-                ItemType.Equipment, ItemGrade.Common, EquipmentSlot.Chest, WeaponCategory.None,
-                new StatBlock { defense = 5, vitality = 2 }, new DamageRange(0, 0, 0), 100);
-                
-            // 2등급 갑옷
-            var uncommonChest = CreateItem("armor_chest_uncommon", "강철 갑옷", "단단한 강철로 만든 갑옷이다.", 
-                ItemType.Equipment, ItemGrade.Uncommon, EquipmentSlot.Chest, WeaponCategory.None,
-                new StatBlock { defense = 10, vitality = 5, strength = 2 }, new DamageRange(0, 0, 0), 500);
-        }
-        
-        /// <summary>
-        /// 기본 소모품 생성
-        /// </summary>
-        private static void CreateBasicConsumables()
-        {
-            // 소형 체력 포션
-            var smallHpPotion = CreateItem("consumable_hp_small", "소형 체력 포션", "체력을 50 회복시켜준다.", 
-                ItemType.Consumable, ItemGrade.Common, EquipmentSlot.None, WeaponCategory.None,
-                new StatBlock(), new DamageRange(0, 0, 0), 20);
-            smallHpPotion.GetType().GetField("healAmount", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.SetValue(smallHpPotion, 50f);
-                
-            // 중형 체력 포션
-            var mediumHpPotion = CreateItem("consumable_hp_medium", "중형 체력 포션", "체력을 150 회복시켜준다.", 
-                ItemType.Consumable, ItemGrade.Uncommon, EquipmentSlot.None, WeaponCategory.None,
-                new StatBlock(), new DamageRange(0, 0, 0), 100);
-            mediumHpPotion.GetType().GetField("healAmount", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.SetValue(mediumHpPotion, 150f);
-                
-            // 소형 마나 포션
-            var smallMpPotion = CreateItem("consumable_mp_small", "소형 마나 포션", "마나를 30 회복시켜준다.", 
-                ItemType.Consumable, ItemGrade.Common, EquipmentSlot.None, WeaponCategory.None,
-                new StatBlock(), new DamageRange(0, 0, 0), 25);
-            smallMpPotion.GetType().GetField("manaAmount", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.SetValue(smallMpPotion, 30f);
-        }
-        
-        /// <summary>
-        /// 기본 재료 생성 (ScriptableObject 에셋 사용으로 비활성화)
-        /// </summary>
-        private static void CreateBasicMaterials()
-        {
-            // ScriptableObject 에셋들을 사용하므로 하드코딩된 재료 생성 불필요
-            Debug.Log("📦 Skipping hardcoded material creation - using ScriptableObject assets instead");
-            
-            // 필요시 여기서 에셋이 제대로 로드되었는지 확인
-            if (itemDatabase.ContainsKey("material_iron_ore"))
-            {
-                Debug.Log("✅ 철광석 에셋 로드 확인됨");
-            }
-            
-            if (itemDatabase.ContainsKey("material_magic_stone"))
-            {
-                Debug.Log("✅ 마법석 에셋 로드 확인됨");  
-            }
-        }
-        
-        /// <summary>
-        /// 아이템 생성 헬퍼 메서드
-        /// </summary>
-        private static ItemData CreateItem(string id, string name, string description, 
-            ItemType type, ItemGrade grade, EquipmentSlot slot, WeaponCategory weaponCategory,
-            StatBlock stats, DamageRange damageRange, long price)
-        {
-            var item = ScriptableObject.CreateInstance<ItemData>();
-            
-            // 리플렉션을 사용하여 private 필드 설정
-            var itemType = typeof(ItemData);
-            itemType.GetField("itemId", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.SetValue(item, id);
-            itemType.GetField("itemName", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.SetValue(item, name);
-            itemType.GetField("description", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.SetValue(item, description);
-            itemType.GetField("itemType", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.SetValue(item, type);
-            itemType.GetField("grade", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.SetValue(item, grade);
-            itemType.GetField("equipmentSlot", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.SetValue(item, slot);
-            itemType.GetField("weaponCategory", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.SetValue(item, weaponCategory);
-            itemType.GetField("statBonuses", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.SetValue(item, stats);
-            itemType.GetField("weaponDamageRange", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.SetValue(item, damageRange);
-            itemType.GetField("sellPrice", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.SetValue(item, price);
-            itemType.GetField("maxDurability", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.SetValue(item, type == ItemType.Equipment ? 100 : 0);
-            itemType.GetField("durability", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.SetValue(item, type == ItemType.Equipment ? 100 : 0);
-            
-            // 스택 사이즈 설정
-            int stackSize = type switch
-            {
-                ItemType.Equipment => 1,
-                ItemType.Consumable => 20,
-                ItemType.Material => 99,
-                _ => 1
-            };
-            itemType.GetField("stackSize", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.SetValue(item, stackSize);
-            
-            return item;
         }
         
         /// <summary>

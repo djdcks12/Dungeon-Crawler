@@ -20,6 +20,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         
         // 인벤토리 슬롯들
         private List<InventorySlot> slots = new List<InventorySlot>();
+        private bool isInitialized = false;
         
         // 이벤트
         public System.Action<int, ItemInstance> OnItemAdded;
@@ -47,6 +48,12 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         public void Initialize(int slotCount = 30)
         {
+            // 이미 초기화되었다면 스킵
+            if (isInitialized && slots.Count == slotCount)
+            {
+                return;
+            }
+            
             maxSlots = slotCount;
             slots.Clear();
             
@@ -56,6 +63,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 slots.Add(new InventorySlot(i));
             }
             
+            isInitialized = true;
             Debug.Log($"Inventory initialized with {maxSlots} slots");
         }
         
@@ -346,8 +354,9 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
         {
             serializer.SerializeValue(ref maxSlots);
+            serializer.SerializeValue(ref isInitialized);
             
-            if (serializer.IsReader)
+            if (serializer.IsReader && !isInitialized)
             {
                 Initialize(maxSlots);
             }

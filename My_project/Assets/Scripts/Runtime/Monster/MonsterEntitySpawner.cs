@@ -50,9 +50,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         {
             base.OnNetworkSpawn();
             
-            Debug.Log($"🏭 MonsterEntitySpawner OnNetworkSpawn: IsServer={IsServer}, NetworkObjectId={NetworkObjectId}");
-            Debug.Log($"🏭 NetworkObject Owner: {OwnerClientId}, IsHost={IsHost}, IsClient={IsClient}");
-            
             // 스폰 포인트가 없으면 자신의 위치를 사용
             if (spawnPoints == null || spawnPoints.Length == 0)
             {
@@ -62,7 +59,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             // 서버에서만 스폰 관리
             if (IsServer && autoSpawn)
             {
-                Debug.Log($"🏭 Starting spawn coroutine on server...");
                 StartCoroutine(SpawnCoroutine());
             }
             else
@@ -178,7 +174,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 if (networkObject == null)
                 {
                     networkObject = monsterObject.AddComponent<NetworkObject>();
-                    Debug.Log($"🔧 Added NetworkObject to {monsterObject.name}");
                 }
                 
                 if (networkObject != null)
@@ -189,15 +184,12 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                         var networkPrefab = new NetworkPrefab();
                         networkPrefab.Prefab = monsterObject;
                         NetworkManager.Singleton.NetworkConfig.Prefabs.Add(networkPrefab);
-                        Debug.Log($"🔧 Added {monsterObject.name} to NetworkPrefabs list");
                     }
                     
                     // 서버에서 스폰
-                    Debug.Log($"🔧 Attempting to spawn NetworkObject for {monsterObject.name}...");
                     try 
                     {
                         networkObject.Spawn(true);
-                        Debug.Log($"✅ Successfully spawned {monsterObject.name}, IsSpawned: {networkObject.IsSpawned}");
                     }
                     catch (System.Exception e)
                     {

@@ -236,15 +236,8 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         {
             if (!IsServer) return;
             
-            Debug.Log("🏭 Initializing MonsterEntitySpawner with server authority...");
-            
             if (monsterSpawner != null)
             {
-                // MonsterEntitySpawner가 이미 있으면 서버에서 직접 제어
-                Debug.Log($"🏭 Found existing MonsterEntitySpawner: {monsterSpawner.name}");
-                bool spawnerIsServer = NetworkManager.Singleton != null ? NetworkManager.Singleton.IsServer : true;
-                Debug.Log($"🏭 MonsterSpawner IsServer check: {spawnerIsServer}");
-                
                 // 서버에서 스폰 활성화
                 monsterSpawner.SetSpawningEnabled(true);
             }
@@ -278,68 +271,15 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 return;
             }
             
-            // MonsterEntitySpawner 우선 시도
+            // MonsterEntitySpawner 스폰 시도
             if (monsterSpawner != null)
             {
-                Debug.Log("👹 Attempting to spawn test monster using MonsterEntitySpawner...");
                 monsterSpawner.SpawnRandomMonsterEntity();
-                Debug.Log($"✅ Monster spawn requested via MonsterEntitySpawner. Active: {monsterSpawner.CurrentMonsterCount}/{monsterSpawner.MaxActiveMonsters}");
                 return;
             }
             
-            // 구형 MonsterSpawner 폴백
-            var spawner = FindFirstObjectByType<MonsterSpawner>();
-            if (spawner != null)
-            {
-                Debug.Log("👹 Attempting to spawn test monster using legacy MonsterSpawner...");
-                
-                // MonsterSpawner의 공개 메서드로 랜덤 몬스터 스폰
-                spawner.SpawnRandomMonster();
-                
-                Debug.Log($"✅ Monster spawn requested. Active: {spawner.CurrentMonsterCount}/{spawner.MaxMonsters}");
-            }
-            else
-            {
-                Debug.LogWarning("⚠️ No MonsterEntitySpawner or MonsterSpawner found in scene.");
-            }
         }
-        
-        /// <summary>
-        /// 스폰된 몬스터의 서버 권한 상태 체크
-        /// </summary>
-        [ContextMenu("Test: Check Monster Server Authority")]
-        public void TestMonsterServerAuthority()
-        {
-            var monsters = FindObjectsByType<MonsterEntity>(FindObjectsSortMode.None);
-            if (monsters.Length == 0)
-            {
-                Debug.LogWarning("🔍 No MonsterEntity found in scene");
-                return;
-            }
-            
-            bool isServer = NetworkManager.Singleton != null ? NetworkManager.Singleton.IsServer : true;
-            
-            Debug.Log($"🔍 Found {monsters.Length} MonsterEntity objects:");
-            for (int i = 0; i < monsters.Length; i++)
-            {
-                var monster = monsters[i];
-                var networkObject = monster.GetComponent<NetworkObject>();
-                
-                Debug.Log($"🔍 Monster {i}: {monster.name}");
-                Debug.Log($"🔍   - IsServer: {isServer}");
-                Debug.Log($"🔍   - NetworkObject: {networkObject != null}");
-                if (networkObject != null)
-                {
-                    Debug.Log($"🔍   - NetworkObjectId: {networkObject.NetworkObjectId}");
-                    Debug.Log($"🔍   - OwnerClientId: {networkObject.OwnerClientId}");
-                }
-                Debug.Log($"🔍   - VariantName: {monster.VariantData?.variantName ?? "NULL"}");
-                Debug.Log($"🔍   - RaceName: {monster.RaceData?.raceName ?? "NULL"}");
-                Debug.Log($"🔍   - Current HP: {monster.CurrentHP}/{monster.MaxHP}");
-                Debug.Log($"🔍   - IsDead: {monster.IsDead}");
-            }
-        }
-        
+
         /// <summary>
         /// 플레이어 체력 회복 치트
         /// </summary>

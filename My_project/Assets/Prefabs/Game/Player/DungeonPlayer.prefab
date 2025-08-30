@@ -21,6 +21,7 @@ GameObject:
   - component: {fileID: -777195234683741617}
   - component: {fileID: 934379557237757811}
   - component: {fileID: -128126306777906015}
+  - component: {fileID: 6948513946298089167}
   m_Layer: 0
   m_Name: DungeonPlayer
   m_TagString: Player
@@ -333,8 +334,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.InventoryManager
   ShowTopMostFoldoutHeaderGroup: 1
   inventorySize: 30
-  enableAutoPickup: 1
-  pickupRange: 2
 --- !u!114 &-128126306777906015
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -358,3 +357,18 @@ MonoBehaviour:
   hitEffectPrefab: {fileID: 0}
   criticalHitEffectPrefab: {fileID: 0}
   missEffectPrefab: {fileID: 0}
+--- !u!114 &6948513946298089167
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3851752766134567891}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e58a35ac7e11bf045baac55d8c03214b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.PlayerInput
+  attackKey: 323
+  skillKey: 324
+  debugInput: 1
