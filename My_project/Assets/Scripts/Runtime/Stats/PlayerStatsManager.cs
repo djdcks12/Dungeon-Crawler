@@ -131,16 +131,12 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         }
         
         private void InitializeStats()
-        {
-            // PlayerStatsData 직접 생성
-            currentStats = new PlayerStatsData();
-            
+        {   
             // 기본 종족 설정 (Resources에서 실제 RaceData 로드)
             var humanRaceData = LoadRaceDataFromResources(Race.Human);
             if (humanRaceData != null)
             {
                 currentStats.SetRace(Race.Human, humanRaceData);
-                currentStats.Initialize();
             }
             else
             {
