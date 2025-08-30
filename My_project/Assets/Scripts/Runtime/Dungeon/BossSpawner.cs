@@ -232,7 +232,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         private void ConfigureBoss(GameObject bossInstance, BossType bossType, int floor)
         {
             var bossAI = bossInstance.GetComponent<BossMonsterAI>();
-            var monsterHealth = bossInstance.GetComponent<MonsterHealth>();
             var monsterAI = bossInstance.GetComponent<MonsterAI>();
             
             if (bossAI != null)
@@ -240,16 +239,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 // 보스 타입과 층 설정
                 bossAI.SetBossType(bossType);
                 bossAI.SetTargetFloor(floor);
-            }
-            
-            if (monsterHealth != null)
-            {
-                // 층별 체력 강화
-                float healthMultiplier = bossHealthMultiplier + (floor * floorDifficultyMultiplier);
-                int enhancedHealth = Mathf.RoundToInt(monsterHealth.MaxHealth * healthMultiplier);
-                monsterHealth.SetMaxHealth(enhancedHealth);
-                
-                Debug.Log($"Boss health set to {enhancedHealth} (x{healthMultiplier:F1})");
             }
             
             if (monsterAI != null)

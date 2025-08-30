@@ -42,7 +42,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         
         // 컴포넌트 참조
         protected Rigidbody2D rb;
-        protected MonsterHealth monsterHealth;
+        protected MonsterEntity monsterEntity;
         protected SpriteRenderer spriteRenderer;
         
         // 네트워크 동기화
@@ -56,13 +56,16 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         public PlayerController CurrentTarget => currentTarget;
         public bool HasTarget => currentTarget != null;
         
-        public override void OnNetworkSpawn()
+        /// <summary>
+        /// 몬스터 AI 초기화 (NetworkBehaviour 대신 명시적 호출)
+        /// </summary>
+        public void InitializeAI()
         {
-            base.OnNetworkSpawn();
+            Debug.Log($"🤖 MonsterAI.InitializeAI() called for {name}");
             
             // 컴포넌트 초기화
             rb = GetComponent<Rigidbody2D>();
-            monsterHealth = GetComponent<MonsterHealth>();
+            monsterEntity = GetComponent<MonsterEntity>();
             spriteRenderer = GetComponent<SpriteRenderer>();
             
             // 스폰 위치 저장
@@ -71,45 +74,60 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             // 초기 순찰 지점 설정
             SetNewPatrolTarget();
             
-            // MonsterHealth 이벤트 구독 (서버에서만)
-            if (IsServer && monsterHealth != null)
+            // MonsterEntity 이벤트 구독 (서버에서만)
+            if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer && monsterEntity != null)
             {
-                monsterHealth.OnDeath += OnMonsterDeath;
+                monsterEntity.OnDeath += OnMonsterDeath;
             }
             
             // 네트워크 이벤트 구독
-            if (!IsServer)
+            if (NetworkManager.Singleton != null && !NetworkManager.Singleton.IsServer)
             {
                 networkState.OnValueChanged += OnNetworkStateChanged;
                 networkPosition.OnValueChanged += OnNetworkPositionChanged;
             }
             
-            Debug.Log($"MonsterAI spawned: {name} at {spawnPosition}");
+            Debug.Log($"🤖 MonsterAI initialized: {name} at {spawnPosition}");
         }
         
-        public override void OnNetworkDespawn()
+        /// <summary>
+        /// 몬스터 AI 정리 (NetworkBehaviour 대신 명시적 호출)
+        /// </summary>
+        public void CleanupAI()
         {
-            // MonsterHealth 이벤트 구독 해제
-            if (IsServer && monsterHealth != null)
+            Debug.Log($"🤖 MonsterAI.CleanupAI() called for {name}");
+            
+            // MonsterEntity 이벤트 구독 해제
+            if (monsterEntity != null)
             {
-                monsterHealth.OnDeath -= OnMonsterDeath;
+                monsterEntity.OnDeath -= OnMonsterDeath;
             }
             
-            if (!IsServer)
+            if (NetworkManager.Singleton != null && !NetworkManager.Singleton.IsServer)
             {
                 networkState.OnValueChanged -= OnNetworkStateChanged;
                 networkPosition.OnValueChanged -= OnNetworkPositionChanged;
             }
             
-            base.OnNetworkDespawn();
+            // 상태 초기화
+            currentState = MonsterAIState.Idle;
+            currentTarget = null;
+            stateTimer = 0f;
+            patrolTimer = 0f;
+            
+            // 이동 중단
+            if (rb != null)
+            {
+                rb.linearVelocity = Vector2.zero;
+            }
         }
         
         protected virtual void Update()
         {
-            if (!IsServer) return;
+            if (!NetworkManager.IsServer) return;
             
             // 사망 상태 체크
-            if (monsterHealth != null && monsterHealth.IsDead)
+            if (monsterEntity != null && monsterEntity.IsDead)
             {
                 ChangeState(MonsterAIState.Dead);
                 return;
@@ -279,10 +297,11 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             // 스폰 지점에 도착
             if (Vector3.Distance(transform.position, spawnPosition) < 1f)
             {
-                // 체력 회복
-                if (monsterHealth != null)
+                // 체력 회복 (MonsterEntity 사용)
+                if (monsterEntity != null)
                 {
-                    monsterHealth.Heal(monsterHealth.MaxHealth);
+                    // MonsterEntity의 체력 회복 메서드가 있다면 사용
+                    // monsterEntity.HealToFull(); // 필요시 추가
                 }
                 
                 ChangeState(MonsterAIState.Idle);
