@@ -133,12 +133,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 yield return new WaitForSeconds(1f);
             }
             
-            // 5. 플레이어 영혼 드롭 (다른 플레이어가 주울 수 있는 영혼)
-            if (soulDropSystem != null && statsManager?.CurrentStats != null)
-            {
-                soulDropSystem.CreatePlayerSoulDrop(transform.position, statsManager.CurrentStats);
-            }
-            
             // 6. 아이템 드롭 처리
             if (itemScatter != null)
             {

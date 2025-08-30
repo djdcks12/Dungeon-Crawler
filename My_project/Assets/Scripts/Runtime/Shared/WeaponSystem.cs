@@ -36,6 +36,9 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         [Header("Special Effects")]
         [SerializeField] private WeaponEffect[] specialEffects;
         
+        [Header("Hit Effects")]
+        [SerializeField] private EffectData hitEffect; // 타격 시 이펙트
+        
         // 프로퍼티들
         public WeaponType Type => weaponType;
         public WeaponCategory Category => category;
@@ -47,6 +50,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         public float StabilityBonus => stabilityBonus;
         public ElementalDamageRange ElementalDamage => elementalDamage;
         public WeaponEffect[] SpecialEffects => specialEffects;
+        public EffectData HitEffect => hitEffect;
         
         /// <summary>
         /// 무기의 데미지 범위 계산 (플레이어 스탯 적용)

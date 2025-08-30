@@ -571,14 +571,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             Debug.Log($"Character {characterId} deleted for client {clientId}");
         }
         
-        /// <summary>
-        /// 디버그용 모든 종족 정보 출력
-        /// </summary>
-        [ContextMenu("Log All Race Info")]
-        public void LogAllRaceInfo()
-        {
-            RaceDataCreator.LogAllRaceData();
-        }
     }
     
     /// <summary>

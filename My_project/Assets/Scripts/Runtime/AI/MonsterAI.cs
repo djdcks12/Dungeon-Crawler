@@ -447,12 +447,47 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 // 모든 클라이언트에 공격 이펙트 및 애니메이션 동기화
                 TriggerAttackAnimationClientRpc(currentTarget.transform.position, actualDamage);
                 
+                // 몬스터 공격 이펙트 재생 (종족별)
+                PlayMonsterAttackEffect(currentTarget.transform.position);
+                
                 Debug.Log($"👹 {name} attacked {currentTarget.name} for {actualDamage} damage");
             }
             else
             {
                 Debug.LogError($"❌ {name} PlayerStatsManager not found on {currentTarget.name}");
             }
+        }
+        
+        /// <summary>
+        /// 몬스터 공격 이펙트 재생 (종족별)
+        /// </summary>
+        protected virtual void PlayMonsterAttackEffect(Vector3 targetPosition)
+        {
+            if (EffectManager.Instance == null) return;
+            
+            var monsterEntity = GetComponent<MonsterEntity>();
+            if (monsterEntity == null) return;
+            
+            EffectData attackEffect = GetMonsterAttackEffect(monsterEntity);
+            if (attackEffect != null)
+            {
+                EffectManager.Instance.PlayHitEffect(attackEffect, targetPosition);
+            }
+        }
+        
+        /// <summary>
+        /// 몬스터의 공격 이펙트 가져오기
+        /// </summary>
+        protected virtual EffectData GetMonsterAttackEffect(MonsterEntity monsterEntity)
+        {
+            // 개체별 공격 이펙트 사용 (MonsterVariantData.AttackEffect)
+            if (monsterEntity.VariantData?.AttackEffect != null)
+            {
+                return monsterEntity.VariantData.AttackEffect;
+            }
+            
+            // 기본값: null (이펙트 없음)
+            return null;
         }
         
         /// <summary>

@@ -1,0 +1,58 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fae1b422f463a8443a96beed0a73ce50, type: 3}
+  m_Name: Ice_projectile
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.EffectData
+  effectName: Ice_projectile
+  effectType: 1
+  hitEffectFrames: []
+  hitFrameRate: 12
+  hitDuration: 1
+  projectileStartFrames:
+  - {fileID: 4138621075764119247, guid: ce7ff1044d98efb47a59ce7f59c20638, type: 3}
+  - {fileID: 3801166914692647552, guid: ce7ff1044d98efb47a59ce7f59c20638, type: 3}
+  - {fileID: -5618615179741389535, guid: ce7ff1044d98efb47a59ce7f59c20638, type: 3}
+  projectileRepeatableFrames:
+  - {fileID: -2937912103407283272, guid: e5625405c930cba40bf8d0ce1636d33f, type: 3}
+  - {fileID: -4969676193942958089, guid: e5625405c930cba40bf8d0ce1636d33f, type: 3}
+  - {fileID: -2752706012691971032, guid: e5625405c930cba40bf8d0ce1636d33f, type: 3}
+  - {fileID: 4426986535507562079, guid: e5625405c930cba40bf8d0ce1636d33f, type: 3}
+  - {fileID: -7338746557343932665, guid: e5625405c930cba40bf8d0ce1636d33f, type: 3}
+  - {fileID: 2121323489530304963, guid: e5625405c930cba40bf8d0ce1636d33f, type: 3}
+  - {fileID: 959595360459687273, guid: e5625405c930cba40bf8d0ce1636d33f, type: 3}
+  - {fileID: 9016592951320014200, guid: e5625405c930cba40bf8d0ce1636d33f, type: 3}
+  - {fileID: -2634239317843360259, guid: e5625405c930cba40bf8d0ce1636d33f, type: 3}
+  - {fileID: -7184832548953209133, guid: e5625405c930cba40bf8d0ce1636d33f, type: 3}
+  projectileHitFrames:
+  - {fileID: 8365360313751920634, guid: 96c3a35362b1f644c924316609df55bc, type: 3}
+  - {fileID: -7722601906036765935, guid: 96c3a35362b1f644c924316609df55bc, type: 3}
+  - {fileID: 4199699752363546235, guid: 96c3a35362b1f644c924316609df55bc, type: 3}
+  - {fileID: 5811774960573338373, guid: 96c3a35362b1f644c924316609df55bc, type: 3}
+  - {fileID: -2974742435399535847, guid: 96c3a35362b1f644c924316609df55bc, type: 3}
+  - {fileID: 9035506947513046128, guid: 96c3a35362b1f644c924316609df55bc, type: 3}
+  - {fileID: 4024452912030615559, guid: 96c3a35362b1f644c924316609df55bc, type: 3}
+  - {fileID: -8422657843805413640, guid: 96c3a35362b1f644c924316609df55bc, type: 3}
+  projectileSpeed: 5
+  projectileFrameRate: 12
+  startDuration: 0.2
+  hitEffectDuration: 0.5
+  summonStartFrames: []
+  summonActiveFrames: []
+  summonRepeatableFrames: []
+  summonEndingFrames: []
+  summonFrameRate: 12
+  summonStartDuration: 0.5
+  summonActiveDuration: 2
+  summonRepeatableDuration: 0.3
+  summonEndingDuration: 0.5
+  damageRadius: 2
+  damageInterval: 0.5

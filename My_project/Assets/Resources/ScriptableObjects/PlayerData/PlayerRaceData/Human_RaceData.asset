@@ -1,0 +1,53 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 33698dae12dc03d4682f30c422f8b081, type: 3}
+  m_Name: Human_RaceData
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.RaceData
+  raceType: 0
+  raceName: "\uC778\uAC04 (Human)"
+  description: "\uADE0\uD615\uC7A1\uD78C \uB9CC\uB2A5\uD615 \uC885\uC871. \uBAA8\uB4E0
+    \uACC4\uC5F4\uC758 \uC2A4\uD0AC\uC744 \uD559\uC2B5\uD560 \uC218 \uC788\uC73C\uBA70,
+    \uC548\uC815\uC801\uC778 \uC131\uC7A5\uC774 \uD2B9\uC9D5\uC785\uB2C8\uB2E4."
+  raceIcon: {fileID: 0}
+  baseStats:
+    strength: 10
+    agility: 10
+    vitality: 10
+    intelligence: 10
+    defense: 5
+    magicDefense: 5
+    luck: 5
+    stability: 0
+  statGrowth:
+    strengthGrowth: 2
+    agilityGrowth: 2
+    vitalityGrowth: 2
+    intelligenceGrowth: 2
+    defenseGrowth: 1.5
+    magicDefenseGrowth: 1.5
+    luckGrowth: 1
+    stabilityGrowth: 0
+  elementalAffinity:
+    fireAttack: 0
+    fireResist: 0
+    iceAttack: 0
+    iceResist: 0
+    lightningAttack: 0
+    lightningResist: 0
+    poisonAttack: 0
+    poisonResist: 0
+    darkAttack: 0
+    darkResist: 0
+    holyAttack: 0
+    holyResist: 0
+  specialties: []
+  defaultHitEffect: {fileID: 11400000, guid: 27dee98a27653e44eb4e07db023db038, type: 2}

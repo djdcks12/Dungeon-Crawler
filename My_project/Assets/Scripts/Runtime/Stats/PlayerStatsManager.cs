@@ -6,13 +6,13 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
 {
     /// <summary>
     /// 플레이어 스탯 관리자
-    /// PlayerStats와 게임 오브젝트 간의 연결 담당
+    /// PlayerStatsData와 게임 오브젝트 간의 연결 담당
+    /// Resources 폴더의 실제 RaceData 파일들을 사용
     /// </summary>
     public class PlayerStatsManager : NetworkBehaviour
     {
-        [Header("Stats Configuration")]
-        [SerializeField] private PlayerStats defaultStats;
-        [SerializeField] private PlayerStats currentStats;
+        [Header("Stats Data")]
+        [SerializeField] private PlayerStatsData currentStats;
         
         [Header("Stats Synchronization")]
         private NetworkVariable<int> networkLevel = new NetworkVariable<int>(1, 
@@ -53,11 +53,11 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         // 컴포넌트 참조
         private PlayerController playerController;
         
-        // 처치한 몬스터 추적 (경험치 중복 방지)
-        private HashSet<ulong> defeatedMonsters = new HashSet<ulong>();
+        // 처치한 몬스터 추적 (경험치 중복 방지) - 개체 ID 기준
+        private HashSet<string> defeatedMonsters = new HashSet<string>();
         
         // 스탯 변경 이벤트
-        public System.Action<PlayerStats> OnStatsUpdated;
+        public System.Action<PlayerStatsData> OnStatsUpdated;
         public System.Action<float, float> OnHealthChanged;
         public System.Action<float, float> OnManaChanged;
         public System.Action OnExperienceChanged;
@@ -65,7 +65,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         public System.Action<int> OnLevelChanged;
         
         
-        public PlayerStats CurrentStats => currentStats;
+        public PlayerStatsData CurrentStats => currentStats;
         public bool IsDead => networkCurrentHP.Value <= 0f;
         
         // NetworkVariable 접근용 프로퍼티들
@@ -101,10 +101,10 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             // 스탯 이벤트 구독
             if (currentStats != null)
             {
-                PlayerStats.OnStatsChanged += OnStatsChanged;
-                PlayerStats.OnLevelUp += OnLevelUp;
-                PlayerStats.OnHPChanged += OnHPChanged;
-                PlayerStats.OnMPChanged += OnMPChanged;
+                PlayerStatsData.OnStatsChanged += OnStatsChanged;
+                PlayerStatsData.OnLevelUp += OnLevelUp;
+                PlayerStatsData.OnHPChanged += OnHPChanged;
+                PlayerStatsData.OnMPChanged += OnMPChanged;
             }
         }
         
@@ -121,10 +121,10 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             
             if (currentStats != null)
             {
-                PlayerStats.OnStatsChanged -= OnStatsChanged;
-                PlayerStats.OnLevelUp -= OnLevelUp;
-                PlayerStats.OnHPChanged -= OnHPChanged;
-                PlayerStats.OnMPChanged -= OnMPChanged;
+                PlayerStatsData.OnStatsChanged -= OnStatsChanged;
+                PlayerStatsData.OnLevelUp -= OnLevelUp;
+                PlayerStatsData.OnHPChanged -= OnHPChanged;
+                PlayerStatsData.OnMPChanged -= OnMPChanged;
             }
             
             base.OnNetworkDespawn();
@@ -132,13 +132,20 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         
         private void InitializeStats()
         {
-            // ScriptableObject 기반이 아닌 직접 데이터 초기화
-            currentStats = ScriptableObject.CreateInstance<PlayerStats>();
+            // PlayerStatsData 직접 생성
+            currentStats = new PlayerStatsData();
             
-            // 기본 종족 설정 (추후 캐릭터 생성 시 올바른 종족으로 설정)
-            var humanRaceData = RaceDataCreator.CreateHumanRaceData();
-            currentStats.SetRace(Race.Human, humanRaceData);
-            currentStats.Initialize();
+            // 기본 종족 설정 (Resources에서 실제 RaceData 로드)
+            var humanRaceData = LoadRaceDataFromResources(Race.Human);
+            if (humanRaceData != null)
+            {
+                currentStats.SetRace(Race.Human, humanRaceData);
+                currentStats.Initialize();
+            }
+            else
+            {
+                Debug.LogError("Failed to load Human RaceData from Resources!");
+            }
             
             // 네트워크 변수 초기화
             UpdateNetworkVariables();
@@ -150,20 +157,44 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         }
         
         /// <summary>
+        /// Resources 폴더에서 실제 RaceData 로드
+        /// </summary>
+        private RaceData LoadRaceDataFromResources(Race raceType)
+        {
+            string racePath = $"ScriptableObjects/PlayerData/PlayerRaceData/{raceType}_RaceData";
+            RaceData raceData = Resources.Load<RaceData>(racePath);
+            
+            if (raceData == null)
+            {
+                Debug.LogError($"Failed to load RaceData from path: {racePath}");
+            }
+            else
+            {
+                Debug.Log($"Successfully loaded {raceType} RaceData from Resources");
+            }
+            
+            return raceData;
+        }
+        
+        /// <summary>
         /// 캐릭터 데이터로 스탯 설정 (캐릭터 생성/로드 시 사용)
         /// </summary>
         public void InitializeFromCharacterData(CharacterData characterData)
         {
             if (currentStats == null)
             {
-                currentStats = ScriptableObject.CreateInstance<PlayerStats>();
+                currentStats = new PlayerStatsData();
             }
             
-            // 종족 데이터 가져오기
-            RaceData raceData = GetRaceDataByType(characterData.race);
+            // 종족 데이터 가져오기 (Resources에서 로드)
+            RaceData raceData = LoadRaceDataFromResources(characterData.race);
             if (raceData != null)
             {
                 currentStats.SetRace(characterData.race, raceData);
+            }
+            else
+            {
+                Debug.LogError($"Failed to load RaceData for {characterData.race}");
             }
             
             // 캐릭터 데이터로 초기화
@@ -184,25 +215,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             Debug.Log($"PlayerStatsManager initialized from character data: {characterData.characterName}");
         }
         
-        /// <summary>
-        /// 종족 타입으로 RaceData 가져오기
-        /// </summary>
-        private RaceData GetRaceDataByType(Race raceType)
-        {
-            switch (raceType)
-            {
-                case Race.Human:
-                    return RaceDataCreator.CreateHumanRaceData();
-                case Race.Elf:
-                    return RaceDataCreator.CreateElfRaceData();
-                case Race.Beast:
-                    return RaceDataCreator.CreateBeastRaceData();
-                case Race.Machina:
-                    return RaceDataCreator.CreateMachinaRaceData();
-                default:
-                    return RaceDataCreator.CreateHumanRaceData();
-            }
-        }
         
         /// <summary>
         /// 레벨 직접 설정 (로드 시 사용)
@@ -211,8 +223,8 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         {
             if (currentStats == null) return;
             
-            // 리플렉션을 사용하여 private 필드 설정
-            var levelField = typeof(PlayerStats).GetField("currentLevel", 
+            // PlayerStatsData는 public 필드이므로 직접 접근
+            var levelField = typeof(PlayerStatsData).GetField("currentLevel", 
                 System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
             levelField?.SetValue(currentStats, level);
             
@@ -226,8 +238,8 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         {
             if (currentStats == null) return;
             
-            // 리플렉션을 사용하여 private 필드 설정
-            var expField = typeof(PlayerStats).GetField("currentExp", 
+            // PlayerStatsData는 public 필드이므로 직접 접근
+            var expField = typeof(PlayerStatsData).GetField("currentExp", 
                 System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
             expField?.SetValue(currentStats, experience);
         }
@@ -511,7 +523,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         }
         
         // 스탯 이벤트 콜백들
-        private void OnStatsChanged(PlayerStats stats)
+        private void OnStatsChanged(PlayerStatsData stats)
         {
             if (stats == currentStats)
             {
@@ -641,39 +653,39 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         }
         
         /// <summary>
-        /// 몬스터 처치 여부 확인
+        /// 몬스터 처치 여부 확인 - 개체 ID 기준
         /// </summary>
-        public bool HasDefeatedMonster(ulong monsterId)
+        public bool HasDefeatedMonster(string monsterEntityId)
         {
-            return defeatedMonsters.Contains(monsterId);
+            return defeatedMonsters.Contains(monsterEntityId);
         }
         
         /// <summary>
-        /// 몬스터 처치 기록
+        /// 몬스터 처치 기록 - 개체 ID 기준
         /// </summary>
-        public void MarkMonsterAsDefeated(ulong monsterId)
+        public void MarkMonsterAsDefeated(string monsterEntityId)
         {
-            defeatedMonsters.Add(monsterId);
+            defeatedMonsters.Add(monsterEntityId);
         }
         
         /// <summary>
-        /// 몬스터로부터 경험치 획득 (중복 방지)
+        /// 몬스터로부터 경험치 획득 (중복 방지) - 개체 ID 기준
         /// </summary>
-        public bool TryGainExperienceFromMonster(ulong monsterId, long expAmount)
+        public bool TryGainExperienceFromMonster(string monsterEntityId, long expAmount)
         {
             if (!IsServer) return false;
             
             // 이미 이 몬스터로부터 경험치를 받았는지 확인
-            if (HasDefeatedMonster(monsterId))
+            if (HasDefeatedMonster(monsterEntityId))
             {
                 return false; // 이미 받았음
             }
             
             // 몬스터 처치 기록 및 경험치 획득
-            MarkMonsterAsDefeated(monsterId);
+            MarkMonsterAsDefeated(monsterEntityId);
             AddExperience(expAmount);
             
-            Debug.Log($"💰 Player {NetworkObject.NetworkObjectId} gained {expAmount} EXP from monster {monsterId}");
+            Debug.Log($"💰 Player {NetworkObject.NetworkObjectId} gained {expAmount} EXP from monster entity {monsterEntityId}");
             return true; // 성공적으로 받음
         }
         

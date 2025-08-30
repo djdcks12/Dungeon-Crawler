@@ -182,25 +182,5 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             
             return machinaData;
         }
-        
-        /// <summary>
-        /// 모든 종족 데이터를 디버깅용으로 출력
-        /// </summary>
-        public static void LogAllRaceData()
-        {
-            Debug.Log("=== All Race Data ===");
-            
-            var human = CreateHumanRaceData();
-            human.LogRaceInfo();
-            
-            var elf = CreateElfRaceData();
-            elf.LogRaceInfo();
-            
-            var beast = CreateBeastRaceData();
-            beast.LogRaceInfo();
-            
-            var machina = CreateMachinaRaceData();
-            machina.LogRaceInfo();
-        }
     }
 }

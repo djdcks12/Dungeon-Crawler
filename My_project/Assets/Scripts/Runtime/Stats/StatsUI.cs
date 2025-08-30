@@ -338,7 +338,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         }
         
         // 이벤트 콜백들
-        private void OnStatsUpdated(PlayerStats stats)
+        private void OnStatsUpdated(PlayerStatsData stats)
         {
             if (isStatsVisible)
             {

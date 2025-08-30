@@ -60,25 +60,9 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         }
         
         /// <summary>
-        /// 플레이어 사망 시 영혼 드롭 (DeathManager에서 호출)
-        /// </summary>
-        public void CreatePlayerSoulDrop(Vector3 deathPosition, PlayerStats playerStats)
-        {
-            if (!IsServer || !enableSoulDrop || playerStats == null) return;
-            
-            // 플레이어 사망 시 100% 확률로 영혼 드롭 (0.1% 드롭률은 몬스터용)
-            string playerName = playerStats.CharacterName + " Soul";
-            int playerLevel = playerStats.CurrentLevel;
-            
-            Debug.Log($"💀 Creating player soul drop from {playerName} (Level {playerLevel})");
-            
-            CreateSoulDrop(deathPosition, playerLevel, playerName, playerStats);
-        }
-        
-        /// <summary>
         /// 영혼 드롭 생성
         /// </summary>
-        private void CreateSoulDrop(Vector3 position, int sourceLevel, string sourceName, PlayerStats sourceStats = null)
+        private void CreateSoulDrop(Vector3 position, int sourceLevel, string sourceName, PlayerStatsData sourceStats = null)
         {
             if (!IsServer) return;
             
@@ -103,7 +87,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// <summary>
         /// 영혼 데이터 생성
         /// </summary>
-        private SoulData GenerateSoulData(int sourceLevel, string sourceName, PlayerStats sourceStats = null)
+        private SoulData GenerateSoulData(int sourceLevel, string sourceName, PlayerStatsData sourceStats = null)
         {
             var soulData = new SoulData
             {
@@ -135,7 +119,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// <summary>
         /// 플레이어 영혼 스탯 보너스 계산
         /// </summary>
-        private StatBlock CalculatePlayerSoulBonus(PlayerStats playerStats)
+        private StatBlock CalculatePlayerSoulBonus(PlayerStatsData playerStats)
         {
             // 플레이어 스탯의 10-20%를 영혼 보너스로 변환
             float bonusPercentage = Random.Range(0.1f, 0.2f);
@@ -368,27 +352,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         public static (int dropped, int collected) GetSoulStatistics()
         {
             return (totalSoulsDropped, totalSoulsCollected);
-        }
-        
-        /// <summary>
-        /// 드롭률 조정 (디버그/밸런싱용)
-        /// </summary>
-        public void SetSoulDropRate(float newRate)
-        {
-            soulDropRate = Mathf.Clamp01(newRate);
-            Debug.Log($"Soul drop rate changed to: {soulDropRate:P3}");
-        }
-        
-        /// <summary>
-        /// 강제 영혼 드롭 (테스트용)
-        /// </summary>
-        [ContextMenu("Force Soul Drop")]
-        public void ForceSoulDrop()
-        {
-            if (Application.isPlaying && IsServer)
-            {
-                CheckSoulDrop(transform.position, 10, "Test Monster");
-            }
         }
     }
 }

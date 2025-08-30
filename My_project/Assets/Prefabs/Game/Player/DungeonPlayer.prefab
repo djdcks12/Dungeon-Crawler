@@ -88,8 +88,8 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
+  m_SortingLayerID: 1423030045
+  m_SortingLayer: 3
   m_SortingOrder: 1
   m_Sprite: {fileID: -3145328045451892686, guid: 95419640d97b6e640b157fb0022ab946, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -255,8 +255,100 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.PlayerStatsManager
   ShowTopMostFoldoutHeaderGroup: 1
-  defaultStats: {fileID: 0}
-  currentStats: {fileID: 0}
+  currentStats:
+    characterRace: 0
+    raceData: {fileID: 11400000, guid: da26f13e7c25c314a93a6146f2352b64, type: 2}
+    currentStats:
+      strength: 0
+      agility: 0
+      vitality: 0
+      intelligence: 0
+      defense: 0
+      magicDefense: 0
+      luck: 0
+      stability: 0
+    currentLevel: 1
+    currentExp: 0
+    expToNextLevel: 282
+    maxLevel: 15
+    soulBonusStats:
+      strength: 0
+      agility: 0
+      vitality: 0
+      intelligence: 0
+      defense: 0
+      magicDefense: 0
+      luck: 0
+      stability: 0
+    equipmentBonusStats:
+      strength: 0
+      agility: 0
+      vitality: 0
+      intelligence: 0
+      defense: 0
+      magicDefense: 0
+      luck: 0
+      stability: 0
+    enchantBonusStats:
+      strength: 0
+      agility: 0
+      vitality: 0
+      intelligence: 0
+      defense: 0
+      magicDefense: 0
+      luck: 0
+      stability: 0
+    maxHP: 100
+    currentHP: 100
+    maxMP: 50
+    currentMP: 50
+    attackDamage: 0.5
+    magicDamage: 0.5
+    moveSpeed: 5
+    attackSpeed: 1
+    criticalChance: 0
+    criticalDamage: 2
+    gold: 1000
+    combatStats:
+      physicalDamage:
+        minDamage: 0
+        maxDamage: 1
+        stability: 0
+      magicalDamage:
+        minDamage: 0
+        maxDamage: 1
+        stability: 0
+      elementalDamage:
+        fire:
+          minDamage: 0
+          maxDamage: 0
+          stability: 0
+        ice:
+          minDamage: 0
+          maxDamage: 0
+          stability: 0
+        lightning:
+          minDamage: 0
+          maxDamage: 0
+          stability: 0
+        poison:
+          minDamage: 0
+          maxDamage: 0
+          stability: 0
+        dark:
+          minDamage: 0
+          maxDamage: 0
+          stability: 0
+        holy:
+          minDamage: 0
+          maxDamage: 0
+          stability: 0
+      criticalChance: 0
+      criticalMultiplier: 2
+      stability: 0
+    equippedWeapon: {fileID: 0}
+    characterName: Unknown
+    equippedSoulIds: 
 --- !u!114 &8389054499754392800
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -354,9 +446,6 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 64
   enablePvP: 1
-  hitEffectPrefab: {fileID: 0}
-  criticalHitEffectPrefab: {fileID: 0}
-  missEffectPrefab: {fileID: 0}
 --- !u!114 &6948513946298089167
 MonoBehaviour:
   m_ObjectHideFlags: 0
