@@ -1,0 +1,44 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fae1b422f463a8443a96beed0a73ce50, type: 3}
+  m_Name: Combat_hit_1
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.EffectData
+  effectName: Smear_Horizontal_01
+  effectType: 0
+  hitEffectFrames:
+  - {fileID: 5544958156907145075, guid: 2fe94e2a0dfcd944eb57cd2cd306cf03, type: 3}
+  - {fileID: 1410549382348425772, guid: 2fe94e2a0dfcd944eb57cd2cd306cf03, type: 3}
+  - {fileID: -6504016608751082410, guid: 2fe94e2a0dfcd944eb57cd2cd306cf03, type: 3}
+  - {fileID: 7044936136461735336, guid: 2fe94e2a0dfcd944eb57cd2cd306cf03, type: 3}
+  - {fileID: 4952203022734778140, guid: 2fe94e2a0dfcd944eb57cd2cd306cf03, type: 3}
+  - {fileID: 6892047151256956130, guid: 2fe94e2a0dfcd944eb57cd2cd306cf03, type: 3}
+  - {fileID: 570119033, guid: 2fe94e2a0dfcd944eb57cd2cd306cf03, type: 3}
+  hitFrameRate: 1
+  hitDuration: 1
+  projectileStartFrames: []
+  projectileRepeatableFrames: []
+  projectileHitFrames: []
+  projectileSpeed: 5
+  projectileFrameRate: 12
+  startDuration: 0.2
+  hitEffectDuration: 0.5
+  summonStartFrames: []
+  summonActiveFrames: []
+  summonRepeatableFrames: []
+  summonEndingFrames: []
+  summonFrameRate: 12
+  summonStartDuration: 0.5
+  summonActiveDuration: 2
+  summonRepeatableDuration: 0.3
+  summonEndingDuration: 0.5
+  damageRadius: 2
+  damageInterval: 0.5

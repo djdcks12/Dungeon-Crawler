@@ -351,7 +351,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 
             if (skillDamageText != null && selectedSkill.baseDamage > 0)
             {
-                var damage = selectedSkill.CalculateDamage(statsManager?.CurrentStats ?? new PlayerStats());
+                var damage = selectedSkill.CalculateDamage(statsManager?.CurrentStats ?? new PlayerStatsData());
                 skillDamageText.text = $"Damage: {damage:F0}";
             }
             

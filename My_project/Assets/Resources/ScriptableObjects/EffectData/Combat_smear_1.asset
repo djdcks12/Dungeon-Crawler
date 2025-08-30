@@ -1,0 +1,42 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fae1b422f463a8443a96beed0a73ce50, type: 3}
+  m_Name: Combat_smear_1
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.EffectData
+  effectName: Smear_Horizontal_01
+  effectType: 0
+  hitEffectFrames:
+  - {fileID: 4757251415096693921, guid: e337d75dcd1f5de4e8d7a2b09fb55ec2, type: 3}
+  - {fileID: -1073189902953685456, guid: e337d75dcd1f5de4e8d7a2b09fb55ec2, type: 3}
+  - {fileID: -160102796, guid: e337d75dcd1f5de4e8d7a2b09fb55ec2, type: 3}
+  - {fileID: -1722930414, guid: e337d75dcd1f5de4e8d7a2b09fb55ec2, type: 3}
+  - {fileID: -510961226, guid: e337d75dcd1f5de4e8d7a2b09fb55ec2, type: 3}
+  hitFrameRate: 1
+  hitDuration: 1
+  projectileStartFrames: []
+  projectileRepeatableFrames: []
+  projectileHitFrames: []
+  projectileSpeed: 5
+  projectileFrameRate: 12
+  startDuration: 0.2
+  hitEffectDuration: 0.5
+  summonStartFrames: []
+  summonActiveFrames: []
+  summonRepeatableFrames: []
+  summonEndingFrames: []
+  summonFrameRate: 12
+  summonStartDuration: 0.5
+  summonActiveDuration: 2
+  summonRepeatableDuration: 0.3
+  summonEndingDuration: 0.5
+  damageRadius: 2
+  damageInterval: 0.5

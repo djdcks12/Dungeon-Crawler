@@ -29,11 +29,15 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         [Header("Race Specialties")]
         [SerializeField] private RaceSpecialty[] specialties;
         
+        [Header("Default Effects")]
+        [SerializeField] private EffectData defaultHitEffect; // 맨손 공격 시 기본 이펙트
+        
         // 프로퍼티들
         public StatBlock BaseStats => baseStats;
         public StatGrowth StatGrowth => statGrowth;
         public ElementalStats ElementalAffinity => elementalAffinity;
         public RaceSpecialty[] Specialties => specialties;
+        public EffectData DefaultHitEffect => defaultHitEffect;
         
         /// <summary>
         /// 특정 레벨에서의 스탯 계산

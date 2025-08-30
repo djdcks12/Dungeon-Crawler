@@ -328,7 +328,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// <summary>
         /// 학습 실패 이유 메시지
         /// </summary>
-        private string GetLearnFailureReason(SkillData skillData, PlayerStats playerStats, List<string> learnedSkills)
+        private string GetLearnFailureReason(SkillData skillData, PlayerStatsData playerStats, List<string> learnedSkills)
         {
             if (playerStats.CurrentLevel < skillData.requiredLevel)
             {

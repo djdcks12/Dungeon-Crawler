@@ -213,7 +213,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// <summary>
         /// 스탯 변경 이벤트 처리
         /// </summary>
-        private void OnStatsChanged(PlayerStats stats)
+        private void OnStatsChanged(PlayerStatsData stats)
         {
             // 레벨과 골드 텍스트 업데이트 (HP/MP/EXP는 별도 이벤트에서 처리)
             SetText(levelText, $"Lv.{stats.CurrentLevel}");

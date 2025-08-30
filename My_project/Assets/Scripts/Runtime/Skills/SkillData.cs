@@ -51,7 +51,11 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         public float statusDuration = 5f;
         public float statusChance = 100f; // 상태이상 적용 확률
         
+        [Header("Skill Behavior")]
+        public SkillBehaviorType behaviorType = SkillBehaviorType.Instant;
+        
         [Header("Visual Effects")]
+        public EffectData skillEffect; // 새로운 이펙트 시스템
         public GameObject castEffectPrefab;
         public GameObject hitEffectPrefab;
         public GameObject buffEffectPrefab;
@@ -61,7 +65,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// <summary>
         /// 스킬 학습 가능 여부 확인
         /// </summary>
-        public bool CanLearn(PlayerStats playerStats, System.Collections.Generic.List<string> learnedSkills)
+        public bool CanLearn(PlayerStatsData playerStats, System.Collections.Generic.List<string> learnedSkills)
         {
             // 레벨 요구사항 확인
             if (playerStats.CurrentLevel < requiredLevel)
@@ -105,7 +109,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// <summary>
         /// 스킬 데미지 계산
         /// </summary>
-        public float CalculateDamage(PlayerStats playerStats)
+        public float CalculateDamage(PlayerStatsData playerStats)
         {
             float baseStat = damageType == DamageType.Physical ? playerStats.TotalSTR : playerStats.TotalINT;
             float scaledDamage = baseDamage + (baseStat * damageScaling);
@@ -120,7 +124,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// <summary>
         /// 스킬 힐링량 계산
         /// </summary>
-        public float CalculateHealing(PlayerStats playerStats)
+        public float CalculateHealing(PlayerStatsData playerStats)
         {
             float healingStat = playerStats.TotalINT; // 힐링은 INT 기반
             float scaledHealing = baseDamage + (healingStat * damageScaling);
@@ -141,7 +145,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// <summary>
         /// 쿨다운 계산 (AGI에 따른 조정)
         /// </summary>
-        public float GetCooldown(PlayerStats playerStats)
+        public float GetCooldown(PlayerStatsData playerStats)
         {
             float agiReduction = playerStats.TotalAGI * 0.01f; // AGI당 1% 쿨다운 감소
             return cooldown * (1f - Mathf.Min(0.5f, agiReduction)); // 최대 50% 감소
@@ -150,7 +154,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// <summary>
         /// 스킬 설명 생성 (UI용)
         /// </summary>
-        public string GetDetailedDescription(PlayerStats playerStats = null)
+        public string GetDetailedDescription(PlayerStatsData playerStats = null)
         {
             string desc = description + "\n\n";
             
@@ -262,6 +266,16 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         Passive,    // 수동 스킬 (영구 효과)
         Toggle,     // 토글 스킬 (on/off)
         Triggered   // 조건부 발동 스킬
+    }
+    
+    /// <summary>
+    /// 스킬 행동 타입 (이펙트 시스템용)
+    /// </summary>
+    public enum SkillBehaviorType
+    {
+        Instant,    // 즉시 발동 (기본 공격, 즉시 힐링 등)
+        Projectile, // 투사체형 (화살, 마법탄 등)
+        Summon      // 소환형 (지역 공격, 소환수 등)
     }
     
     /// <summary>

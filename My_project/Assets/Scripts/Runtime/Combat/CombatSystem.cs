@@ -15,10 +15,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         [SerializeField] private LayerMask playerLayerMask = 1 << 6; // Player layer
         [SerializeField] private bool enablePvP = true;
         
-        [Header("Visual Effects")]
-        [SerializeField] private GameObject hitEffectPrefab;
-        [SerializeField] private GameObject criticalHitEffectPrefab;
-        [SerializeField] private GameObject missEffectPrefab;
         
         // 컴포넌트 참조
         private PlayerController playerController;
@@ -120,9 +116,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                     ProcessAttackOnTarget(target, attackPosition);
                 }
             }
-            
-            // 클라이언트에 공격 이펙트 표시
-            PlayAttackEffectClientRpc(attackPosition, attackDirection);
         }
         
         /// <summary>
@@ -333,22 +326,43 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             // 피격 이펙트 표시 (실제 데미지로)
             Vector2 hitPosition = targetMonster.transform.position;
             ShowDamageEffectClientRpc(hitPosition, actualDamage, isCritical, damageType);
+            
+            // 타격 이펙트 재생 (이펙트 시스템)
+            PlayHitEffect(hitPosition);
         }
-        
         
         /// <summary>
-        /// 공격 이펙트 재생
+        /// 타격 이펙트 재생 (무기/종족 기반)
         /// </summary>
-        [ClientRpc]
-        private void PlayAttackEffectClientRpc(Vector2 attackPosition, Vector2 attackDirection)
+        private void PlayHitEffect(Vector3 position)
         {
-            // 실제 이펙트 재생 코드
-            if (hitEffectPrefab != null)
+            if (EffectManager.Instance == null) return;
+            
+            EffectData hitEffect = GetHitEffect();
+            if (hitEffect != null)
             {
-                var effect = Instantiate(hitEffectPrefab, attackPosition, Quaternion.LookRotation(Vector3.forward, attackDirection));
-                Destroy(effect, 2f);
+                EffectManager.Instance.PlayHitEffect(hitEffect, position);
             }
         }
+        
+        /// <summary>
+        /// 현재 상황에 맞는 타격 이펙트 가져오기
+        /// </summary>
+        private EffectData GetHitEffect()
+        {
+            var statsManager = GetComponent<PlayerStatsManager>();
+            if (statsManager?.CurrentStats == null) return null;
+            
+            // 장착된 무기가 있으면 무기 이펙트 사용
+            if (statsManager.CurrentStats.EquippedWeapon?.HitEffect != null)
+            {
+                return statsManager.CurrentStats.EquippedWeapon.HitEffect;
+            }
+            
+            // 무기가 없으면 종족 기본 이펙트 사용
+            return statsManager.CurrentStats.RaceData?.DefaultHitEffect;
+        }
+        
         
         /// <summary>
         /// 데미지 이펙트 표시
@@ -364,13 +378,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             {
                 damageText = $"CRIT! {damageText}";
                 textColor = Color.red;
-                
-                // 치명타 이펙트
-                if (criticalHitEffectPrefab != null)
-                {
-                    var critEffect = Instantiate(criticalHitEffectPrefab, hitPosition, Quaternion.identity);
-                    Destroy(critEffect, 1.5f);
-                }
             }
             
             // 실제 UI 데미지 텍스트 표시는 추후 UI 시스템에서 구현
@@ -405,18 +412,134 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         private void ProcessSkillAttack(string skillId, Vector2 targetPosition)
         {
-            // 스킬별 데미지 계산 (추후 스킬 시스템에서 구현)
-            float minPercent = 80f; // 스킬별 설정값
-            float maxPercent = 200f; // 스킬별 설정값
-            DamageType skillType = DamageType.Physical; // 스킬별 설정값
+            var skillManager = GetComponent<SkillManager>();
+            if (skillManager == null) return;
             
-            if (statsManager?.CurrentStats != null)
+            // 스킬 데이터 가져오기
+            var skillData = skillManager.GetSkillData(skillId);
+            if (skillData == null)
             {
-                float skillDamage = statsManager.CurrentStats.CalculateSkillDamage(minPercent, maxPercent, skillType);
-                Debug.Log($"Skill {skillId} would deal {skillDamage:F1} damage");
+                Debug.LogWarning($"Skill data not found: {skillId}");
+                return;
             }
             
-            Debug.Log($"Skill attack: {skillId} at {targetPosition}");
+            Vector3 playerPosition = transform.position;
+            Vector3 targetPos = new Vector3(targetPosition.x, targetPosition.y, 0);
+            
+            // 스킬 행동 타입에 따라 처리
+            switch (skillData.behaviorType)
+            {
+                case SkillBehaviorType.Instant:
+                    ProcessInstantSkill(skillData, targetPos);
+                    break;
+                    
+                case SkillBehaviorType.Projectile:
+                    ProcessProjectileSkill(skillData, playerPosition, targetPos);
+                    break;
+                    
+                case SkillBehaviorType.Summon:
+                    ProcessSummonSkill(skillData, targetPos);
+                    break;
+            }
+        }
+        
+        /// <summary>
+        /// 즉시 발동 스킬 처리
+        /// </summary>
+        private void ProcessInstantSkill(SkillData skillData, Vector3 targetPosition)
+        {
+            // 즉시 데미지 적용
+            ApplySkillDamageAtPosition(skillData, targetPosition);
+            
+            // 타격 이펙트 재생
+            if (skillData.skillEffect != null && EffectManager.Instance != null)
+            {
+                EffectManager.Instance.PlayHitEffect(skillData.skillEffect, targetPosition);
+            }
+        }
+        
+        /// <summary>
+        /// 투사체 스킬 처리
+        /// </summary>
+        private void ProcessProjectileSkill(SkillData skillData, Vector3 startPosition, Vector3 targetPosition)
+        {
+            if (skillData.skillEffect != null && EffectManager.Instance != null)
+            {
+                EffectManager.Instance.StartProjectileSkillEffect(
+                    skillData.skillEffect, 
+                    startPosition, 
+                    targetPosition, 
+                    skillData.range,
+                    (hitPos) => ApplySkillDamageAtPosition(skillData, hitPos)
+                );
+            }
+            else
+            {
+                // 이펙트가 없으면 즉시 데미지 적용
+                ApplySkillDamageAtPosition(skillData, targetPosition);
+            }
+        }
+        
+        /// <summary>
+        /// 소환 스킬 처리
+        /// </summary>
+        private void ProcessSummonSkill(SkillData skillData, Vector3 targetPosition)
+        {
+            if (skillData.skillEffect != null && EffectManager.Instance != null)
+            {
+                EffectManager.Instance.StartSummonSkillEffect(
+                    skillData.skillEffect, 
+                    targetPosition,
+                    (pos, radius) => ApplySkillDamageInRadius(skillData, pos, radius)
+                );
+            }
+            else
+            {
+                // 이펙트가 없으면 즉시 데미지 적용
+                ApplySkillDamageAtPosition(skillData, targetPosition);
+            }
+        }
+        
+        /// <summary>
+        /// 특정 위치에서 스킬 데미지 적용
+        /// </summary>
+        private void ApplySkillDamageAtPosition(SkillData skillData, Vector3 position)
+        {
+            ApplySkillDamageInRadius(skillData, position, 0.5f); // 기본 0.5f 반경
+        }
+        
+        /// <summary>
+        /// 반경 내 적들에게 스킬 데미지 적용
+        /// </summary>
+        private void ApplySkillDamageInRadius(SkillData skillData, Vector3 position, float radius)
+        {
+            if (statsManager?.CurrentStats == null) return;
+            
+            // 데미지 계산
+            float skillDamage = statsManager.CurrentStats.CalculateSkillDamage(
+                skillData.minDamagePercent, skillData.maxDamagePercent, skillData.damageType);
+            
+            // 반경 내 적들 찾기
+            Collider2D[] enemies = Physics2D.OverlapCircleAll(position, radius, LayerMask.GetMask("Monster", "Player"));
+            
+            foreach (var enemy in enemies)
+            {
+                // 몬스터에게 데미지 적용
+                var monsterEntity = enemy.GetComponent<MonsterEntity>();
+                if (monsterEntity != null)
+                {
+                    var attackerNetworkObject = GetComponent<NetworkObject>();
+                    ulong attackerClientId = attackerNetworkObject?.OwnerClientId ?? 0;
+                    monsterEntity.TakeDamage(skillDamage, skillData.damageType, attackerClientId);
+                }
+                
+                // 플레이어에게 데미지 적용 (PvP)
+                var enemyPlayer = enemy.GetComponent<PlayerStatsManager>();
+                if (enemyPlayer != null && enemyPlayer != statsManager)
+                {
+                    enemyPlayer.TakeDamage(skillDamage, skillData.damageType);
+                }
+            }
         }
         
         /// <summary>

@@ -1,0 +1,72 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fae1b422f463a8443a96beed0a73ce50, type: 3}
+  m_Name: Ice_summon
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.EffectData
+  effectName: Ice_summon
+  effectType: 2
+  hitEffectFrames: []
+  hitFrameRate: 12
+  hitDuration: 1
+  projectileStartFrames: []
+  projectileRepeatableFrames: []
+  projectileHitFrames: []
+  projectileSpeed: 5
+  projectileFrameRate: 12
+  startDuration: 0.2
+  hitEffectDuration: 0.5
+  summonStartFrames:
+  - {fileID: 274328163, guid: d7f3cf51e3c540f4896c7d57338e181a, type: 3}
+  - {fileID: 1708664118, guid: d7f3cf51e3c540f4896c7d57338e181a, type: 3}
+  - {fileID: 491373095, guid: d7f3cf51e3c540f4896c7d57338e181a, type: 3}
+  - {fileID: -1750388132, guid: d7f3cf51e3c540f4896c7d57338e181a, type: 3}
+  - {fileID: -653024188, guid: d7f3cf51e3c540f4896c7d57338e181a, type: 3}
+  - {fileID: 2131118052, guid: d7f3cf51e3c540f4896c7d57338e181a, type: 3}
+  - {fileID: -206503417, guid: d7f3cf51e3c540f4896c7d57338e181a, type: 3}
+  - {fileID: 1515920331, guid: d7f3cf51e3c540f4896c7d57338e181a, type: 3}
+  - {fileID: -2082767483, guid: d7f3cf51e3c540f4896c7d57338e181a, type: 3}
+  summonActiveFrames:
+  - {fileID: 2130280602, guid: 6b33b8aceafcb2547aa94a07d6bf5478, type: 3}
+  - {fileID: -7484584, guid: 6b33b8aceafcb2547aa94a07d6bf5478, type: 3}
+  - {fileID: 839715555, guid: 6b33b8aceafcb2547aa94a07d6bf5478, type: 3}
+  - {fileID: -1899303997, guid: 6b33b8aceafcb2547aa94a07d6bf5478, type: 3}
+  - {fileID: 717504844, guid: 6b33b8aceafcb2547aa94a07d6bf5478, type: 3}
+  - {fileID: 1398850608, guid: 6b33b8aceafcb2547aa94a07d6bf5478, type: 3}
+  - {fileID: -1040511321, guid: 6b33b8aceafcb2547aa94a07d6bf5478, type: 3}
+  - {fileID: 551730430, guid: 6b33b8aceafcb2547aa94a07d6bf5478, type: 3}
+  summonRepeatableFrames: []
+  summonEndingFrames:
+  - {fileID: 1607849149, guid: 14d4b95f502061e499ec4771f7d9cc1d, type: 3}
+  - {fileID: -285622244, guid: 14d4b95f502061e499ec4771f7d9cc1d, type: 3}
+  - {fileID: -1583011399, guid: 14d4b95f502061e499ec4771f7d9cc1d, type: 3}
+  - {fileID: 428743419, guid: 14d4b95f502061e499ec4771f7d9cc1d, type: 3}
+  - {fileID: -1239182146, guid: 14d4b95f502061e499ec4771f7d9cc1d, type: 3}
+  - {fileID: -1882834717, guid: 14d4b95f502061e499ec4771f7d9cc1d, type: 3}
+  - {fileID: 169861539, guid: 14d4b95f502061e499ec4771f7d9cc1d, type: 3}
+  - {fileID: -2045996402, guid: 14d4b95f502061e499ec4771f7d9cc1d, type: 3}
+  - {fileID: 1325358708, guid: 14d4b95f502061e499ec4771f7d9cc1d, type: 3}
+  - {fileID: -480527371, guid: 14d4b95f502061e499ec4771f7d9cc1d, type: 3}
+  - {fileID: -36439892, guid: 14d4b95f502061e499ec4771f7d9cc1d, type: 3}
+  - {fileID: -85060055, guid: 14d4b95f502061e499ec4771f7d9cc1d, type: 3}
+  - {fileID: -1232528223, guid: 14d4b95f502061e499ec4771f7d9cc1d, type: 3}
+  - {fileID: 140748273, guid: 14d4b95f502061e499ec4771f7d9cc1d, type: 3}
+  - {fileID: 1324747752, guid: 14d4b95f502061e499ec4771f7d9cc1d, type: 3}
+  - {fileID: 588519210, guid: 14d4b95f502061e499ec4771f7d9cc1d, type: 3}
+  - {fileID: 691564840, guid: 14d4b95f502061e499ec4771f7d9cc1d, type: 3}
+  - {fileID: 1018158340, guid: 14d4b95f502061e499ec4771f7d9cc1d, type: 3}
+  summonFrameRate: 12
+  summonStartDuration: 0.5
+  summonActiveDuration: 2
+  summonRepeatableDuration: 0.3
+  summonEndingDuration: 0.5
+  damageRadius: 2
+  damageInterval: 0.5

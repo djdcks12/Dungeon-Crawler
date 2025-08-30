@@ -370,7 +370,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             }
         }
         
-        private void OnStatsUpdated(PlayerStats stats)
+        private void OnStatsUpdated(PlayerStatsData stats)
         {
             ApplyStatsFromManager();
         }
@@ -416,7 +416,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             }
         }
         
-        public PlayerStats GetCurrentStats()
+        public PlayerStatsData GetCurrentStats()
         {
             return statsManager?.CurrentStats;
         }
