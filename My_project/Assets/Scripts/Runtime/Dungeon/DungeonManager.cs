@@ -32,7 +32,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         private NetworkList<DungeonPlayer> dungeonPlayers;
         
         // 컴포넌트 참조
-        private List<MonsterSpawner> activeSpawners = new List<MonsterSpawner>();
+        private List<MonsterEntitySpawner> activeSpawners = new List<MonsterEntitySpawner>();
         private List<GameObject> currentFloorObjects = new List<GameObject>();
         
         // 던전 진행 상태
@@ -351,67 +351,29 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         }
         
         /// <summary>
-        /// 층별 몬스터 스폰
+        /// 층별 몬스터 스폰 (현대화된 시스템)
         /// </summary>
         private void SpawnMonstersForFloor(int floorNumber, FloorConfiguration floorConfig, DungeonData dungeonData)
         {
-            // 스폰 가능한 몬스터 목록
-            var spawnableMonsters = dungeonData.GetSpawnableMonsters(floorNumber);
-            if (spawnableMonsters.Count == 0)
-            {
-                Debug.LogWarning($"No spawnable monsters for floor {floorNumber}");
-                return;
-            }
-            
-            // 몬스터 스포너 생성 및 몬스터 스폰
+            // 몬스터 스포너 생성
             var spawnerObject = new GameObject($"Monster Spawner - Floor {floorNumber}");
             spawnerObject.transform.SetParent(dungeonRoot);
-            
-            var spawner = spawnerObject.AddComponent<MonsterSpawner>();
+
+            var spawner = spawnerObject.AddComponent<MonsterEntitySpawner>();
             var networkObject = spawnerObject.AddComponent<NetworkObject>();
             
             // 네트워크 스폰
             networkObject.Spawn();
             
-            // 일반 몬스터 스폰
-            for (int i = 0; i < floorConfig.monsterCount; i++)
-            {
-                var monsterInfo = SelectRandomMonster(spawnableMonsters, false);
-                if (monsterInfo != null && monsterInfo.monsterPrefab != null)
-                {
-                    Vector3 spawnPos = GetRandomSpawnPosition(floorConfig.floorSize);
-                    int monsterLevel = CalculateMonsterLevel(floorNumber, monsterInfo);
-                    
-                    spawner.SpawnSpecificMonster(monsterInfo.monsterPrefab, spawnPos, monsterLevel);
-                }
-            }
+            // 스포너 설정
+            spawner.SetCurrentFloor(floorNumber);
+            spawner.SetSpawningEnabled(true); // 자동 스폰 활성화
             
-            // 엘리트 몬스터 스폰
-            for (int i = 0; i < floorConfig.eliteCount; i++)
-            {
-                var monsterInfo = SelectRandomMonster(spawnableMonsters, true);
-                if (monsterInfo != null && monsterInfo.monsterPrefab != null)
-                {
-                    Vector3 spawnPos = GetRandomSpawnPosition(floorConfig.floorSize);
-                    int monsterLevel = CalculateMonsterLevel(floorNumber, monsterInfo) + 2; // 엘리트는 +2 레벨
-                    
-                    spawner.SpawnSpecificMonster(monsterInfo.monsterPrefab, spawnPos, monsterLevel);
-                }
-            }
-            
-            // 보스 스폰
-            if (floorConfig.hasBoss)
-            {
-                var bossInfo = dungeonData.GetBossForFloor(floorNumber);
-                if (bossInfo != null && bossInfo.bossPrefab != null)
-                {
-                    Vector3 bossSpawnPos = GetBossSpawnPosition(floorConfig.floorSize);
-                    spawner.SpawnSpecificMonster(bossInfo.bossPrefab, bossSpawnPos, bossInfo.level);
-                }
-            }
-            
+            // 활성 스포너 목록에 추가
             activeSpawners.Add(spawner);
             currentFloorObjects.Add(spawnerObject);
+            
+            Debug.Log($"🏭 Modern spawner created for floor {floorNumber} - using MonsterEntitySpawner's built-in spawn system");
         }
         
         /// <summary>
@@ -438,64 +400,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             }
             
             currentFloorObjects.Add(exitObject);
-        }
-        
-        /// <summary>
-        /// 랜덤 몬스터 선택
-        /// </summary>
-        private MonsterSpawnInfo SelectRandomMonster(List<MonsterSpawnInfo> monsters, bool eliteOnly)
-        {
-            var validMonsters = monsters.Where(m => eliteOnly ? m.isElite : !m.isElite).ToList();
-            if (validMonsters.Count == 0)
-            {
-                validMonsters = monsters; // 엘리트가 없으면 일반 몬스터라도
-            }
-            
-            // 가중치 기반 선택
-            float totalWeight = validMonsters.Sum(m => m.spawnWeight);
-            float randomValue = Random.Range(0f, totalWeight);
-            
-            float currentWeight = 0f;
-            foreach (var monster in validMonsters)
-            {
-                currentWeight += monster.spawnWeight;
-                if (randomValue <= currentWeight)
-                {
-                    return monster;
-                }
-            }
-            
-            return validMonsters[0]; // 안전장치
-        }
-        
-        /// <summary>
-        /// 몬스터 레벨 계산
-        /// </summary>
-        private int CalculateMonsterLevel(int floorNumber, MonsterSpawnInfo monsterInfo)
-        {
-            int baseLevel = Mathf.Clamp(floorNumber, monsterInfo.minLevel, monsterInfo.maxLevel);
-            return baseLevel;
-        }
-        
-        /// <summary>
-        /// 랜덤 스폰 위치 생성
-        /// </summary>
-        private Vector3 GetRandomSpawnPosition(Vector2 floorSize)
-        {
-            float x = Random.Range(-floorSize.x / 2, floorSize.x / 2);
-            float y = Random.Range(-floorSize.y / 2, floorSize.y / 2);
-            return new Vector3(x, y, 0);
-        }
-        
-        /// <summary>
-        /// 보스 스폰 위치 생성 (중앙 부근)
-        /// </summary>
-        private Vector3 GetBossSpawnPosition(Vector2 floorSize)
-        {
-            // 층의 중앙 부근에 스폰
-            float x = Random.Range(-floorSize.x * 0.2f, floorSize.x * 0.2f);
-            float y = Random.Range(-floorSize.y * 0.2f, floorSize.y * 0.2f);
-            return new Vector3(x, y, 0);
         }
         
         /// <summary>

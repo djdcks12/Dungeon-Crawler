@@ -29,15 +29,13 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         // 이벤트
         public System.Action<MonsterSkillData, float> OnSkillActivated;
         public System.Action<MonsterSkillData, float> OnSkillCooldownStarted;
-        
-        public override void OnNetworkSpawn()
-        {
-            base.OnNetworkSpawn();
-            
+
+        public void InitializeSkillSystem()
+        { 
             monsterEntity = GetComponent<MonsterEntity>();
             monsterAI = GetComponent<MonsterAI>();
             monsterCollider = GetComponent<Collider2D>();
-            
+
             if (IsServer)
             {
                 // 몬스터 엔티티 생성 완료 이벤트 구독
@@ -45,10 +43,14 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 {
                     monsterEntity.OnEntityGenerated += OnMonsterEntityGenerated;
                 }
-                
+
                 // 주기적 스킬 체크 시작
                 InvokeRepeating(nameof(UpdateSkills), 1f, skillUpdateInterval);
             }
+        }
+        public void CleanupSkillSystem()
+        { 
+            
         }
         
         public override void OnNetworkDespawn()
@@ -57,7 +59,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             {
                 monsterEntity.OnEntityGenerated -= OnMonsterEntityGenerated;
             }
-            
+
             CancelInvoke();
             base.OnNetworkDespawn();
         }

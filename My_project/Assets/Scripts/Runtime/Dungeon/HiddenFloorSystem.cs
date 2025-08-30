@@ -340,13 +340,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 // EconomySystem에 히든 층 모드 설정 (구현 필요)
             }
             
-            // 몬스터 난이도 증가
-            var spawners = FindObjectsOfType<MonsterSpawner>();
-            foreach (var spawner in spawners)
-            {
-                spawner.SetDifficultyMultiplier(hiddenFloorDifficultyMultiplier);
-            }
-            
             // PvP 강제 활성화 (영구 사망 모드)
             if (enablePermaDeathMode && PvPBalanceSystem.Instance != null)
             {

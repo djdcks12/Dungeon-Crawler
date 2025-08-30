@@ -52,17 +52,15 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             // 기본 컴포넌트들 추가 (GoblinNormal 기반)
             var rigidBody = monsterObject.AddComponent<Rigidbody2D>();
             rigidBody.gravityScale = 0f; // 2D 탑다운이므로 중력 없음
+            rigidBody.bodyType = RigidbodyType2D.Dynamic; // AI 이동을 위해 Dynamic으로 변경
             
             var collider = monsterObject.AddComponent<CircleCollider2D>();
-            collider.radius = 0.5f;
+            collider.radius = 0.1f;
             
             // SpriteRenderer 추가
             var spriteRenderer = monsterObject.AddComponent<SpriteRenderer>();
             spriteRenderer.sortingLayerName = "Characters";
             spriteRenderer.sortingOrder = 0;
-            
-            // 네트워크 컴포넌트들
-            var networkObject = monsterObject.AddComponent<NetworkObject>();
             
             // 몬스터 핵심 컴포넌트들
             var monsterEntity = monsterObject.AddComponent<MonsterEntity>();
@@ -70,6 +68,9 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             
             // 몬스터 애니메이션 시스템
             var animationController = monsterObject.AddComponent<MonsterSpriteAnimator>();
+
+            monsterObject.AddComponent<MonsterSkillSystem>();
+            monsterObject.AddComponent<MonsterSoulDropSystem>();
             
             // 풀 관리 컴포넌트
             var poolable = monsterObject.AddComponent<PoolableMonster>();
@@ -141,34 +142,106 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             if (spriteRenderer != null && variantData != null && variantData.IdleSprites != null && variantData.IdleSprites.Length > 0)
             {
                 spriteRenderer.sprite = variantData.IdleSprites[0];
+                spriteRenderer.sortingLayerName = "PlayerOrMonster";
             }
-
-            spriteRenderer.sortingLayerName = "PlayerOrMonster";
             
+            // 모든 컴포넌트 명시적 초기화
+            InitializeAllComponents(monster);
+            
+        }
+
+        /// <summary>
+        /// 모든 컴포넌트 초기화
+        /// </summary>
+        private void InitializeAllComponents(GameObject monster)
+        {
+            Debug.Log($"🔧 Initializing all components for {monster.name}");
+
+            // MonsterAI 초기화
+            var monsterAI = monster.GetComponent<MonsterAI>();
+            if (monsterAI != null)
+            {
+                monsterAI.InitializeAI();
+            }
+            var monsterSkillSystem = monster.GetComponent<MonsterSkillSystem>();
+            if (monsterSkillSystem != null)
+            {
+                monsterSkillSystem.InitializeSkillSystem();
+            }
         }
         
         /// <summary>
-        /// 풀로 몬스터 반환
+        /// 모든 컴포넌트 정리
+        /// </summary>
+        private void CleanupAllComponents(GameObject monster)
+        {
+            Debug.Log($"🧹 Cleaning up all components for {monster.name}");
+            
+            // MonsterAI 정리
+            var monsterAI = monster.GetComponent<MonsterAI>();
+            if (monsterAI != null)
+            {
+                monsterAI.CleanupAI();
+            }
+            var monsterSkillSystem = monster.GetComponent<MonsterSkillSystem>();
+            if (monsterSkillSystem != null)
+            {
+                monsterSkillSystem.CleanupSkillSystem();
+            }
+            
+            // MonsterEntity 정리
+                var monsterEntity = monster.GetComponent<MonsterEntity>();
+            if (monsterEntity != null)
+            {
+                monsterEntity.ResetEntity();
+            }
+            
+            // MonsterSpriteAnimator 정리
+            var animationController = monster.GetComponent<MonsterSpriteAnimator>();
+            if (animationController != null)
+            {
+                animationController.StopAllAnimations();
+            }
+        }
+        
+        /// <summary>
+        /// 풀로 몬스터 반환 (NetworkObject 제거)
         /// </summary>
         public void ReturnMonster(GameObject monster)
         {
             if (monster == null) return;
             
+            // NetworkObject가 있다면 Despawn 후 제거
+            var networkObject = monster.GetComponent<NetworkObject>();
+            if (networkObject != null)
+            {
+                try 
+                {
+                    if (networkObject.IsSpawned)
+                    {
+                        networkObject.Despawn(false); // destroy=false
+                    }
+                }
+                catch (System.Exception e)
+                {
+                    Debug.LogWarning($"⚠️ Failed to despawn NetworkObject: {e.Message}");
+                }
+                
+                // NetworkObject 컴포넌트 제거
+                DestroyImmediate(networkObject);
+                Debug.Log($"🔧 Removed NetworkObject from {monster.name}");
+            }
+            
             monster.SetActive(false);
             monster.transform.SetParent(transform);
             
-            // 몬스터 컴포넌트 초기화
-            var monsterEntity = monster.GetComponent<MonsterEntity>();
-            monsterEntity?.ResetEntity();
-            
-            var monsterAI = monster.GetComponent<MonsterAI>();
-            //monsterAI?.ResetAI();
-            
-            var animationController = monster.GetComponent<MonsterSpriteAnimator>();
-            animationController?.StopAllAnimations();
+            // 모든 컴포넌트 명시적 정리
+            CleanupAllComponents(monster);
             
             activeMonsters.Remove(monster);
             availableMonsters.Enqueue(monster);
+            
+            Debug.Log($"♻️ Monster returned to pool: {monster.name}");
         }
         
         /// <summary>

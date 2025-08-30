@@ -174,33 +174,35 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                     Debug.LogError("MonsterObjectPool.Instance is null or failed to get pooled monster");
                     yield break;
                 }
+
+                // 추가 컴포넌트들 확인/추가
+                var monsterEntity = monsterObject.GetComponent<MonsterEntity>();
                 
+                // 모든 컴포넌트 설정 완료 후 몬스터 엔티티 설정
+                SetupMonsterEntity(monsterObject, spawnData, grade, monsterEntity);
+                
+                // 컴포넌트 설정이 완료된 후 NetworkObject 추가 및 스폰
                 var networkObject = monsterObject.GetComponent<NetworkObject>();
-                
-                if (networkObject != null)
+                if (networkObject == null)
                 {
-                    // 서버에서 스폰
-                    try 
-                    {
-                        networkObject.Spawn(true);
-                    }
-                    catch (System.Exception e)
-                    {
-                        Debug.LogError($"❌ Failed to spawn {monsterObject.name}: {e.Message}");
-                        // 풀로 반환
-                        MonsterObjectPool.Instance?.ReturnMonster(monsterObject);
-                        yield break;
-                    }
-                    
-                    // 컴포넌트 설정
-                    yield return null; // 한 프레임 대기
-                    
-                    SetupMonsterEntity(monsterObject, spawnData, grade);
+                    networkObject = monsterObject.AddComponent<NetworkObject>();
                 }
-                else
+                
+                // 서버에서 스폰
+                try 
                 {
-                    Debug.LogError($"Pooled monster is missing NetworkObject component");
+                    networkObject.Spawn(true);
+                }
+                catch (System.Exception e)
+                {
+                    Debug.LogError($"❌ Failed to spawn {monsterObject.name}: {e.Message}");
+                    // NetworkObject 제거 후 풀로 반환
+                    if (networkObject != null)
+                    {
+                        DestroyImmediate(networkObject);
+                    }
                     MonsterObjectPool.Instance?.ReturnMonster(monsterObject);
+                    yield break;
                 }
                 
                 lastSpawnTime = Time.time;
@@ -300,34 +302,8 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// <summary>
         /// 몬스터 엔티티 설정
         /// </summary>
-        private void SetupMonsterEntity(GameObject monsterObject, MonsterEntitySpawnData spawnData, float grade)
+        private void SetupMonsterEntity(GameObject monsterObject, MonsterEntitySpawnData spawnData, float grade, MonsterEntity monsterEntity)
         {            
-            // SpawnData 유효성 검증
-            if (spawnData.raceData == null || spawnData.variantData == null)
-            {
-                Debug.LogError($"❌ SetupMonsterEntity: Invalid spawn data! race={spawnData.raceData?.raceName ?? "NULL"}, variant={spawnData.variantData?.variantName ?? "NULL"}");
-                return;
-            }
-            // MonsterEntity 설정
-            var monsterEntity = monsterObject.GetComponent<MonsterEntity>();
-            if (monsterEntity == null)
-            {
-                monsterEntity = monsterObject.AddComponent<MonsterEntity>();
-            }
-            
-            // MonsterSkillSystem 확인/추가
-            if (monsterObject.GetComponent<MonsterSkillSystem>() == null)
-            {
-                monsterObject.AddComponent<MonsterSkillSystem>();
-            }
-            
-            // MonsterSoulDropSystem 확인/추가
-            var soulDropSystem = monsterObject.GetComponent<MonsterSoulDropSystem>();
-            if (soulDropSystem == null)
-            {
-                soulDropSystem = monsterObject.AddComponent<MonsterSoulDropSystem>();
-            }
-            
             // 몬스터 생성 (종족 + 개체 + 등급)
             Debug.Log($"🔧 SetupMonsterEntity: Calling GenerateMonster with race={spawnData.raceData?.raceName}, variant={spawnData.variantData?.variantName}, grade={grade}");
             monsterEntity.GenerateMonster(spawnData.raceData, spawnData.variantData, grade);
@@ -357,15 +333,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 soulDropSystem.CheckMonsterSoulDrop(monsterEntity);
             }
             
-            // NetworkObject가 있으면 네트워크에서 제거
-            var networkObject = monsterEntity.GetComponent<NetworkObject>();
-            if (networkObject != null && networkObject.IsSpawned)
-            {
-                Debug.Log($"💀 Despawning NetworkObject for {monsterEntity.name}");
-                networkObject.Despawn(false); // destroy=false로 설정
-            }
-            
-            // 풀로 반환
+            // 풀로 반환 (NetworkObject 처리는 ReturnMonster에서)
             var poolable = monsterEntity.GetComponent<PoolableMonster>();
             if (poolable != null)
             {
@@ -394,73 +362,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 {
                     activeMonsters.RemoveAt(i);
                 }
-            }
-        }
-        
-        /// <summary>
-        /// 특정 위치에 특정 몬스터 엔티티 스폰
-        /// </summary>
-        public MonsterEntity SpawnSpecificMonsterEntity(MonsterRaceData raceData, MonsterVariantData variantData, 
-                                                        Vector3 position, float? forceGrade = null)
-        {
-            if (!IsServer) return null;
-            
-            if (raceData == null || variantData == null)
-            {
-                Debug.LogError("Cannot spawn monster entity: missing race or variant data");
-                return null;
-            }
-            
-            float grade = forceGrade ?? DetermineMonsterGrade();
-            
-            var monsterObject = Instantiate(variantData.prefab, position, Quaternion.identity);
-            var networkObject = monsterObject.GetComponent<NetworkObject>();
-            
-            // NetworkObject가 없으면 추가
-            if (networkObject == null)
-            {
-                networkObject = monsterObject.AddComponent<NetworkObject>();
-                Debug.Log($"🔧 Added NetworkObject to {monsterObject.name} (manual spawn)");
-            }
-            
-            if (networkObject != null)
-            {
-                // NetworkPrefab으로 등록 (런타임)
-                if (NetworkManager.Singleton != null && !NetworkManager.Singleton.NetworkConfig.Prefabs.Contains(monsterObject))
-                {
-                    var networkPrefab = new NetworkPrefab();
-                    networkPrefab.Prefab = monsterObject;
-                    NetworkManager.Singleton.NetworkConfig.Prefabs.Add(networkPrefab);
-                    Debug.Log($"🔧 Added {monsterObject.name} to NetworkPrefabs list (manual)");
-                }
-                
-                Debug.Log($"🔧 Attempting to spawn NetworkObject for {monsterObject.name} (manual)...");
-                try 
-                {
-                    networkObject.Spawn(true);
-                    Debug.Log($"✅ Successfully spawned {monsterObject.name}, IsSpawned: {networkObject.IsSpawned}");
-                }
-                catch (System.Exception e)
-                {
-                    Debug.LogError($"❌ Failed to spawn {monsterObject.name}: {e.Message}");
-                }
-                
-                var spawnData = new MonsterEntitySpawnData
-                {
-                    raceData = raceData,
-                    variantData = variantData,
-                    basePrefab = variantData.prefab,
-                    spawnWeight = 1f
-                };
-                
-                SetupMonsterEntity(monsterObject, spawnData, grade);
-                
-                return monsterObject.GetComponent<MonsterEntity>();
-            }
-            else
-            {
-                Destroy(monsterObject);
-                return null;
             }
         }
         

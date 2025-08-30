@@ -278,10 +278,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         private void CheckPhaseTransition()
         {
-            var monsterHealth = GetComponent<MonsterHealth>();
-            if (monsterHealth == null) return;
-            
-            float healthPercent = (float)monsterHealth.CurrentHealth / monsterHealth.MaxHealth;
+            var healthPercent = (float)monsterEntity.CurrentHealth / monsterEntity.MaxHealth;
             int expectedPhase = Mathf.FloorToInt((1f - healthPercent) * phaseCount) + 1;
             expectedPhase = Mathf.Clamp(expectedPhase, 1, phaseCount);
             
