@@ -28,16 +28,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// <summary>
         /// 타격 이펙트 재생 (타겟 위치에)
         /// </summary>
-        public void PlayHitEffect(EffectData effectData, Vector3 position)
-        {
-            if (effectData?.HitEffectFrames == null || effectData.HitEffectFrames.Length == 0) return;
-            
-            // 모든 클라이언트에서 재생
-            PlayHitEffectClientRpc(effectData.name, position);
-        }
-        
-        [ClientRpc]
-        private void PlayHitEffectClientRpc(string effectDataName, Vector3 position)
+        public void PlayHitEffect(string effectDataName, Vector3 position, Transform target = null)
         {
             // Resources에서 EffectData 로드
             var effectData = Resources.Load<EffectData>($"ScriptableObjects/EffectData/{effectDataName}");
@@ -47,7 +38,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             // Texture2D 배열이 있으면 풀에서 오브젝트 가져와서 재생
             if (effectData.HitEffectFrames != null && effectData.HitEffectFrames.Length > 0)
             {
-                effectObject = EffectObjectPool.Instance.PlayTextureEffect(position, Quaternion.identity, effectData.HitEffectFrames, effectData.HitFrameRate, false, effectData.HitDuration);
+                effectObject = EffectObjectPool.Instance.PlayTextureEffect(position, Quaternion.identity, effectData.HitEffectFrames, effectData.HitFrameRate, false, effectData.HitDuration, target);
             }
         }
         

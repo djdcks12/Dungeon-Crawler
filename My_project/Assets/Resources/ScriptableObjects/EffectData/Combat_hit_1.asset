@@ -22,8 +22,8 @@ MonoBehaviour:
   - {fileID: 4952203022734778140, guid: 2fe94e2a0dfcd944eb57cd2cd306cf03, type: 3}
   - {fileID: 6892047151256956130, guid: 2fe94e2a0dfcd944eb57cd2cd306cf03, type: 3}
   - {fileID: 570119033, guid: 2fe94e2a0dfcd944eb57cd2cd306cf03, type: 3}
-  hitFrameRate: 1
-  hitDuration: 1
+  hitFrameRate: 6
+  hitDuration: 0.3
   projectileStartFrames: []
   projectileRepeatableFrames: []
   projectileHitFrames: []

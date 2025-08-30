@@ -12,6 +12,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
     public class MonsterVariantData : ScriptableObject
     {
         [Header("Variant Information")]
+        [SerializeField] private string variantId;
         public string variantName;
         [TextArea(2, 4)]
         public string description;
@@ -43,7 +44,23 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         [Header("Variant Drops")]
         [SerializeField] private MonsterDropItem[] variantDrops; // 개체별 특별 드롭
         
+        [Header("Animation Sprites")]
+        [SerializeField] private Sprite[] idleSprites; // Idle 상태 스프라이트 배열
+        [SerializeField] private Sprite[] moveSprites; // 이동 상태 스프라이트 배열
+        [SerializeField] private Sprite[] attackSprites; // 공격 상태 스프라이트 배열
+        [SerializeField] private Sprite[] castingSprites; // 스킬 시전 상태 스프라이트 배열
+        
+        [Header("Animation Settings")]
+        [SerializeField] private float idleFrameRate = 6f;
+        [SerializeField] private float moveFrameRate = 8f;
+        [SerializeField] private float attackFrameRate = 12f;
+        [SerializeField] private float castingFrameRate = 10f;
+        
+        [Header("Effects")]
+        [SerializeField] private EffectData attackEffect; // 몬스터 공격 이펙트
+        
         // 프로퍼티들
+        public string VariantId => !string.IsNullOrEmpty(variantId) ? variantId : name; // variantId가 없으면 ScriptableObject name 사용
         public StatBlock StatMinVariance => statMinVariance;
         public StatBlock StatMaxVariance => statMaxVariance;
         public MonsterSkillReference[] VariantMandatorySkills => variantMandatorySkills;
@@ -54,6 +71,17 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         public MonsterAIType PreferredAIType => preferredAIType;
         public float AggressionMultiplier => aggressionMultiplier;
         public MonsterDropItem[] VariantDrops => variantDrops;
+        public EffectData AttackEffect => attackEffect;
+        
+        // Animation 프로퍼티들
+        public Sprite[] IdleSprites => idleSprites;
+        public Sprite[] MoveSprites => moveSprites;
+        public Sprite[] AttackSprites => attackSprites;
+        public Sprite[] CastingSprites => castingSprites;
+        public float IdleFrameRate => idleFrameRate;
+        public float MoveFrameRate => moveFrameRate;
+        public float AttackFrameRate => attackFrameRate;
+        public float CastingFrameRate => castingFrameRate;
         
         /// <summary>
         /// 개체별 스탯 편차 적용

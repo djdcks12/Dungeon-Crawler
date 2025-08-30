@@ -191,6 +191,7 @@ GameObject:
   - component: {fileID: 122415339}
   - component: {fileID: 122415337}
   - component: {fileID: 122415338}
+  - component: {fileID: 122415340}
   m_Layer: 0
   m_Name: MonsterEntitySpawner
   m_TagString: Untagged
@@ -274,6 +275,20 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &122415340
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 122415336}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 057ec633340df1340ab024b9a94d6b22, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.MonsterObjectPool
+  initialPoolSize: 10
+  maxPoolSize: 30
 --- !u!1 &155544386
 GameObject:
   m_ObjectHideFlags: 0
