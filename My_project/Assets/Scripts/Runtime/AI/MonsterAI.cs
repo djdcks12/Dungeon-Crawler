@@ -447,31 +447,11 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 // 모든 클라이언트에 공격 이펙트 및 애니메이션 동기화
                 TriggerAttackAnimationClientRpc(currentTarget.transform.position, actualDamage);
                 
-                // 몬스터 공격 이펙트 재생 (종족별)
-                PlayMonsterAttackEffect(currentTarget.transform.position);
-                
                 Debug.Log($"👹 {name} attacked {currentTarget.name} for {actualDamage} damage");
             }
             else
             {
                 Debug.LogError($"❌ {name} PlayerStatsManager not found on {currentTarget.name}");
-            }
-        }
-        
-        /// <summary>
-        /// 몬스터 공격 이펙트 재생 (종족별)
-        /// </summary>
-        protected virtual void PlayMonsterAttackEffect(Vector3 targetPosition)
-        {
-            if (EffectManager.Instance == null) return;
-            
-            var monsterEntity = GetComponent<MonsterEntity>();
-            if (monsterEntity == null) return;
-            
-            EffectData attackEffect = GetMonsterAttackEffect(monsterEntity);
-            if (attackEffect != null)
-            {
-                EffectManager.Instance.PlayHitEffect(attackEffect, targetPosition);
             }
         }
         
@@ -586,7 +566,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             
             transform.position = targetPosition;
         }
-        
+
         /// <summary>
         /// 공격 애니메이션 및 이펙트 (모든 클라이언트)
         /// </summary>
@@ -598,8 +578,19 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             {
                 StartCoroutine(AttackColorAnimation());
             }
+
+            if (EffectManager.Instance == null) return;
+
+            var monsterEntity = GetComponent<MonsterEntity>();
+            if (monsterEntity == null) return;
+
+            EffectData attackEffect = GetMonsterAttackEffect(monsterEntity);
+            if (attackEffect != null)
+            {
+                EffectManager.Instance.PlayHitEffect(attackEffect.name, targetPosition);
+            }
             
-            // 추후 파티클 이펙트, 사운드 등 추가 가능
+            // 추후 사운드 등 추가 가능
         }
         
         /// <summary>

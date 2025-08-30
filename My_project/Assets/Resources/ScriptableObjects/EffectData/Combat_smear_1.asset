@@ -20,8 +20,8 @@ MonoBehaviour:
   - {fileID: -160102796, guid: e337d75dcd1f5de4e8d7a2b09fb55ec2, type: 3}
   - {fileID: -1722930414, guid: e337d75dcd1f5de4e8d7a2b09fb55ec2, type: 3}
   - {fileID: -510961226, guid: e337d75dcd1f5de4e8d7a2b09fb55ec2, type: 3}
-  hitFrameRate: 1
-  hitDuration: 1
+  hitFrameRate: 5
+  hitDuration: 0.3
   projectileStartFrames: []
   projectileRepeatableFrames: []
   projectileHitFrames: []

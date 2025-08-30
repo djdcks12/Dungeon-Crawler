@@ -50,4 +50,26 @@ MonoBehaviour:
     maxQuantity: 1
     minLevel: 80
     maxLevel: 120
+  idleSprites:
+  - {fileID: -3145328045451892686, guid: 07b877e68acdc7440a088e313606df98, type: 3}
+  - {fileID: -6552843917330368855, guid: 07b877e68acdc7440a088e313606df98, type: 3}
+  - {fileID: 7309844833446704383, guid: 07b877e68acdc7440a088e313606df98, type: 3}
+  - {fileID: -1701584443341091289, guid: 07b877e68acdc7440a088e313606df98, type: 3}
+  moveSprites:
+  - {fileID: -3145328045451892686, guid: 07b877e68acdc7440a088e313606df98, type: 3}
+  - {fileID: -6552843917330368855, guid: 07b877e68acdc7440a088e313606df98, type: 3}
+  - {fileID: 7309844833446704383, guid: 07b877e68acdc7440a088e313606df98, type: 3}
+  - {fileID: -1701584443341091289, guid: 07b877e68acdc7440a088e313606df98, type: 3}
+  attackSprites:
+  - {fileID: 5807353947552565585, guid: bf18ffc752bc5264d966f14fbe356341, type: 3}
+  - {fileID: -3540906705339577628, guid: bf18ffc752bc5264d966f14fbe356341, type: 3}
+  - {fileID: -6677707856435898171, guid: bf18ffc752bc5264d966f14fbe356341, type: 3}
+  - {fileID: 4002533974423468926, guid: bf18ffc752bc5264d966f14fbe356341, type: 3}
+  - {fileID: 2964676863673857177, guid: bf18ffc752bc5264d966f14fbe356341, type: 3}
+  - {fileID: -4675099393403972317, guid: bf18ffc752bc5264d966f14fbe356341, type: 3}
+  castingSprites: []
+  idleFrameRate: 6
+  moveFrameRate: 8
+  attackFrameRate: 12
+  castingFrameRate: 10
   attackEffect: {fileID: 11400000, guid: 0bc19c87374f1b64a9342bda65b3f4cf, type: 2}

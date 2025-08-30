@@ -56,9 +56,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         
         [Header("Visual Effects")]
         public EffectData skillEffect; // 새로운 이펙트 시스템
-        public GameObject castEffectPrefab;
-        public GameObject hitEffectPrefab;
-        public GameObject buffEffectPrefab;
         public AudioClip castSound;
         public AudioClip hitSound;
         

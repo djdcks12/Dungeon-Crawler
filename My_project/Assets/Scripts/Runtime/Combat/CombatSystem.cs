@@ -328,20 +328,21 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             ShowDamageEffectClientRpc(hitPosition, actualDamage, isCritical, damageType);
             
             // 타격 이펙트 재생 (이펙트 시스템)
-            PlayHitEffect(hitPosition);
+            PlayHitEffectClientRpc(hitPosition);
         }
         
         /// <summary>
         /// 타격 이펙트 재생 (무기/종족 기반)
         /// </summary>
-        private void PlayHitEffect(Vector3 position)
+        [ClientRpc]
+        private void PlayHitEffectClientRpc(Vector3 position)
         {
             if (EffectManager.Instance == null) return;
             
             EffectData hitEffect = GetHitEffect();
             if (hitEffect != null)
             {
-                EffectManager.Instance.PlayHitEffect(hitEffect, position);
+                EffectManager.Instance.PlayHitEffect(hitEffect.name, position,this.transform);
             }
         }
         
@@ -450,12 +451,13 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         {
             // 즉시 데미지 적용
             ApplySkillDamageAtPosition(skillData, targetPosition);
-            
-            // 타격 이펙트 재생
-            if (skillData.skillEffect != null && EffectManager.Instance != null)
-            {
-                EffectManager.Instance.PlayHitEffect(skillData.skillEffect, targetPosition);
-            }
+            PlayHitEffectClientRpc(skillData.skillEffect.name, targetPosition);
+        }
+
+        [ClientRpc]
+        private void PlayHitEffectClientRpc(string effectName,Vector3 targetPosition)
+        {
+            EffectManager.Instance.PlayHitEffect(effectName, targetPosition);
         }
         
         /// <summary>
@@ -466,9 +468,9 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             if (skillData.skillEffect != null && EffectManager.Instance != null)
             {
                 EffectManager.Instance.StartProjectileSkillEffect(
-                    skillData.skillEffect, 
-                    startPosition, 
-                    targetPosition, 
+                    skillData.skillEffect,
+                    startPosition,
+                    targetPosition,
                     skillData.range,
                     (hitPos) => ApplySkillDamageAtPosition(skillData, hitPos)
                 );

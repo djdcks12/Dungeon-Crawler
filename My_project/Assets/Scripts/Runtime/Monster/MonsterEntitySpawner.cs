@@ -166,26 +166,19 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 // 등급 결정
                 float grade = DetermineMonsterGrade();
                 
-                // 몬스터 엔티티 생성
-                var monsterObject = Instantiate(spawnData.basePrefab, spawnPosition, Quaternion.identity);
-                var networkObject = monsterObject.GetComponent<NetworkObject>();
+                // 몬스터 오브젝트 풀에서 가져오기
+                var monsterObject = MonsterObjectPool.Instance?.GetPooledMonster(spawnPosition, spawnData.variantData);
                 
-                // NetworkObject가 없으면 추가
-                if (networkObject == null)
+                if (monsterObject == null)
                 {
-                    networkObject = monsterObject.AddComponent<NetworkObject>();
+                    Debug.LogError("MonsterObjectPool.Instance is null or failed to get pooled monster");
+                    yield break;
                 }
+                
+                var networkObject = monsterObject.GetComponent<NetworkObject>();
                 
                 if (networkObject != null)
                 {
-                    // NetworkPrefab으로 등록 (런타임)
-                    if (NetworkManager.Singleton != null && !NetworkManager.Singleton.NetworkConfig.Prefabs.Contains(monsterObject))
-                    {
-                        var networkPrefab = new NetworkPrefab();
-                        networkPrefab.Prefab = monsterObject;
-                        NetworkManager.Singleton.NetworkConfig.Prefabs.Add(networkPrefab);
-                    }
-                    
                     // 서버에서 스폰
                     try 
                     {
@@ -194,6 +187,9 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                     catch (System.Exception e)
                     {
                         Debug.LogError($"❌ Failed to spawn {monsterObject.name}: {e.Message}");
+                        // 풀로 반환
+                        MonsterObjectPool.Instance?.ReturnMonster(monsterObject);
+                        yield break;
                     }
                     
                     // 컴포넌트 설정
@@ -203,8 +199,8 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 }
                 else
                 {
-                    Debug.LogError($"Monster prefab {spawnData.basePrefab.name} is missing NetworkObject component");
-                    Destroy(monsterObject);
+                    Debug.LogError($"Pooled monster is missing NetworkObject component");
+                    MonsterObjectPool.Instance?.ReturnMonster(monsterObject);
                 }
                 
                 lastSpawnTime = Time.time;
@@ -305,16 +301,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// 몬스터 엔티티 설정
         /// </summary>
         private void SetupMonsterEntity(GameObject monsterObject, MonsterEntitySpawnData spawnData, float grade)
-        {
-            Debug.Log($"🔧 SetupMonsterEntity: IsServer={IsServer}, NetworkObjectId={NetworkObjectId}");
-            Debug.Log($"🔧 SpawnData: race={spawnData.raceData?.raceName ?? "NULL"}, variant={spawnData.variantData?.variantName ?? "NULL"}, grade={grade}");
-            
-            if (!IsServer)
-            {
-                Debug.LogWarning($"⚠️ SetupMonsterEntity called on client (IsServer={IsServer}). Continuing anyway for testing...");
-                // return을 주석처리해서 계속 진행하도록 함 (테스트용)
-            }
-            
+        {            
             // SpawnData 유효성 검증
             if (spawnData.raceData == null || spawnData.variantData == null)
             {
@@ -348,27 +335,10 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             // 사망 이벤트 구독
             monsterEntity.OnDeath += () => OnMonsterEntityDeath(monsterEntity);
             
-            // 층별 난이도 적용
-            ApplyFloorDifficulty(monsterEntity);
-            
             // 활성 몬스터 목록에 추가
             activeMonsters.Add(monsterEntity);
             
             Debug.Log($"✨ Spawned {spawnData.variantData.variantName} ({grade}) on floor {currentFloor}");
-        }
-        
-        /// <summary>
-        /// 층별 난이도 적용
-        /// </summary>
-        private void ApplyFloorDifficulty(MonsterEntity monsterEntity)
-        {
-            if (currentFloor <= 1) return;
-            
-            // 층수에 따른 배율 계산
-            float difficultyMultiplier = Mathf.Pow(floorDifficultyMultiplier, currentFloor - 1);
-            
-            // 스탯 강화는 MonsterEntity 내부에서 처리됨 (이미 적용됨)
-            Debug.Log($"🏔️ Applied floor {currentFloor} difficulty (x{difficultyMultiplier:F2}) to {monsterEntity.VariantData.variantName}");
         }
         
         /// <summary>
@@ -387,18 +357,24 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 soulDropSystem.CheckMonsterSoulDrop(monsterEntity);
             }
             
-            // NetworkObject가 있으면 네트워크에서 삭제
+            // NetworkObject가 있으면 네트워크에서 제거
             var networkObject = monsterEntity.GetComponent<NetworkObject>();
             if (networkObject != null && networkObject.IsSpawned)
             {
                 Debug.Log($"💀 Despawning NetworkObject for {monsterEntity.name}");
-                networkObject.Despawn();
+                networkObject.Despawn(false); // destroy=false로 설정
+            }
+            
+            // 풀로 반환
+            var poolable = monsterEntity.GetComponent<PoolableMonster>();
+            if (poolable != null)
+            {
+                poolable.OnMonsterDeath(); // 2초 후 풀로 반환
             }
             else
             {
-                // 일반 GameObject로 삭제
-                Debug.Log($"💀 Destroying GameObject for {monsterEntity.name}");
-                Destroy(monsterEntity.gameObject);
+                // 풀링 컴포넌트가 없으면 직접 풀로 반환
+                MonsterObjectPool.Instance?.ReturnMonster(monsterEntity.gameObject);
             }
             
             // 활성 몬스터 목록에서 즉시 제거

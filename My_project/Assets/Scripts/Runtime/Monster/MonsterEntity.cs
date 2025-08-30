@@ -32,6 +32,9 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         private NetworkVariable<float> networkMaxHP = new NetworkVariable<float>(100f, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
         private NetworkVariable<bool> networkIsDead = new NetworkVariable<bool>(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
         
+        // 개체별 고유 ID (경험치 중복 방지용)
+        private string entityId;
+        
         // 서버 전용 변수들
         private float currentMP = 50f;
         private float maxMP = 50f;
@@ -41,6 +44,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         public float CurrentHP => networkCurrentHP.Value;
         public float MaxHP => networkMaxHP.Value;
         public bool IsDead => networkIsDead.Value;
+        public string EntityId => entityId;
         
         // 컴포넌트 참조
         private MonsterAI monsterAI;
@@ -293,6 +297,13 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             maxMP = maxMana;
             currentMP = maxMana;
             itemsDropped = false; // 아이템 드롭 플래그 초기화
+            
+            // 개체별 고유 ID 설정 (MonsterVariantData 기준)
+            if (string.IsNullOrEmpty(entityId) && variantData != null)
+            {
+                entityId = variantData.VariantId;
+                Debug.Log($"🔑 MonsterEntity assigned variant ID: {entityId}");
+            }
         }
         
         /// <summary>
@@ -470,8 +481,8 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             long expReward = raceData.CalculateExperienceForGrade(grade);
             long goldReward = raceData.CalculateGoldForGrade(grade);
             
-            var monsterNetworkObject = GetComponent<NetworkObject>();
-            ulong monsterId = monsterNetworkObject != null ? monsterNetworkObject.NetworkObjectId : 0;
+            // 개체 고유 ID 사용 (NetworkObjectId 대신)
+            string monsterEntityId = entityId;
             int playersRewarded = 0;
 
             // 공격에 참여한 플레이어들에게만 경험치 지급
@@ -486,8 +497,8 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                         var statsManager = player.GetComponent<PlayerStatsManager>();
                         if (statsManager != null && !statsManager.IsDead)
                         {
-                            // 중복 방지 경험치 획득 시도
-                            if (statsManager.TryGainExperienceFromMonster(monsterId, expReward))
+                            // 중복 방지 경험치 획득 시도 (개체 ID 기준)
+                            if (statsManager.TryGainExperienceFromMonster(monsterEntityId, expReward))
                             {
                                 playersRewarded++;
                             }
@@ -684,6 +695,63 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         {
             // MonsterEntity는 이미 GenerateMonster로 초기화되므로 추가 설정 필요 시 여기서 처리
             Debug.Log($"MonsterEntity {monsterName} info set (compatibility mode)");
+        }
+        
+        /// <summary>
+        /// 풀 시스템용: 몬스터 엔티티 초기화
+        /// </summary>
+        public void ResetEntity()
+        {
+            // 상태 초기화
+            networkIsDead.Value = false;
+            networkCurrentHP.Value = 100f;
+            networkMaxHP.Value = 100f;
+            
+            currentMP = 50f;
+            maxMP = 50f;
+            itemsDropped = false;
+            
+            // 참여자 목록 초기화
+            participatingPlayers.Clear();
+            playerDamageContribution.Clear();
+            
+            // 스킬 초기화
+            activeSkills.Clear();
+            
+            // 데이터 초기화
+            raceData = null;
+            variantData = null;
+            grade = 100f;
+            entityId = null;
+            
+            // 시각적 초기화
+            if (spriteRenderer != null)
+            {
+                var color = spriteRenderer.color;
+                color.a = 1f;
+                spriteRenderer.color = color;
+                spriteRenderer.sprite = null;
+            }
+            
+            // 콜라이더 활성화
+            var collider = GetComponent<Collider2D>();
+            if (collider != null)
+            {
+                collider.enabled = true;
+            }
+            
+            // Inspector 표시 초기화
+            currentRaceName = "Not Generated";
+            currentVariantName = "Not Generated";
+            currentGrade = 0f;
+        }
+        
+        /// <summary>
+        /// 풀 시스템용: 몬스터 variant 데이터 설정
+        /// </summary>
+        public void SetVariantData(MonsterVariantData variant)
+        {
+            variantData = variant;
         }
         
     }
