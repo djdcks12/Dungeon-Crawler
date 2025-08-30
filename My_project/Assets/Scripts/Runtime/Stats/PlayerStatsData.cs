@@ -112,6 +112,8 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         {
             characterRace = race;
             raceData = data;
+
+            currentStats = raceData.CalculateStatsAtLevel(currentLevel);
             RecalculateStats();
             OnStatsChanged?.Invoke(this);
         }
@@ -162,11 +164,8 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             currentExp -= expToNextLevel;
 
             // 종족별 스탯 자동 성장
-            if (raceData != null)
-            {
-                currentStats = raceData.CalculateStatsAtLevel(currentLevel);
-            }
-
+            currentStats = raceData.CalculateStatsAtLevel(currentLevel);
+            
             // 스탯 재계산 (체력/마나는 현재 상태 유지)
             RecalculateStats();
 
