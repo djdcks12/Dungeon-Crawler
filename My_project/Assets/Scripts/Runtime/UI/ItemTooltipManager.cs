@@ -13,7 +13,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         [SerializeField] private Text itemNameText;
         [SerializeField] private Text itemDescriptionText;
         [SerializeField] private Text itemStatsText;
-        [SerializeField] private Image itemIconImage;
         [SerializeField] private Image backgroundImage;
         
         [Header("Settings")]
@@ -62,13 +61,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             
             // 아이템 스탯 정보
             SetupItemStats(itemInstance);
-            
-            // 아이템 아이콘
-            if (itemIconImage != null)
-            {
-                itemIconImage.sprite = itemData.ItemIcon;
-                itemIconImage.gameObject.SetActive(itemData.ItemIcon != null);
-            }
             
             // 배경색 설정 (등급별)
             if (backgroundImage != null)

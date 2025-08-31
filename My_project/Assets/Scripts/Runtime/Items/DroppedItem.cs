@@ -332,14 +332,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             }
             
             if (tooltipManager != null && itemInstance != null)
-            {
                 tooltipManager.ShowTooltip(itemInstance, Input.mousePosition);
-                Debug.Log($"🖱️ Tooltip shown for: {itemInstance.ItemData?.ItemName}");
-            }
-            else
-            {
-                Debug.LogWarning($"🖱️ ItemTooltipManager not found or itemInstance is null");
-            }
         }
         
         /// <summary>
@@ -354,10 +347,8 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             }
             
             if (tooltipManager != null)
-            {
                 tooltipManager.HideTooltip();
-                Debug.Log($"🖱️ Tooltip hidden");
-            }
+            
         }
         
         /// <summary>
@@ -399,24 +390,14 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// 마우스 픽업 처리
         /// </summary>
         private void ProcessMousePickup(PlayerController player)
-        {
-            if (isPickedUp) 
-            {
-                Debug.Log($"🖱️ Pickup blocked - already processed");
-                return;
-            }
-            
-            Debug.Log($"🖱️ Processing mouse pickup for {player.OwnerClientId}");
-            
+        {   
             // 마우스 픽업 처리
             AttemptPickup(player);
         }
         
         [ServerRpc(RequireOwnership = false)]
         private void RequestPickupServerRpc(ulong playerClientId)
-        {
-            Debug.Log($"🖱️ RequestPickupServerRpc from client {playerClientId}");
-            
+        {   
             // 플레이어 찾기
             var networkManager = NetworkManager.Singleton;
             if (networkManager != null && networkManager.ConnectedClients.TryGetValue(playerClientId, out var clientData))
@@ -432,7 +413,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 }
             }
         }
-        
+
         /// <summary>
         /// 아이템 픽업 시도 (공통 처리)
         /// </summary>
@@ -440,12 +421,10 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         {
             if (!IsServer) return;
             if (isPickedUp) return;
-            
+
             // 즉시 픽업 플래그 설정
             isPickedUp = true;
-            
-            Debug.Log($"📦 Manual pickup by {player.OwnerClientId}");
-            
+
             // 인벤토리에 추가
             var inventoryManager = player.GetComponent<InventoryManager>();
             if (inventoryManager != null && itemInstance != null)
@@ -455,17 +434,16 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 {
                     inventoryManager.AddItemServerRpc(itemInstance.ItemId, itemInstance.Quantity);
                 }
-                
+
                 // 픽업 알림
-                NotifyPickupClientRpc(player.OwnerClientId, 
-                    $"{itemInstance.ItemData.ItemName} x{itemInstance.Quantity} 획득", 
+                NotifyPickupClientRpc(player.OwnerClientId,
+                    $"{itemInstance.ItemData.ItemName} x{itemInstance.Quantity} 획득",
                     itemInstance.ItemData.GradeColor);
-                
-                Debug.Log($"✅ {itemInstance.ItemData.ItemName} picked up by {player.OwnerClientId}");
             }
-            
+
             // 즉시 오브젝트 제거
             DestroyImmediate(gameObject);
+            HideTooltip();
         }
         
         /// <summary>
