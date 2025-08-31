@@ -15,12 +15,15 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         Legs,           // 다리 (하의, 바지)
         Feet,           // 발 (신발, 부츠)
         Hands,          // 손 (장갑)
+        Belt,           // 허리 (벨트, 허리띠)
         MainHand,       // 주무기 (검, 둔기, 단검, 지팡이)
         OffHand,        // 보조무기/방패
         TwoHand,        // 양손무기 (활, 대형무기)
         Ring1,          // 반지1
         Ring2,          // 반지2
-        Necklace        // 목걸이
+        Necklace,       // 목걸이
+        Earring1,       // 귀걸이1
+        Earring2        // 귀걸이2
     }
     
     /// <summary>

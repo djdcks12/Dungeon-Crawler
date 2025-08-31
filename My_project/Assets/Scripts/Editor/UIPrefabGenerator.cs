@@ -134,11 +134,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 GenerateStatsUIPrefab();
             }
             
-            if (GUILayout.Button("Generate Original InventoryUI"))
-            {
-                GenerateInventoryUIPrefab();
-            }
-            
             if (GUILayout.Button("Generate All Legacy Prefabs"))
             {
                 GenerateAllPrefabs();
@@ -169,7 +164,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         {
             GeneratePlayerHUDPrefab();
             GenerateStatsUIPrefab();
-            GenerateInventoryUIPrefab();
             
             Debug.Log("✅ All UI prefabs generated!");
         }
@@ -330,41 +324,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 Debug.LogError($"❌ Error generating Advanced StatsUI: {ex.Message}");
                 Debug.LogError($"Stack trace: {ex.StackTrace}");
             }
-        }
-        
-        private void GenerateInventoryUIPrefab()
-        {
-            GameObject invRoot = new GameObject("InventoryUI");
-            invRoot.AddComponent<InventoryUI>();
-            
-            // InventoryPanel 생성
-            GameObject invPanel = CreateUIPanel("InventoryPanel", invRoot.transform);
-            invPanel.SetActive(false); // 기본적으로 숨김
-            
-            // Header 생성
-            GameObject header = CreateUIPanel("Header", invPanel.transform);
-            GameObject titleText = CreateText("TitleText", header.transform, "인벤토리");
-            GameObject closeButton = CreateButton("CloseButton", header.transform, "X");
-            
-            // InventoryGrid 생성
-            GameObject invGrid = new GameObject("InventoryGrid");
-            invGrid.transform.SetParent(invPanel.transform);
-            GridLayoutGroup gridLayout = invGrid.AddComponent<GridLayoutGroup>();
-            gridLayout.cellSize = new Vector2(64, 64);
-            gridLayout.spacing = new Vector2(2, 2);
-            gridLayout.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
-            gridLayout.constraintCount = 6;
-            
-            // 30개 슬롯 생성
-            for (int i = 0; i < 30; i++)
-            {
-                CreateInventorySlot($"Slot{i:00}", invGrid.transform);
-            }
-            
-            // 프리팹 저장
-            SavePrefab(invRoot, "UI/InventoryUI");
-            
-            Debug.Log("✅ InventoryUI prefab generated!");
         }
         
         /// <summary>
@@ -622,9 +581,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 
                 Debug.Log($"🔍 InventoryPanel created with size: {inventoryRect.sizeDelta}");
                 
-                // InventoryUI 스크립트 추가
-                var inventoryUIScript = rootCanvas.gameObject.AddComponent<InventoryUI>();
-                
                 // 헤더
                 var header = CreateAdvancedUIPanel(inventoryPanel.transform, "Header");
                 SetRectTransform(header, new Vector2(0, 1), new Vector2(1, 1), new Vector2(0, -50), new Vector2(0, 0));
@@ -673,11 +629,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             
             var sortButton = CreateAdvancedButton(filterContainer.transform, "SortButton", "Sort");
             CreateAdvancedText(filterContainer.transform, "UsedSlotsText", "0/40", 14);
-            
-            // InventoryUI 스크립트에 UI 요소들 연결
-            ConnectInventoryUIReferences(inventoryUIScript, inventoryPanel, slotsContainer, closeButton, 
-                                       headerText, sortButton, filterContainer.transform.Find("UsedSlotsText").GetComponent<Text>());
-            
+             
                 SaveAdvancedPrefab(rootCanvas.gameObject, "AdvancedInventoryUI");
                 
                 // 인벤토리 슬롯 프리팹 생성 (AdvancedInventoryUI 저장 후)
@@ -693,37 +645,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 Debug.LogError($"❌ Error generating AdvancedInventoryUI: {ex.Message}");
                 Debug.LogError($"Stack trace: {ex.StackTrace}");
             }
-        }
-        
-        /// <summary>
-        /// InventoryUI 스크립트에 UI 참조들 연결
-        /// </summary>
-        private void ConnectInventoryUIReferences(InventoryUI inventoryUI, GameObject inventoryPanel, 
-                                                 GameObject slotsContainer, Button closeButton, 
-                                                 Text headerText, Button sortButton, Text usedSlotsText)
-        {
-            // SerializedObject를 사용하여 private 필드들에 접근
-            var serializedObject = new SerializedObject(inventoryUI);
-            
-            // UI 참조 설정
-            serializedObject.FindProperty("inventoryPanel").objectReferenceValue = inventoryPanel;
-            serializedObject.FindProperty("slotContainer").objectReferenceValue = slotsContainer.transform;
-            serializedObject.FindProperty("closeButton").objectReferenceValue = closeButton;
-            serializedObject.FindProperty("inventoryTitle").objectReferenceValue = headerText;
-            serializedObject.FindProperty("sortButton").objectReferenceValue = sortButton;
-            serializedObject.FindProperty("usedSlotsText").objectReferenceValue = usedSlotsText;
-            
-            // slotPrefab은 나중에 설정 (아직 생성되지 않았음)
-            
-            // 설정값들
-            serializedObject.FindProperty("toggleKey").enumValueIndex = (int)KeyCode.I;
-            serializedObject.FindProperty("slotsPerRow").intValue = 8;
-            serializedObject.FindProperty("slotSize").floatValue = 64f;
-            serializedObject.FindProperty("slotSpacing").floatValue = 2f;
-            
-            serializedObject.ApplyModifiedProperties();
-            
-            Debug.Log("✅ InventoryUI references connected successfully!");
         }
         
         /// <summary>
@@ -827,18 +748,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 return;
             }
             
-            // InventoryUI 스크립트의 slotPrefab 필드 업데이트
-            var inventoryUI = inventoryPrefab.GetComponent<InventoryUI>();
-            if (inventoryUI != null)
-            {
-                var serializedObject = new SerializedObject(inventoryUI);
-                serializedObject.FindProperty("slotPrefab").objectReferenceValue = slotPrefab;
-                serializedObject.ApplyModifiedProperties();
-                
-                // 프리팹 업데이트 저장
-                PrefabUtility.SavePrefabAsset(inventoryPrefab);
-                Debug.Log("✅ InventoryUI slotPrefab reference updated!");
-            }
         }
         
         // 고급 UI 생성 헬퍼 메서드들

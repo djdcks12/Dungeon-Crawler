@@ -5,9 +5,9 @@ using UnityEngine.EventSystems;
 namespace Unity.Template.Multiplayer.NGO.Runtime
 {
     /// <summary>
-    /// 개별 장비 슬롯 UI 컴포넌트
+    /// 개별 장비 슬롯 UI 컴포넌트 - UnifiedInventoryUI와 호환
     /// </summary>
-    public class EquipmentSlotUI : MonoBehaviour, IPointerClickHandler, IDropHandler, IPointerEnterHandler, IPointerExitHandler
+    public class EquipmentSlotUI : MonoBehaviour, IPointerClickHandler, IBeginDragHandler, IDragHandler, IEndDragHandler, IDropHandler, IPointerEnterHandler, IPointerExitHandler
     {
         [Header("UI Components")]
         [SerializeField] private Image slotBackground;
@@ -25,20 +25,23 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         // 데이터
         private EquipmentSlot equipmentSlot;
         private ItemInstance currentItem;
-        private EquipmentUI parentUI;
+        private UnifiedInventoryUI unifiedUI;
+        private EquipmentManager equipmentManager;
         private bool isHovered = false;
+        private bool isDragging = false;
         
         public EquipmentSlot Slot => equipmentSlot;
         public ItemInstance CurrentItem => currentItem;
         public bool IsEmpty => currentItem == null;
         
         /// <summary>
-        /// 슬롯 초기화
+        /// 슬롯 초기화 (UnifiedInventoryUI용)
         /// </summary>
-        public void Initialize(EquipmentSlot slot, EquipmentUI parent)
+        public void Initialize(EquipmentSlot slot, UnifiedInventoryUI ui, EquipmentManager manager)
         {
             equipmentSlot = slot;
-            parentUI = parent;
+            unifiedUI = ui;
+            equipmentManager = manager;
             
             // 슬롯 라벨 설정
             if (slotLabel != null)
@@ -46,8 +49,33 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 slotLabel.text = GetSlotDisplayName(slot);
             }
             
+            // 장비 매니저 이벤트 구독
+            if (equipmentManager != null)
+            {
+                equipmentManager.OnEquipmentChanged += OnEquipmentChanged;
+            }
+            
             // 초기 상태 설정
             UpdateSlot(null);
+        }
+        
+        private void OnDestroy()
+        {
+            if (equipmentManager != null)
+            {
+                equipmentManager.OnEquipmentChanged -= OnEquipmentChanged;
+            }
+        }
+        
+        /// <summary>
+        /// 장비 변경 이벤트 핸들러
+        /// </summary>
+        private void OnEquipmentChanged(EquipmentSlot slot, ItemInstance item)
+        {
+            if (slot == equipmentSlot)
+            {
+                UpdateSlot(item);
+            }
         }
         
         /// <summary>
@@ -187,16 +215,19 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             return slot switch
             {
                 EquipmentSlot.Head => "머리",
-                EquipmentSlot.Chest => "가슴",
-                EquipmentSlot.Legs => "다리",
-                EquipmentSlot.Feet => "발",
-                EquipmentSlot.Hands => "손",
+                EquipmentSlot.Chest => "상의",
+                EquipmentSlot.Legs => "하의",
+                EquipmentSlot.Feet => "신발",
+                EquipmentSlot.Hands => "장갑",
+                EquipmentSlot.Belt => "허리",
                 EquipmentSlot.MainHand => "주무기",
                 EquipmentSlot.OffHand => "보조",
                 EquipmentSlot.TwoHand => "양손무기",
                 EquipmentSlot.Ring1 => "반지1",
                 EquipmentSlot.Ring2 => "반지2",
                 EquipmentSlot.Necklace => "목걸이",
+                EquipmentSlot.Earring1 => "귀걸이1",
+                EquipmentSlot.Earring2 => "귀걸이2",
                 _ => "빈슬롯"
             };
         }
@@ -206,15 +237,24 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         public void OnPointerClick(PointerEventData eventData)
         {
+            if (isDragging) return;
+            
             if (eventData.button == PointerEventData.InputButton.Left)
             {
-                // 좌클릭: 장비 해제
-                parentUI?.OnSlotClicked(equipmentSlot);
+                // UnifiedInventoryUI용
+                if (unifiedUI != null)
+                {
+                    unifiedUI.OnEquipmentSlotClick(equipmentSlot);
+                }
             }
             else if (eventData.button == PointerEventData.InputButton.Right)
             {
-                // 우클릭: 아이템 정보 표시
-                if (currentItem != null)
+                // 우클릭: 장비 해제
+                if (!IsEmpty && equipmentManager != null)
+                {
+                    equipmentManager.UnequipItem(equipmentSlot, true);
+                }
+                else if (currentItem != null)
                 {
                     ShowItemInfo();
                 }
@@ -222,28 +262,66 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         }
         
         /// <summary>
+        /// 드래그 시작
+        /// </summary>
+        public void OnBeginDrag(PointerEventData eventData)
+        {
+            if (IsEmpty) return;
+            
+            isDragging = true;
+            unifiedUI?.StartEquipmentDrag(this);
+        }
+        
+        /// <summary>
+        /// 드래그 중
+        /// </summary>
+        public void OnDrag(PointerEventData eventData)
+        {
+            // 드래그 프리뷰는 UnifiedInventoryUI에서 처리
+        }
+        
+        /// <summary>
+        /// 드래그 종료
+        /// </summary>
+        public void OnEndDrag(PointerEventData eventData)
+        {
+            isDragging = false;
+            
+            // 드롭 대상 찾기
+            GameObject target = eventData.pointerCurrentRaycast.gameObject;
+            unifiedUI?.EndEquipmentDrag(this, target);
+        }
+        
+        /// <summary>
         /// 드롭 이벤트 처리
         /// </summary>
         public void OnDrop(PointerEventData eventData)
         {
-            // 드래그된 아이템 확인
-            var draggedObject = eventData.pointerDrag;
-            if (draggedObject == null) return;
-            
-            // InventorySlotUI에서 드래그된 아이템 가져오기 (간소화 버전)
-            var inventorySlot = draggedObject.GetComponent<InventorySlotUI>();
-            if (inventorySlot != null)
+            var draggedItem = unifiedUI?.GetDraggedItem();
+            if (draggedItem != null)
             {
-                // InventorySlotUI 연동은 추후 구현
-                Debug.Log("Inventory to equipment drag-drop not fully implemented yet");
+                if (CanEquipItem(draggedItem))
+                {
+                    unifiedUI?.ProcessItemDrop(draggedItem, this);
+                }
             }
-            
-            // 다른 장비 슬롯에서 드래그된 아이템 처리
-            var equipmentSlotUI = draggedObject.GetComponent<EquipmentSlotUI>();
-            if (equipmentSlotUI != null && !equipmentSlotUI.IsEmpty)
+            else
             {
-                // 장비 슬롯간 교체는 추후 구현
-                Debug.Log("Equipment slot swapping not implemented yet");
+                // 기존 방식 (간소화된 처리)
+                var draggedObject = eventData.pointerDrag;
+                if (draggedObject == null) return;
+                
+                var inventorySlot = draggedObject.GetComponent<InventorySlotUI>();
+                if (inventorySlot != null)
+                {
+                    Debug.Log("Inventory to equipment drag-drop via legacy system");
+                }
+                
+                var equipmentSlotUI = draggedObject.GetComponent<EquipmentSlotUI>();
+                if (equipmentSlotUI != null && !equipmentSlotUI.IsEmpty)
+                {
+                    Debug.Log("Equipment slot swapping via legacy system");
+                }
             }
         }
         
@@ -259,10 +337,21 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 slotBackground.color = hoverColor;
             }
             
+            // 드래그 중이면 드래그 오버 표시
+            if (eventData.dragging && unifiedUI != null)
+            {
+                var draggedItem = unifiedUI.GetDraggedItem();
+                bool canDrop = draggedItem != null && CanEquipItem(draggedItem);
+                SetDragOverVisual(true, !canDrop);
+            }
+            
             // 툴팁 표시
             if (currentItem != null)
             {
-                parentUI?.ShowEquipmentTooltip(currentItem, transform.position);
+                if (unifiedUI != null)
+                {
+                    unifiedUI.ShowTooltip(currentItem, transform.position);
+                }
             }
         }
         
@@ -279,8 +368,37 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 slotBackground.color = IsEmpty ? emptySlotColor : occupiedSlotColor;
             }
             
+            SetDragOverVisual(false);
+            
             // 툴팁 숨기기
-            parentUI?.HideEquipmentTooltip();
+            if (unifiedUI != null)
+            {
+                unifiedUI.HideTooltip();
+            }
+        }
+        
+        /// <summary>
+        /// 드래그 오버 시각적 피드백
+        /// </summary>
+        private void SetDragOverVisual(bool dragOver, bool isInvalid = false)
+        {
+            if (slotBackground == null) return;
+            
+            if (dragOver)
+            {
+                if (isInvalid)
+                {
+                    slotBackground.color = Color.red;
+                }
+                else
+                {
+                    slotBackground.color = Color.green;
+                }
+            }
+            else if (!isHovered)
+            {
+                slotBackground.color = IsEmpty ? emptySlotColor : occupiedSlotColor;
+            }
         }
         
         /// <summary>
@@ -343,24 +461,34 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         public bool CanEquipItem(ItemInstance item)
         {
-            if (item?.ItemData == null) return false;
+            if (item?.ItemData == null || !item.ItemData.IsEquippable)
+                return false;
             
-            // 아이템 타입에 따른 슬롯 호환성 확인
+            // 슬롯 타입 확인
+            if (item.ItemData.EquipmentSlot == equipmentSlot)
+                return true;
+            
+            // 무기 카테고리 확인
+            return IsWeaponCompatible(item);
+        }
+        
+        /// <summary>
+        /// 무기 호환성 확인
+        /// </summary>
+        private bool IsWeaponCompatible(ItemInstance item)
+        {
+            var weaponCategory = item.ItemData.WeaponCategory;
+            
             return equipmentSlot switch
             {
-                EquipmentSlot.Head => item.ItemData.ItemType == ItemType.Equipment,
-                EquipmentSlot.Chest => item.ItemData.ItemType == ItemType.Equipment,
-                EquipmentSlot.Legs => item.ItemData.ItemType == ItemType.Equipment,
-                EquipmentSlot.Feet => item.ItemData.ItemType == ItemType.Equipment,
-                EquipmentSlot.Hands => item.ItemData.ItemType == ItemType.Equipment,
-                EquipmentSlot.MainHand => item.ItemData.ItemType == ItemType.Equipment,
-                EquipmentSlot.OffHand => item.ItemData.ItemType == ItemType.Equipment || 
-                                       item.ItemData.WeaponCategory == WeaponCategory.Shield,
-                EquipmentSlot.TwoHand => item.ItemData.ItemType == ItemType.Equipment &&
-                                       item.ItemData.WeaponCategory == WeaponCategory.Bow,
-                EquipmentSlot.Ring1 => item.ItemData.ItemType == ItemType.Equipment,
-                EquipmentSlot.Ring2 => item.ItemData.ItemType == ItemType.Equipment,
-                EquipmentSlot.Necklace => item.ItemData.ItemType == ItemType.Equipment,
+                EquipmentSlot.MainHand => weaponCategory == WeaponCategory.Sword ||
+                                        weaponCategory == WeaponCategory.Dagger ||
+                                        weaponCategory == WeaponCategory.Axe ||
+                                        weaponCategory == WeaponCategory.Mace,
+                EquipmentSlot.OffHand => weaponCategory == WeaponCategory.Shield ||
+                                       weaponCategory == WeaponCategory.Dagger,
+                EquipmentSlot.TwoHand => weaponCategory == WeaponCategory.Bow ||
+                                       weaponCategory == WeaponCategory.Staff,
                 _ => false
             };
         }

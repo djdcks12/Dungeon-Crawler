@@ -123,8 +123,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             // 필수 UI들 로드
             LoadUI<PlayerHUD>(playerHUDPrefabPath);
             LoadUI<StatsUI>(statsUIPrefabPath);
-            LoadUI<InventoryUI>(inventoryUIPrefabPath);
-            LoadUI<EquipmentUI>(equipmentUIPrefabPath);
+            LoadUI<UnifiedInventoryUI>(inventoryUIPrefabPath);
             LoadUI<PartyUI>(partyUIPrefabPath);
             
             Debug.Log("🎨 Core UI systems loaded");
@@ -234,35 +233,12 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 Debug.Log($"🔍 UI Object Scale: {uiObject.transform.localScale}");
                 Debug.Log($"🔍 UI Object Position: {uiObject.transform.position}");
                 
-                // InventoryUI인 경우 특별 처리
-                if (uiType == typeof(InventoryUI))
-                {
-                    var inventoryUI = uiComponent as InventoryUI;
-                    if (inventoryUI != null)
-                    {
-                        Debug.Log($"🔍 Using InventoryUI.ToggleInventory() method");
-                        inventoryUI.ToggleInventory();
-                        return;
-                    }
-                }
-                
                 uiObject.SetActive(!currentState);
                 Debug.Log($"🔍 {uiType.Name} toggled from {currentState} to {!currentState}");
             }
             else
             {
                 Debug.LogError($"❌ {uiType.Name} not found in loadedUIs! Attempting to load it now...");
-                
-                // 동적으로 로드 시도
-                if (uiType == typeof(InventoryUI))
-                {
-                    LoadUI<InventoryUI>(inventoryUIPrefabPath);
-                    if (loadedUIs.ContainsKey(uiType))
-                    {
-                        loadedUIs[uiType].SetActive(true);
-                        Debug.Log($"✅ {uiType.Name} dynamically loaded and shown");
-                    }
-                }
             }
         }
         
@@ -333,15 +309,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 Debug.Log("🔍 I key pressed! Attempting to toggle InventoryUI");
                 Debug.Log($"🔍 UIManager Instance exists: {Instance != null}");
                 Debug.Log($"🔍 Loaded UIs count: {loadedUIs.Count}");
-                Debug.Log($"🔍 Has InventoryUI: {loadedUIs.ContainsKey(typeof(InventoryUI))}");
-                
-                ToggleUI<InventoryUI>();
-            }
-            
-            // E키 - 장비
-            if (Input.GetKeyDown(KeyCode.E))
-            {
-                ToggleUI<EquipmentUI>();
             }
             
             // P키 - 파티
@@ -374,8 +341,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         private void CloseAllToggleableUI()
         {
-            ShowUI<InventoryUI>(false);
-            ShowUI<EquipmentUI>(false);
             ShowUI<PartyUI>(false);
             ShowUI<StatsUI>(false);
             ShowUI<ShopUI>(false);

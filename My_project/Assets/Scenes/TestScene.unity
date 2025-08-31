@@ -574,7 +574,7 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   playerHUDPrefabPath: UI/PlayerHUD
   statsUIPrefabPath: UI/AdvancedStatsUI
-  inventoryUIPrefabPath: UI/AdvancedInventoryUI
+  inventoryUIPrefabPath: UI/UnifiedInventoryUI
   equipmentUIPrefabPath: UI/EquipmentUI
   partyUIPrefabPath: UI/PartyUI
   dungeonUIPrefabPath: UI/DungeonUI

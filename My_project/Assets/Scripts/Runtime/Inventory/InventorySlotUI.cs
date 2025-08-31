@@ -8,7 +8,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
     /// 개별 인벤토리 슬롯 UI
     /// 드래그&드롭, 클릭 이벤트, 아이템 표시 처리
     /// </summary>
-    public class InventorySlotUI : MonoBehaviour, IPointerClickHandler, IBeginDragHandler, IDragHandler, IEndDragHandler, IDropHandler, IPointerEnterHandler, IPointerExitHandler
+    public class InventorySlotUI : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPointerExitHandler
     {
         [Header("UI 컴포넌트")]
         [SerializeField] private Image backgroundImage;
@@ -26,7 +26,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         // 슬롯 정보
         private int slotIndex;
         private InventorySlot currentSlot;
-        private InventoryUI inventoryUI;
+        private UnifiedInventoryUI inventoryUI;
         private bool isDragging = false;
         private bool isHighlighted = false;
         
@@ -35,13 +35,14 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         public bool IsEmpty => currentSlot?.IsEmpty ?? true;
         public ItemInstance Item => currentSlot?.Item;
         
+
         /// <summary>
-        /// 슬롯 UI 초기화
+        /// 슬롯 UI 초기화 (UnifiedInventoryUI용)
         /// </summary>
-        public void Initialize(int index, InventoryUI ui)
+        public void Initialize(int index, UnifiedInventoryUI unifiedUI)
         {
             slotIndex = index;
-            inventoryUI = ui;
+            inventoryUI = unifiedUI;
             
             SetupComponents();
             UpdateSlot(null);
@@ -261,54 +262,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         }
         
         #region Event Handlers
-        
-        /// <summary>
-        /// 클릭 이벤트
-        /// </summary>
-        public void OnPointerClick(PointerEventData eventData)
-        {
-            if (isDragging) return;
-            
-            bool isRightClick = eventData.button == PointerEventData.InputButton.Right;
-            inventoryUI.OnSlotClick(slotIndex, isRightClick);
-        }
-        
-        /// <summary>
-        /// 드래그 시작
-        /// </summary>
-        public void OnBeginDrag(PointerEventData eventData)
-        {
-            if (IsEmpty) return;
-            
-            isDragging = true;
-            inventoryUI.StartDrag(this);
-        }
-        
-        /// <summary>
-        /// 드래그 중
-        /// </summary>
-        public void OnDrag(PointerEventData eventData)
-        {
-            // 드래그 프리뷰는 InventoryUI에서 처리
-        }
-        
-        /// <summary>
-        /// 드래그 종료
-        /// </summary>
-        public void OnEndDrag(PointerEventData eventData)
-        {
-            isDragging = false;
-            
-            // 드롭 대상 찾기
-            InventorySlotUI targetSlot = null;
-            
-            if (eventData.pointerCurrentRaycast.gameObject != null)
-            {
-                targetSlot = eventData.pointerCurrentRaycast.gameObject.GetComponent<InventorySlotUI>();
-            }
-            
-            inventoryUI.EndDrag(targetSlot);
-        }
         
         /// <summary>
         /// 드롭 이벤트
