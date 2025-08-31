@@ -18,6 +18,11 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         [SerializeField] private float rotateSpeed = 90f;   // 회전 속도
         [SerializeField] private float glowIntensity = 1.5f; // 발광 강도
         
+        [Header("마우스 상호작용")]
+        [SerializeField] private Color outlineColor = Color.white;
+        [SerializeField] private float outlineWidth = 0.1f;
+        [SerializeField] private LayerMask mouseRaycastLayer = -1;
+        
         // 아이템 정보
         private ItemInstance itemInstance;
         private ulong? droppedByClientId; // 누가 드롭했는지
@@ -30,6 +35,12 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         
         // 픽업 상태 플래그 (중복 픽업 방지)
         private bool isPickedUp = false;
+        
+        // 마우스 상호작용용
+        private bool isHovered = false;
+        private Camera mainCamera;
+        private Material originalMaterial;
+        private Material outlineMaterial;
         
         // 프로퍼티
         public ItemInstance ItemInstance => itemInstance;
@@ -45,11 +56,18 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             spriteRenderer = GetComponent<SpriteRenderer>();
             basePosition = transform.position;
             dropTime = Time.time;
+            mainCamera = Camera.allCameras[0];
             
             // 초기 위치를 약간 랜덤하게 조정
             bobTimer = Random.Range(0f, 2f * Mathf.PI);
             
+            // 마우스 상호작용을 위한 콜라이더 추가
+            SetupMouseInteraction();
+            
             SetupVisuals();
+            
+            // 머티리얼 설정
+            SetupMaterials();
         }
         
         /// <summary>
@@ -88,10 +106,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             // 등급별 색상 적용
             spriteRenderer.color = itemInstance.ItemData.GradeColor;
             
-            // 정렬 순서
-            spriteRenderer.sortingLayerName = "Items";
-            spriteRenderer.sortingOrder = 1;
-            
             // 발광 효과 (고등급 아이템)
             if (itemInstance.ItemData.Grade >= ItemGrade.Rare)
             {
@@ -128,6 +142,24 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         }
         
         /// <summary>
+        /// 머티리얼 설정
+        /// </summary>
+        private void SetupMaterials()
+        {
+            if (spriteRenderer == null) return;
+            
+            // 기존 머티리얼 저장
+            originalMaterial = spriteRenderer.material;
+            
+            // 아웃라인 머티리얼 로드
+            outlineMaterial = Resources.Load<Material>("Shader/simpleOutline");
+            if (outlineMaterial == null)
+            {
+                Debug.LogWarning("simpleOutline 머티리얼을 찾을 수 없습니다: Resources/Shader/simpleOutline");
+            }
+        }
+        
+        /// <summary>
         /// 발광 효과 추가
         /// </summary>
         private void AddGlowEffect()
@@ -156,6 +188,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         {
             if (!gameObject.activeInHierarchy) return;
             UpdateVisualEffects();
+            UpdateMouseInteraction();
         }
         
         /// <summary>
@@ -174,31 +207,215 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             transform.Rotate(Vector3.forward, rotateSpeed * Time.deltaTime);
         }
         
+        /// <summary>
+        /// 마우스 상호작용 설정
+        /// </summary>
+        private void SetupMouseInteraction()
+        {
+            // 마우스 클릭 감지용 콜라이더 추가
+            var collider = GetComponent<Collider2D>();
+            if (collider == null)
+            {
+                collider = gameObject.AddComponent<CircleCollider2D>();
+                ((CircleCollider2D)collider).radius = 0.5f;
+                collider.isTrigger = true; // 트리거로 설정
+            }
+        }
         
         /// <summary>
-        /// 수동 픽업 (플레이어가 Z키로 직접 픽업)
+        /// 마우스 상호작용 업데이트
         /// </summary>
-        public void ManualPickup(PlayerController player)
+        private void UpdateMouseInteraction()
         {
-            Debug.Log($"📦 ManualPickup called by {player?.OwnerClientId}");
+            if (mainCamera == null || isPickedUp) return;
+            
+            // 마우스 월드 좌표 계산 (2D용으로 수정)
+            Vector3 mouseScreenPos = Input.mousePosition;
+            mouseScreenPos.z = mainCamera.WorldToScreenPoint(transform.position).z;
+            Vector3 mouseWorldPos = mainCamera.ScreenToWorldPoint(mouseScreenPos);
+            
+            float distance = Vector2.Distance(transform.position, mouseWorldPos);
+            bool shouldHover = distance <= pickupRange;
+            
+            if (shouldHover != isHovered)
+            {
+                isHovered = shouldHover;
+                
+                if (isHovered)
+                {
+                    OnMouseHoverEnter();
+                }
+                else
+                {
+                    OnMouseHoverExit();
+                }
+            }
+            
+            // 클릭 감지
+            if (isHovered && Input.GetMouseButtonDown(0)) // 좌클릭
+            {
+                OnMouseClick();
+            }
+        }
+        
+        /// <summary>
+        /// 마우스 호버 시작
+        /// </summary>
+        private void OnMouseHoverEnter()
+        {
+            Debug.Log($"🖱️ Mouse hover enter: {itemInstance?.ItemData?.ItemName}");
+            
+            // 아웃라인 활성화
+            SetOutlineActive(true);
+            
+            // 툴팁 표시 (UI 시스템에 요청)
+            ShowTooltip();
+        }
+        
+        /// <summary>
+        /// 마우스 호버 종료
+        /// </summary>
+        private void OnMouseHoverExit()
+        {
+            Debug.Log($"🖱️ Mouse hover exit: {itemInstance?.ItemData?.ItemName}");
+            
+            // 아웃라인 비활성화
+            SetOutlineActive(false);
+            
+            // 툴팁 숨김
+            HideTooltip();
+        }
+        
+        /// <summary>
+        /// 마우스 클릭
+        /// </summary>
+        private void OnMouseClick()
+        {
+            Debug.Log($"🖱️ Mouse clicked: {itemInstance?.ItemData?.ItemName}");
+            
+            // 가장 가까운 플레이어 찾기
+            var localPlayer = FindLocalPlayer();
+            if (localPlayer != null)
+            {
+                MousePickup(localPlayer);
+            }
+        }
+        
+        /// <summary>
+        /// 아웃라인 활성화/비활성화
+        /// </summary>
+        private void SetOutlineActive(bool active)
+        {
+            if (spriteRenderer == null) return;
+            
+            if (active && outlineMaterial != null)
+            {
+                spriteRenderer.material = outlineMaterial;
+            }
+            else if (!active && originalMaterial != null)
+            {
+                spriteRenderer.material = originalMaterial;
+            }
+        }
+        
+        /// <summary>
+        /// 툴팁 표시
+        /// </summary>
+        private void ShowTooltip()
+        {
+            // Singleton 인스턴스 우선 사용
+            var tooltipManager = ItemTooltipManager.Instance;
+            if (tooltipManager == null)
+            {
+                // Singleton이 없으면 FindObjectOfType으로 찾기
+                tooltipManager = FindObjectOfType<ItemTooltipManager>();
+            }
+            
+            if (tooltipManager != null && itemInstance != null)
+            {
+                tooltipManager.ShowTooltip(itemInstance, Input.mousePosition);
+                Debug.Log($"🖱️ Tooltip shown for: {itemInstance.ItemData?.ItemName}");
+            }
+            else
+            {
+                Debug.LogWarning($"🖱️ ItemTooltipManager not found or itemInstance is null");
+            }
+        }
+        
+        /// <summary>
+        /// 툴팁 숨김
+        /// </summary>
+        private void HideTooltip()
+        {
+            var tooltipManager = ItemTooltipManager.Instance;
+            if (tooltipManager == null)
+            {
+                tooltipManager = FindObjectOfType<ItemTooltipManager>();
+            }
+            
+            if (tooltipManager != null)
+            {
+                tooltipManager.HideTooltip();
+                Debug.Log($"🖱️ Tooltip hidden");
+            }
+        }
+        
+        /// <summary>
+        /// 로컬 플레이어 찾기
+        /// </summary>
+        private PlayerController FindLocalPlayer()
+        {
+            var networkManager = NetworkManager.Singleton;
+            if (networkManager != null && networkManager.LocalClient != null)
+            {
+                var localPlayerObject = networkManager.LocalClient.PlayerObject;
+                if (localPlayerObject != null)
+                {
+                    return localPlayerObject.GetComponent<PlayerController>();
+                }
+            }
+            return null;
+        }
+        
+        /// <summary>
+        /// 마우스 픽업 (새로운 방식)
+        /// </summary>
+        public void MousePickup(PlayerController player)
+        {
+            Debug.Log($"🖱️ MousePickup called by {player?.OwnerClientId}");
             
             // 서버에서만 처리 또는 로컬 플레이어가 서버에 요청
             if (IsServer)
             {
-                // 서버에서 직접 처리
-                ProcessManualPickup(player);
+                ProcessMousePickup(player);
             }
             else if (player.IsLocalPlayer)
             {
-                // 클라이언트에서 서버에 픽업 요청
                 RequestPickupServerRpc(player.OwnerClientId);
             }
+        }
+        
+        /// <summary>
+        /// 마우스 픽업 처리
+        /// </summary>
+        private void ProcessMousePickup(PlayerController player)
+        {
+            if (isPickedUp) 
+            {
+                Debug.Log($"🖱️ Pickup blocked - already processed");
+                return;
+            }
+            
+            Debug.Log($"🖱️ Processing mouse pickup for {player.OwnerClientId}");
+            
+            // 마우스 픽업 처리
+            AttemptPickup(player);
         }
         
         [ServerRpc(RequireOwnership = false)]
         private void RequestPickupServerRpc(ulong playerClientId)
         {
-            Debug.Log($"📦 RequestPickupServerRpc from client {playerClientId}");
+            Debug.Log($"🖱️ RequestPickupServerRpc from client {playerClientId}");
             
             // 플레이어 찾기
             var networkManager = NetworkManager.Singleton;
@@ -210,38 +427,16 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                     var player = playerObject.GetComponent<PlayerController>();
                     if (player != null)
                     {
-                        ProcessManualPickup(player);
+                        ProcessMousePickup(player);
                     }
                 }
             }
         }
         
-        private void ProcessManualPickup(PlayerController player)
-        {
-            if (isPickedUp) 
-            {
-                Debug.Log($"📦 Pickup blocked - already processed");
-                return;
-            }
-            
-            // 거리 체크
-            float distance = Vector3.Distance(transform.position, player.transform.position);
-            if (distance > pickupRange * 2f) 
-            {
-                Debug.Log($"📦 Too far: {distance:F1}m > {pickupRange * 2f}m");
-                return;
-            }
-            
-            Debug.Log($"📦 Processing manual pickup for {player.OwnerClientId}");
-            
-            // 수동 픽업은 전역 플래그 무시하고 직접 처리
-            ManualAttemptPickup(player);
-        }
-        
         /// <summary>
-        /// 수동 픽업 전용 - 전역 플래그 무시
+        /// 아이템 픽업 시도 (공통 처리)
         /// </summary>
-        private void ManualAttemptPickup(PlayerController player)
+        private void AttemptPickup(PlayerController player)
         {
             if (!IsServer) return;
             if (isPickedUp) return;

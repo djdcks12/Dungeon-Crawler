@@ -536,7 +536,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 if (droppedItem != null)
                 {
                     Debug.Log($"📦 Found DroppedItem: {droppedItem.ItemInstance?.ItemData?.ItemName}");
-                    droppedItem.ManualPickup(this);
+                   
                     return; // 한 번에 하나씩만 픽업
                 }
                 

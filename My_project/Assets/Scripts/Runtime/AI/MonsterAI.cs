@@ -44,6 +44,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         protected Rigidbody2D rb;
         protected MonsterEntity monsterEntity;
         protected SpriteRenderer spriteRenderer;
+        protected MonsterSpriteAnimator spriteAnimator;
         
         // 네트워크 동기화
         private NetworkVariable<MonsterAIState> networkState = new NetworkVariable<MonsterAIState>(
@@ -67,6 +68,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             rb = GetComponent<Rigidbody2D>();
             monsterEntity = GetComponent<MonsterEntity>();
             spriteRenderer = GetComponent<SpriteRenderer>();
+            spriteAnimator = GetComponent<MonsterSpriteAnimator>();
             
             // 스폰 위치 저장
             spawnPosition = transform.position;
@@ -383,6 +385,9 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             networkState.Value = newState;
             
             Debug.Log($"{name} state changed: {previousState} → {newState}");
+            
+            // 애니메이션 상태 업데이트
+            UpdateAnimationState(newState);
         }
         
         /// <summary>
@@ -455,6 +460,9 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         protected virtual void PerformAttack()
         {
             lastAttackTime = Time.time;
+            
+            // 공격 애니메이션 재생
+            PlayAttackAnimation();
             
             // 실제 데미지 적용
             var targetStatsManager = currentTarget.GetComponent<PlayerStatsManager>();
@@ -531,6 +539,55 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         }
         
         /// <summary>
+        /// AI 상태에 따른 애니메이션 상태 업데이트
+        /// </summary>
+        private void UpdateAnimationState(MonsterAIState aiState)
+        {
+            if (spriteAnimator == null) return;
+            
+            MonsterAnimationState animationState = aiState switch
+            {
+                MonsterAIState.Idle => MonsterAnimationState.Idle,
+                MonsterAIState.Patrol => MonsterAnimationState.Move,
+                MonsterAIState.Chase => MonsterAnimationState.Move,
+                MonsterAIState.Return => MonsterAnimationState.Move,
+                MonsterAIState.Attack => MonsterAnimationState.Idle, // 기본 대기, 실제 공격 시 별도 처리
+                MonsterAIState.Dead => MonsterAnimationState.Idle,
+                _ => MonsterAnimationState.Idle
+            };
+            
+            spriteAnimator.PlayAnimation(animationState);
+        }
+        
+        /// <summary>
+        /// 공격 애니메이션 재생
+        /// </summary>
+        protected void PlayAttackAnimation()
+        {
+            if (spriteAnimator == null) return;
+            
+            spriteAnimator.PlayAttackAnimation(() =>
+            {
+                // 공격 애니메이션 완료 후 원래 상태로 복귀
+                UpdateAnimationState(currentState);
+            });
+        }
+        
+        /// <summary>
+        /// 스킬 캐스팅 애니메이션 재생
+        /// </summary>
+        protected void PlayCastingAnimation()
+        {
+            if (spriteAnimator == null) return;
+            
+            spriteAnimator.PlayCastingAnimation(() =>
+            {
+                // 캐스팅 애니메이션 완료 후 원래 상태로 복귀
+                UpdateAnimationState(currentState);
+            });
+        }
+        
+        /// <summary>
         /// 네트워크 동기화 업데이트
         /// </summary>
         private void UpdateNetworkSync()
@@ -553,6 +610,9 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             
             currentState = newValue;
             Debug.Log($"{name} network state changed to {newValue}");
+            
+            // 클라이언트에서도 애니메이션 상태 업데이트
+            UpdateAnimationState(newValue);
         }
         
         /// <summary>

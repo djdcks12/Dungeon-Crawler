@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "Bash(setx:*)",
-      "Bash(mkdir:*)"
+      "Bash(mkdir:*)",
+      "Bash(del:*)",
+      "Bash(claude config --help)"
     ],
     "deny": [],
     "ask": []
