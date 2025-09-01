@@ -409,21 +409,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             }
         }
         
-        /// <summary>
-        /// 인벤토리 슬롯 클릭 처리
-        /// </summary>
-        public void OnInventorySlotClick(int slotIndex)
-        {
-            if (inventoryManager?.Inventory == null) return;
-            
-            var item = inventoryManager.Inventory.GetItem(slotIndex);
-            if (item?.ItemData?.IsEquippable == true)
-            {
-                // 장비 가능한 아이템인 경우 자동 장착
-                var slot = item.ItemData.EquipmentSlot;
-                EquipItemFromInventory(item, slot);
-            }
-        }
         
         /// <summary>
         /// 장비 슬롯 클릭 처리
@@ -484,15 +469,31 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 return;
             }
             
-            // 장비 해제 (TryEquipItem으로 null 전달하여 해제)
-            var currentItem = equipmentManager.GetEquippedItem(slot);
-            if (currentItem != null)
+            try
             {
-                // 임시로 장비 해제 로직 (실제 메서드가 있다면 사용)
-                // equipmentManager.UnequipItem(slot, false);
-                // 인벤토리에 추가
-                inventoryManager.AddItemToInventory(item);
-                Debug.Log($"🎒 {item.ItemData.ItemName} 해제");
+                // 1. 먼저 인벤토리에 추가 시도
+                bool addedToInventory = inventoryManager.AddItem(item);
+                if (!addedToInventory)
+                {
+                    Debug.LogError($"❌ Failed to add {item.ItemData.ItemName} to inventory");
+                    return;
+                }
+                
+                // 2. 인벤토리 추가 성공 후 EquipmentManager를 통해 안전하게 해제
+                bool unequipped = equipmentManager.UnequipItem(slot, false); // addToInventory=false (이미 추가했음)
+                if (!unequipped)
+                {
+                    Debug.LogError($"❌ Failed to unequip {item.ItemData.ItemName} from slot");
+                    // 실패 시 인벤토리에서 제거 (롤백)
+                    inventoryManager.RemoveItemFromInventory(item);
+                    return;
+                }
+                
+                Debug.Log($"🎒 {item.ItemData.ItemName} 해제 완료 - 장비 슬롯에서 인벤토리로 이동");
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"❌ Exception during unequip {item.ItemData.ItemName}: {e.Message}");
             }
         }
         
@@ -558,126 +559,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         
         // ======================== 드래그&드롭 시스템 ========================
         
-        /// <summary>
-        /// 인벤토리 드래그 시작
-        /// </summary>
-        public void StartInventoryDrag(InventorySlotUI slotUI)
-        {
-            var slot = inventoryManager.Inventory.GetSlot(slotUI.SlotIndex);
-            if (slot?.Item != null)
-            {
-                draggedInventorySlot = slotUI;
-                draggedItem = slot.Item;
-                CreateDragPreview(slot.Item);
-            }
-        }
         
-        /// <summary>
-        /// 장비 드래그 시작
-        /// </summary>
-        public void StartEquipmentDrag(EquipmentSlotUI slotUI)
-        {
-            if (slotUI.CurrentItem != null)
-            {
-                draggedEquipmentSlot = slotUI;
-                draggedItem = slotUI.CurrentItem;
-                CreateDragPreview(slotUI.CurrentItem);
-            }
-        }
-        
-        /// <summary>
-        /// 인벤토리 드래그 종료
-        /// </summary>
-        public void EndInventoryDrag(InventorySlotUI sourceSlot, GameObject target)
-        {
-            bool processed = false;
-            
-            if (target != null)
-            {
-                // 장비 슬롯으로 드롭
-                var equipmentSlot = target.GetComponent<EquipmentSlotUI>();
-                if (equipmentSlot != null && equipmentSlot.CanEquipItem(draggedItem))
-                {
-                    EquipItemFromInventory(draggedItem, equipmentSlot.Slot);
-                    processed = true;
-                }
-                // 인벤토리 슬롯으로 드롭
-                else if (target.GetComponent<InventorySlotUI>() != null)
-                {
-                    // 인벤토리 내 이동은 InventoryManager에서 처리
-                    Debug.Log("Inventory to inventory movement");
-                    processed = true;
-                }
-            }
-            
-            if (!processed)
-            {
-                Debug.Log("드롭 실패 - 유효하지 않은 대상");
-            }
-            
-            CleanupDrag();
-        }
-        
-        /// <summary>
-        /// 장비 드래그 종료
-        /// </summary>
-        public void EndEquipmentDrag(EquipmentSlotUI sourceSlot, GameObject target)
-        {
-            bool processed = false;
-            
-            if (target != null)
-            {
-                // 인벤토리 슬롯으로 드롭 (장비 해제)
-                var inventorySlot = target.GetComponent<InventorySlotUI>();
-                if (inventorySlot != null)
-                {
-                    UnequipItemToInventory(sourceSlot.Slot);
-                    processed = true;
-                }
-                // 다른 장비 슬롯으로 드롭
-                else if (target.GetComponent<EquipmentSlotUI>() != null)
-                {
-                    var targetEquipmentSlot = target.GetComponent<EquipmentSlotUI>();
-                    if (targetEquipmentSlot != sourceSlot && targetEquipmentSlot.CanEquipItem(draggedItem))
-                    {
-                        SwapEquipment(sourceSlot.Slot, targetEquipmentSlot.Slot);
-                        processed = true;
-                    }
-                }
-            }
-            
-            if (!processed)
-            {
-                Debug.Log("드롭 실패 - 유효하지 않은 대상");
-            }
-            
-            CleanupDrag();
-        }
-        
-        /// <summary>
-        /// 아이템 드롭 처리 (EquipmentSlotUI에서 호출)
-        /// </summary>
-        public void ProcessItemDrop(ItemInstance item, EquipmentSlotUI targetSlot)
-        {
-            if (item != null && targetSlot.CanEquipItem(item))
-            {
-                EquipItemFromInventory(item, targetSlot.Slot);
-            }
-        }
-        
-        /// <summary>
-        /// 드래그 프리뷰 생성
-        /// </summary>
-        private void CreateDragPreview(ItemInstance item)
-        {
-            if (dragPreview == null || dragPreviewImage == null) return;
-            
-            dragPreview.SetActive(true);
-            dragPreviewImage.sprite = item.ItemData.ItemIcon;
-            
-            // 마우스 위치로 이동
-            UpdateDragPreviewPosition();
-        }
         
         /// <summary>
         /// 드래그 프리뷰 위치 업데이트
@@ -703,6 +585,39 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         }
         
         /// <summary>
+        /// 드래그 프리뷰 생성
+        /// </summary>
+        private void CreateDragPreview(ItemInstance item)
+        {
+            if (dragPreview == null)
+            {
+                // 드래그 프리뷰 오브젝트 생성
+                dragPreview = new GameObject("DragPreview");
+                var canvasGroup = dragPreview.AddComponent<CanvasGroup>();
+                canvasGroup.alpha = 0.8f;
+                canvasGroup.blocksRaycasts = false;
+                
+                var image = dragPreview.AddComponent<Image>();
+                var rectTransform = dragPreview.GetComponent<RectTransform>();
+                rectTransform.SetParent(transform, false);
+                rectTransform.sizeDelta = new Vector2(64, 64);
+                
+                dragPreview.SetActive(false);
+            }
+            
+            if (item?.ItemData?.ItemIcon != null)
+            {
+                var image = dragPreview.GetComponent<Image>();
+                image.sprite = item.ItemData.ItemIcon;
+                image.color = Color.white;
+                dragPreview.SetActive(true);
+                
+                // 마우스 위치에 프리뷰 배치
+                UpdateDragPreviewPosition();
+            }
+        }
+        
+        /// <summary>
         /// 드래그 정리
         /// </summary>
         private void CleanupDrag()
@@ -715,6 +630,20 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             {
                 dragPreview.SetActive(false);
             }
+        }
+        
+        /// <summary>
+        /// 드래그 실패 시 UI 즉시 복원
+        /// </summary>
+        private void RestoreUIAfterFailedDrag()
+        {
+            // UI 즉시 새로고침으로 원래 상태 복원
+            RefreshUI();
+            
+            // 드래그 정리
+            CleanupDrag();
+            
+            Debug.Log("🔄 UI restored after failed drag operation");
         }
         
         // ======================== 툴팁 시스템 ========================
@@ -739,6 +668,399 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             {
                 tooltipManager.HideTooltip();
             }
+        }
+        
+        // ======================== 드래그 앤 드롭 핸들러 ========================
+        
+        /// <summary>
+        /// 인벤토리 드래그 시작
+        /// </summary>
+        public void StartInventoryDrag(InventorySlotUI sourceSlot)
+        {
+            if (sourceSlot == null || sourceSlot.IsEmpty) return;
+            
+            draggedInventorySlot = sourceSlot;
+            draggedItem = sourceSlot.Item;
+            
+            // 드래그 프리뷰 생성
+            CreateDragPreview(draggedItem);
+            
+            Debug.Log($"🔥 Started dragging {draggedItem.ItemData.ItemName} from inventory slot {sourceSlot.SlotIndex}");
+        }
+        
+        /// <summary>
+        /// 장비 드래그 시작
+        /// </summary>
+        public void StartEquipmentDrag(EquipmentSlotUI sourceSlot)
+        {
+            if (sourceSlot == null || sourceSlot.IsEmpty) return;
+            
+            draggedEquipmentSlot = sourceSlot;
+            draggedItem = sourceSlot.CurrentItem;
+            
+            // 드래그 프리뷰 생성
+            CreateDragPreview(draggedItem);
+            
+            Debug.Log($"🔥 Started dragging {draggedItem.ItemData.ItemName} from equipment slot {sourceSlot.Slot}");
+        }
+        
+        /// <summary>
+        /// 장비 드래그 종료
+        /// </summary>
+        public void EndEquipmentDrag(EquipmentSlotUI sourceSlot, GameObject target)
+        {
+            bool processed = false;
+            
+            if (target != null && draggedItem != null)
+            {
+                Debug.Log($"🎯 Attempting to drop {draggedItem.ItemData.ItemName} from equipment slot {sourceSlot.Slot} to {target.name}");
+                
+                // 인벤토리 슬롯으로 드롭 (장비 해제)
+                var inventorySlotUI = target.GetComponent<InventorySlotUI>();
+                if (inventorySlotUI != null)
+                {
+                    processed = TryUnequipItemToInventory(sourceSlot.Slot, inventorySlotUI.SlotIndex);
+                }
+                // 다른 장비 슬롯으로 드롭 (장비 교환)
+                else if (target.GetComponent<EquipmentSlotUI>() != null)
+                {
+                    var targetEquipmentSlot = target.GetComponent<EquipmentSlotUI>();
+                    if (targetEquipmentSlot != sourceSlot)
+                    {
+                        processed = TrySwapEquipment(sourceSlot.Slot, targetEquipmentSlot.Slot);
+                    }
+                    else
+                    {
+                        processed = true; // 같은 슬롯에 드롭하면 성공으로 처리
+                    }
+                }
+            }
+            
+            if (!processed)
+            {
+                Debug.Log($"❌ 드롭 실패 - 유효하지 않은 대상: {target?.name}");
+                RestoreUIAfterFailedDrag(); // UI 즉시 복원
+            }
+            else
+            {
+                CleanupDrag(); // 성공 시에만 일반 정리
+            }
+        }
+        
+        /// <summary>
+        /// 아이템 드롭 처리 (EquipmentSlotUI에서 호출)
+        /// </summary>
+        public void ProcessItemDrop(ItemInstance item, EquipmentSlotUI targetSlot)
+        {
+            if (item != null && targetSlot.CanEquipItem(item) && draggedInventorySlot != null)
+            {
+                TryEquipItemFromInventory(item, draggedInventorySlot.SlotIndex, targetSlot.Slot);
+            }
+        }
+        
+        
+        /// <summary>
+        /// 인벤토리 드래그 종료
+        /// </summary>
+        public void EndInventoryDrag(InventorySlotUI sourceSlot, GameObject target)
+        {
+            bool processed = false;
+            
+            if (target != null && draggedItem != null)
+            {
+                Debug.Log($"🎯 Attempting to drop {draggedItem.ItemData.ItemName} on {target.name}");
+                
+                // 장비 슬롯으로 드롭 (장착 시도)
+                var equipmentSlotUI = target.GetComponent<EquipmentSlotUI>();
+                if (equipmentSlotUI != null)
+                {
+                    if (equipmentSlotUI.CanEquipItem(draggedItem))
+                    {
+                        processed = TryEquipItemFromInventory(draggedItem, sourceSlot.SlotIndex, equipmentSlotUI.Slot);
+                    }
+                    else
+                    {
+                        Debug.Log($"❌ Cannot equip {draggedItem.ItemData.ItemName} to {equipmentSlotUI.Slot} slot");
+                        processed = false;
+                    }
+                }
+                // 인벤토리 슬롯으로 드롭 (슬롯 간 이동)
+                else if (target.GetComponent<InventorySlotUI>() != null)
+                {
+                    var targetSlot = target.GetComponent<InventorySlotUI>();
+                    if (targetSlot != sourceSlot)
+                    {
+                        processed = TrySwapInventoryItems(sourceSlot.SlotIndex, targetSlot.SlotIndex);
+                    }
+                    else
+                    {
+                        processed = true; // 같은 슬롯에 드롭하면 성공으로 처리
+                    }
+                }
+            }
+            
+            if (!processed)
+            {
+                Debug.Log($"❌ 드롭 실패 - 유효하지 않은 대상: {target?.name}");
+                RestoreUIAfterFailedDrag(); // UI 즉시 복원
+            }
+            else
+            {
+                CleanupDrag(); // 성공 시에만 일반 정리
+            }
+        }
+        
+        /// <summary>
+        /// 인벤토리에서 장비로 아이템 장착 시도
+        /// </summary>
+        private bool TryEquipItemFromInventory(ItemInstance item, int inventoryIndex, EquipmentSlot equipmentSlot)
+        {
+            if (equipmentManager == null || inventoryManager == null)
+            {
+                Debug.LogError("❌ EquipmentManager or InventoryManager is null");
+                return false;
+            }
+            
+            try
+            {
+                // 먼저 인벤토리에서 아이템 제거
+                bool removed = inventoryManager.RemoveItem(inventoryIndex);
+                if (!removed)
+                {
+                    Debug.LogError($"❌ Failed to remove item from inventory slot {inventoryIndex}");
+                    return false;
+                }
+                
+                Debug.Log($"📦 Removed {item.ItemData.ItemName} from inventory slot {inventoryIndex}");
+                
+                // 특정 슬롯에 장비 착용 시도
+                bool equipped = TryEquipToSpecificSlot(item, equipmentSlot);
+                if (equipped)
+                {
+                    Debug.Log($"⚔ {item.ItemData.ItemName} 착용 성공");
+                    return true;
+                }
+                else
+                {
+                    Debug.LogError($"❌ Failed to equip {item.ItemData.ItemName}");
+                    
+                    // 장착 실패 시 인벤토리로 복원
+                    bool restored = AddItemToSpecificSlot(item, inventoryIndex);
+                    if (!restored)
+                    {
+                        // 원래 슬롯에 복원 실패하면 빈 슬롯에 추가
+                        restored = inventoryManager.AddItem(item);
+                    }
+                    
+                    if (restored)
+                    {
+                        Debug.Log($"🔄 {item.ItemData.ItemName} restored to inventory");
+                        // UI 즉시 새로고침
+                        RefreshInventoryUI();
+                    }
+                    else
+                    {
+                        Debug.LogError($"💥 CRITICAL: Failed to restore {item.ItemData.ItemName} to inventory!");
+                    }
+                    
+                    return false;
+                }
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"❌ Exception during equipment: {e.Message}");
+                return false;
+            }
+        }
+        
+        /// <summary>
+        /// 특정 슬롯에 아이템 추가
+        /// </summary>
+        private bool AddItemToSpecificSlot(ItemInstance item, int slotIndex)
+        {
+            if (inventoryManager?.Inventory == null) return false;
+            
+            // 해당 슬롯이 비어있는지 확인
+            var slot = inventoryManager.Inventory.GetSlot(slotIndex);
+            if (slot != null && slot.IsEmpty)
+            {
+                // 슬롯이 비어있으면 직접 추가
+                slot.SetItem(item);
+                return true;
+            }
+            else
+            {
+                // 슬롯이 차있으면 실패
+                return false;
+            }
+        }
+        
+        /// <summary>
+        /// 인벤토리 슬롯 간 아이템 교환
+        /// </summary>
+        private bool TrySwapInventoryItems(int fromIndex, int toIndex)
+        {
+            if (inventoryManager == null) return false;
+            
+            return inventoryManager.MoveItem(fromIndex, toIndex);
+        }
+        
+        /// <summary>
+        /// 인벤토리 슬롯 클릭 처리
+        /// </summary>
+        public void OnInventorySlotClick(int slotIndex)
+        {
+            if (inventoryManager == null) return;
+            
+            var item = inventoryManager.Inventory?.GetItem(slotIndex);
+            if (item != null)
+            {
+                Debug.Log($"🖱 Clicked on {item.ItemData.ItemName} in slot {slotIndex}");
+                
+                // 장비 아이템이면 자동 착용 시도
+                if (item.ItemData.IsEquippable)
+                {
+                    var compatibleSlot = GetCompatibleEquipmentSlot(item.ItemData);
+                    if (compatibleSlot != EquipmentSlot.None)
+                    {
+                        TryEquipItemFromInventory(item, slotIndex, compatibleSlot);
+                    }
+                }
+            }
+        }
+        
+        /// <summary>
+        /// 특정 슬롯에 아이템 장착
+        /// </summary>
+        private bool TryEquipToSpecificSlot(ItemInstance item, EquipmentSlot slot)
+        {
+            if (equipmentManager?.Equipment == null) return false;
+            
+            try
+            {
+                // 기존 장착된 아이템이 있으면 인벤토리로 이동
+                var existingItem = equipmentManager.GetEquippedItem(slot);
+                if (existingItem != null)
+                {
+                    bool unequipped = inventoryManager.AddItem(existingItem);
+                    if (!unequipped)
+                    {
+                        Debug.LogError($"❌ Cannot unequip {existingItem.ItemData.ItemName} - inventory full");
+                        return false;
+                    }
+                }
+                
+                // 새 아이템 장착
+                equipmentManager.Equipment.SetEquippedItem(slot, item);
+                equipmentManager.OnEquipmentChanged?.Invoke(slot, item);
+                
+                return true;
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"❌ Exception during equipment to slot {slot}: {e.Message}");
+                return false;
+            }
+        }
+        
+        /// <summary>
+        /// 장비를 인벤토리로 해제 (드래그 앤 드롭용)
+        /// </summary>
+        private bool TryUnequipItemToInventory(EquipmentSlot fromSlot, int toInventorySlot)
+        {
+            if (equipmentManager?.Equipment == null || inventoryManager?.Inventory == null) return false;
+            
+            var item = equipmentManager.GetEquippedItem(fromSlot);
+            if (item == null) return false;
+            
+            try
+            {
+                // 1. 목표 슬롯이 비어있는지 확인
+                var targetSlot = inventoryManager.Inventory.GetSlot(toInventorySlot);
+                if (targetSlot == null || !targetSlot.IsEmpty)
+                {
+                    Debug.LogWarning($"❌ Target inventory slot {toInventorySlot} is occupied or invalid");
+                    return false;
+                }
+                
+                // 2. 먼저 장비 슬롯에서 제거
+                bool unequipped = equipmentManager.UnequipItem(fromSlot, false);
+                if (!unequipped)
+                {
+                    Debug.LogError($"❌ Failed to unequip {item.ItemData.ItemName} from slot");
+                    return false;
+                }
+                
+                // 3. 특정 슬롯에 직접 배치
+                targetSlot.SetItem(item);
+                
+                Debug.Log($"🔄 Unequipped {item.ItemData.ItemName} from {fromSlot} to inventory slot {toInventorySlot}");
+                return true;
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"❌ Exception during unequip from {fromSlot}: {e.Message}");
+                return false;
+            }
+        }
+        
+        /// <summary>
+        /// 장비 슬롯 간 아이템 교환
+        /// </summary>
+        private bool TrySwapEquipment(EquipmentSlot fromSlot, EquipmentSlot toSlot)
+        {
+            if (equipmentManager?.Equipment == null) return false;
+            
+            var fromItem = equipmentManager.GetEquippedItem(fromSlot);
+            var toItem = equipmentManager.GetEquippedItem(toSlot);
+            
+            if (fromItem == null) return false;
+            
+            try
+            {
+                // 교환
+                equipmentManager.Equipment.SetEquippedItem(fromSlot, toItem);
+                equipmentManager.Equipment.SetEquippedItem(toSlot, fromItem);
+                
+                // 이벤트 호출
+                equipmentManager.OnEquipmentChanged?.Invoke(fromSlot, toItem);
+                equipmentManager.OnEquipmentChanged?.Invoke(toSlot, fromItem);
+                
+                Debug.Log($"🔄 Swapped equipment: {fromSlot} <-> {toSlot}");
+                return true;
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"❌ Exception during equipment swap {fromSlot}<->{toSlot}: {e.Message}");
+                return false;
+            }
+        }
+        
+        /// <summary>
+        /// 장비 데이터에 호환되는 슬롯 찾기
+        /// </summary>
+        private EquipmentSlot GetCompatibleEquipmentSlot(ItemData itemData)
+        {
+            // ItemData의 EquipmentSlot을 직접 사용
+            var equipmentSlot = itemData.EquipmentSlot;
+            
+            // 반지나 귀걸이의 경우 빈 슬롯 찾기
+            if (equipmentSlot == EquipmentSlot.Ring1)
+            {
+                if (equipmentManager.GetEquippedItem(EquipmentSlot.Ring1) == null)
+                    return EquipmentSlot.Ring1;
+                else
+                    return EquipmentSlot.Ring2;
+            }
+            else if (equipmentSlot == EquipmentSlot.Earring1)
+            {
+                if (equipmentManager.GetEquippedItem(EquipmentSlot.Earring1) == null)
+                    return EquipmentSlot.Earring1;
+                else
+                    return EquipmentSlot.Earring2;
+            }
+            
+            return equipmentSlot;
         }
         
         // ======================== 유틸리티 ========================

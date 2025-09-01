@@ -21,6 +21,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         private PlayerInput playerInput;
         private PlayerNetwork playerNetwork;
         private PlayerStatsManager statsManager;
+        private EquipmentManager equipmentManager;
         private CombatSystem combatSystem;
         private PlayerSpriteAnimator spriteAnimator;
         private Animator animator;
@@ -45,6 +46,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             playerInput = GetComponent<PlayerInput>();
             playerNetwork = GetComponent<PlayerNetwork>();
             statsManager = GetComponent<PlayerStatsManager>();
+            equipmentManager = GetComponent<EquipmentManager>();
             combatSystem = GetComponent<CombatSystem>();
             spriteAnimator = GetComponent<PlayerSpriteAnimator>();
             animator = GetComponent<Animator>();
