@@ -318,6 +318,14 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 // AI 기본 설정
                 monsterAI.SetAttackDamage(combatStats.physicalDamage.maxDamage);
             }
+            
+            // 물리 설정: 회전 고정 (스케일 플립만 사용)
+            var rb = GetComponent<Rigidbody2D>();
+            if (rb != null)
+            {
+                rb.freezeRotation = true; // 회전 방지
+                rb.gravityScale = 0f; // 탑다운 뷰에서 중력 없음
+            }
         }
 
         /// <summary>

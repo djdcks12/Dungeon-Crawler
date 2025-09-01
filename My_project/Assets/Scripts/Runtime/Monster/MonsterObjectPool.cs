@@ -53,6 +53,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             var rigidBody = monsterObject.AddComponent<Rigidbody2D>();
             rigidBody.gravityScale = 0f; // 2D 탑다운이므로 중력 없음
             rigidBody.bodyType = RigidbodyType2D.Dynamic; // AI 이동을 위해 Dynamic으로 변경
+            rigidBody.freezeRotation = true; // 회전 방지 (스케일 플립만 사용)
             
             var collider = monsterObject.AddComponent<CircleCollider2D>();
             collider.radius = 0.1f;

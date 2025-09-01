@@ -8,7 +8,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
     /// 개별 인벤토리 슬롯 UI
     /// 드래그&드롭, 클릭 이벤트, 아이템 표시 처리
     /// </summary>
-    public class InventorySlotUI : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPointerExitHandler
+    public class InventorySlotUI : MonoBehaviour, IPointerClickHandler, IBeginDragHandler, IDragHandler, IEndDragHandler, IDropHandler, IPointerEnterHandler, IPointerExitHandler
     {
         [Header("UI 컴포넌트")]
         [SerializeField] private Image backgroundImage;
@@ -264,11 +264,99 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         #region Event Handlers
         
         /// <summary>
+        /// 클릭 이벤트
+        /// </summary>
+        public void OnPointerClick(PointerEventData eventData)
+        {
+            if (isDragging) return;
+            
+            if (eventData.button == PointerEventData.InputButton.Left)
+            {
+                // 좌클릭: 슬롯 선택 또는 자동 장착
+                if (inventoryUI != null)
+                {
+                    inventoryUI.OnInventorySlotClick(slotIndex);
+                }
+            }
+            else if (eventData.button == PointerEventData.InputButton.Right)
+            {
+                // 우클릭: 아이템 사용 또는 정보 표시
+                if (!IsEmpty)
+                {
+                    Debug.Log($"Right clicked on {Item.ItemData.ItemName}");
+                }
+            }
+        }
+        
+        /// <summary>
+        /// 드래그 시작
+        /// </summary>
+        public void OnBeginDrag(PointerEventData eventData)
+        {
+            if (IsEmpty) return;
+            
+            isDragging = true;
+            
+            if (inventoryUI != null)
+            {
+                inventoryUI.StartInventoryDrag(this);
+            }
+            
+            Debug.Log($"🔥 Started dragging {Item.ItemData.ItemName} from slot {slotIndex}");
+        }
+        
+        /// <summary>
+        /// 드래그 중
+        /// </summary>
+        public void OnDrag(PointerEventData eventData)
+        {
+            // 드래그 프리뷰는 UnifiedInventoryUI에서 처리
+        }
+        
+        /// <summary>
+        /// 드래그 종료
+        /// </summary>
+        public void OnEndDrag(PointerEventData eventData)
+        {
+            isDragging = false;
+            
+            if (inventoryUI != null)
+            {
+                // 드롭 대상 찾기
+                GameObject target = eventData.pointerCurrentRaycast.gameObject;
+                inventoryUI.EndInventoryDrag(this, target);
+            }
+            
+            Debug.Log($"🔥 Ended dragging from slot {slotIndex}");
+        }
+        
+        /// <summary>
         /// 드롭 이벤트
         /// </summary>
         public void OnDrop(PointerEventData eventData)
         {
             SetDragOver(false);
+            
+            // 드래그된 오브젝트 확인
+            var draggedObject = eventData.pointerDrag;
+            if (draggedObject == null) return;
+            
+            // 장비 슬롯에서 드래그된 경우
+            var equipmentSlot = draggedObject.GetComponent<EquipmentSlotUI>();
+            if (equipmentSlot != null && !equipmentSlot.IsEmpty)
+            {
+                Debug.Log($"Equipment to inventory drop: {equipmentSlot.CurrentItem.ItemData.ItemName} to slot {slotIndex}");
+                // UnifiedInventoryUI에서 처리하도록 위임
+                return;
+            }
+            
+            // 다른 인벤토리 슬롯에서 드래그된 경우
+            var inventorySlot = draggedObject.GetComponent<InventorySlotUI>();
+            if (inventorySlot != null && inventorySlot != this)
+            {
+                Debug.Log($"Inventory slot swap: {inventorySlot.SlotIndex} to {slotIndex}");
+                // 슬롯 간 아이템 이동 처리
+            }
         }
         
         /// <summary>
@@ -283,7 +371,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             }
             
             // 툴팁 표시
-            if (!IsEmpty)
+            if (!IsEmpty && inventoryUI != null)
             {
                 inventoryUI.ShowTooltip(Item, transform.position);
             }
@@ -295,7 +383,11 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         public void OnPointerExit(PointerEventData eventData)
         {
             SetDragOver(false);
-            inventoryUI.HideTooltip();
+            
+            if (inventoryUI != null)
+            {
+                inventoryUI.HideTooltip();
+            }
         }
         
         #endregion

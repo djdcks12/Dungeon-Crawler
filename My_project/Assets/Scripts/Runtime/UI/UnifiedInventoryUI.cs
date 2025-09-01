@@ -128,14 +128,23 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 EquipmentSlot.Ring2, EquipmentSlot.Feet
             };
             
-            for (int i = 0; i < equipmentSlots.Length && i < slotOrder.Length; i++)
+            // 프리팹이 없으면 동적으로 생성
+            if (equipmentSlots == null || equipmentSlots.Length == 0)
             {
-                var slotUI = equipmentSlots[i];
-                if (slotUI != null)
+                CreateEquipmentSlotsDynamically(slotOrder);
+            }
+            else
+            {
+                // 기존 프리팹 기반 슬롯들 초기화
+                for (int i = 0; i < equipmentSlots.Length && i < slotOrder.Length; i++)
                 {
-                    var slot = slotOrder[i];
-                    slotUI.Initialize(slot, this, equipmentManager);
-                    equipmentSlotMap[slot] = slotUI;
+                    var slotUI = equipmentSlots[i];
+                    if (slotUI != null)
+                    {
+                        var slot = slotOrder[i];
+                        slotUI.Initialize(slot, this, equipmentManager);
+                        equipmentSlotMap[slot] = slotUI;
+                    }
                 }
             }
             
@@ -143,20 +152,126 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         }
         
         /// <summary>
+        /// 장비 슬롯 동적 생성 (프리팹이 없을 때)
+        /// </summary>
+        private void CreateEquipmentSlotsDynamically(EquipmentSlot[] slotOrder)
+        {
+            if (equipmentPanel == null)
+            {
+                Debug.LogError("❌ EquipmentPanel이 설정되지 않았습니다.");
+                return;
+            }
+            
+            var slotList = new System.Collections.Generic.List<EquipmentSlotUI>();
+            
+            // 장비 슬롯 위치 정의
+            var slotPositions = new Vector2[]
+            {
+                new Vector2(0f, 120f),     // Head
+                new Vector2(-80f, 100f),  // Earring1
+                new Vector2(80f, 100f),   // Earring2
+                new Vector2(0f, 80f),     // Necklace
+                new Vector2(0f, 40f),     // Chest
+                new Vector2(-120f, 40f),  // Hands
+                new Vector2(120f, 40f),   // MainHand
+                new Vector2(0f, 0f),      // Belt
+                new Vector2(-120f, 0f),   // OffHand
+                new Vector2(120f, 0f),    // TwoHand
+                new Vector2(0f, -40f),    // Legs
+                new Vector2(-80f, -60f),  // Ring1
+                new Vector2(80f, -60f),   // Ring2
+                new Vector2(0f, -80f)     // Feet
+            };
+            
+            for (int i = 0; i < slotOrder.Length && i < slotPositions.Length; i++)
+            {
+                var slot = slotOrder[i];
+                var position = slotPositions[i];
+                
+                GameObject slotObject = new GameObject($"EquipmentSlot_{slot}");
+                slotObject.transform.SetParent(equipmentPanel.transform, false);
+                
+                // RectTransform 설정
+                RectTransform rectTransform = slotObject.AddComponent<RectTransform>();
+                rectTransform.anchorMin = new Vector2(0.5f, 0.5f);
+                rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
+                rectTransform.pivot = new Vector2(0.5f, 0.5f);
+                rectTransform.sizeDelta = new Vector2(60f, 60f);
+                rectTransform.anchoredPosition = position;
+                
+                // 기본 이미지 컴포넌트
+                Image slotImage = slotObject.AddComponent<Image>();
+                slotImage.color = new Color(0.3f, 0.3f, 0.3f, 0.8f);
+                
+                // EquipmentSlotUI 컴포넌트
+                EquipmentSlotUI slotUI = slotObject.AddComponent<EquipmentSlotUI>();
+                slotUI.Initialize(slot, this, equipmentManager);
+                
+                slotList.Add(slotUI);
+                equipmentSlotMap[slot] = slotUI;
+            }
+            
+            equipmentSlots = slotList.ToArray();
+            Debug.Log($"📦 Created {equipmentSlots.Length} equipment slots dynamically");
+        }
+        
+        /// <summary>
         /// 인벤토리 슬롯 초기화
         /// </summary>
         private void InitializeInventorySlots()
         {
-            for (int i = 0; i < inventorySlots.Length; i++)
+            // 프리팹이 없으면 동적으로 생성
+            if (inventorySlots == null || inventorySlots.Length == 0)
             {
-                var slotUI = inventorySlots[i];
-                if (slotUI != null)
+                CreateInventorySlotsDynamically();
+            }
+            else
+            {
+                // 기존 프리팹 기반 슬롯들 초기화
+                for (int i = 0; i < inventorySlots.Length; i++)
                 {
-                    slotUI.Initialize(i, this);
+                    var slotUI = inventorySlots[i];
+                    if (slotUI != null)
+                    {
+                        slotUI.Initialize(i, this);
+                    }
                 }
             }
             
             Debug.Log($"🎒 Inventory slots initialized: {inventorySlots.Length}");
+        }
+        
+        /// <summary>
+        /// 인벤토리 슬롯 동적 생성 (프리팹이 없을 때)
+        /// </summary>
+        private void CreateInventorySlotsDynamically()
+        {
+            if (inventoryGrid == null)
+            {
+                Debug.LogError("❌ InventoryGrid가 설정되지 않았습니다.");
+                return;
+            }
+            
+            var slotList = new System.Collections.Generic.List<InventorySlotUI>();
+            
+            for (int i = 0; i < 30; i++)
+            {
+                GameObject slotObject = new GameObject($"InventorySlot_{i}");
+                slotObject.transform.SetParent(inventoryGrid.transform, false);
+                
+                // 기본 이미지 컴포넌트
+                Image slotImage = slotObject.AddComponent<Image>();
+                slotImage.color = new Color(0.2f, 0.2f, 0.2f, 0.8f);
+                
+                // InventorySlotUI 컴포넌트
+                InventorySlotUI slotUI = slotObject.AddComponent<InventorySlotUI>();
+                slotUI.Initialize(i, this);
+                
+                slotList.Add(slotUI);
+            }
+            
+            inventorySlots = slotList.ToArray();
+            Debug.Log($"🎒 Created {inventorySlots.Length} inventory slots dynamically");
         }
         
         /// <summary>

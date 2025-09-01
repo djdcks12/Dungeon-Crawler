@@ -22,7 +22,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         private PlayerNetwork playerNetwork;
         private PlayerStatsManager statsManager;
         private CombatSystem combatSystem;
-        private PlayerVisualManager visualManager;
+        private PlayerSpriteAnimator spriteAnimator;
         private Animator animator;
         private DeathManager deathManager;
         private SkillManager skillManager;
@@ -46,15 +46,24 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             playerNetwork = GetComponent<PlayerNetwork>();
             statsManager = GetComponent<PlayerStatsManager>();
             combatSystem = GetComponent<CombatSystem>();
-            visualManager = GetComponent<PlayerVisualManager>();
+            spriteAnimator = GetComponent<PlayerSpriteAnimator>();
             animator = GetComponent<Animator>();
             skillManager = GetComponent<SkillManager>();
+            
+            // PlayerSpriteAnimator가 없으면 추가
+            if (spriteAnimator == null)
+            {
+                spriteAnimator = gameObject.AddComponent<PlayerSpriteAnimator>();
+            }
             
             // Death 시스템 컴포넌트들 자동 추가
             SetupDeathSystem();
             
             // 초기 스탯 적용
             InitializeStats();
+            
+            // 스프라이트 애니메이션 초기화
+            InitializeSpriteAnimator();
             
             if (IsLocalPlayer)
             {
@@ -124,19 +133,19 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             // velocity를 직접 설정 (NetworkRigidbody2D가 자동으로 네트워크 동기화)
             rb.linearVelocity = targetVelocity;
             
-            // 비주얼 매니저 애니메이션 업데이트 (이동 애니메이션만)
-            if (visualManager != null)
+            // 스프라이트 애니메이션 업데이트
+            if (spriteAnimator != null)
             {
-                // 이동 애니메이션 설정
                 if (moveInput.magnitude > 0.1f)
                 {
-                    visualManager.SetAnimation(PlayerAnimationType.Walk);
+                    spriteAnimator.PlayAnimation(PlayerAnimationState.Walk);
                 }
                 else
                 {
-                    visualManager.SetAnimation(PlayerAnimationType.Idle);
+                    spriteAnimator.PlayAnimation(PlayerAnimationState.Idle);
                 }
             }
+            
             
             // 애니메이션 파라미터 설정 (기존 애니메이터와 호환)
             if (animator != null && animator.runtimeAnimatorController != null)
@@ -210,11 +219,12 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         {
             lastAttackTime = Time.time;
             
-            // 비주얼 매니저를 통한 공격 애니메이션
-            if (visualManager != null)
+            // 스프라이트 애니메이션 공격 재생
+            if (spriteAnimator != null)
             {
-                visualManager.TriggerAttackAnimation();
+                spriteAnimator.PlayAttackAnimation();
             }
+            
             
             // 기존 애니메이터와 호환
             if (animator != null && animator.runtimeAnimatorController != null)
@@ -250,6 +260,12 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         {
             if (skillManager != null && playerCamera != null)
             {
+                // 스프라이트 애니메이션 캐스팅 재생
+                if (spriteAnimator != null)
+                {
+                    spriteAnimator.PlayCastingAnimation();
+                }
+                
                 // 마우스 위치를 월드 좌표로 변환하여 스킬 대상 위치로 사용
                 Vector2 mousePosition = playerInput.GetMousePosition();
                 Vector3 worldMousePosition = playerCamera.ScreenToWorldPoint(new Vector3(mousePosition.x, mousePosition.y, playerCamera.nearClipPlane));
@@ -373,6 +389,16 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         private void OnStatsUpdated(PlayerStatsData stats)
         {
             ApplyStatsFromManager();
+            
+            // 종족 변경 시 스프라이트 애니메이션도 업데이트
+            if (spriteAnimator != null)
+            {
+                RaceData raceData = stats.RaceData;
+                if (raceData != null)
+                {
+                    spriteAnimator.ChangeRaceData(raceData);
+                }
+            }
         }
         
         private void ApplyStatsFromManager()
@@ -392,6 +418,31 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             Debug.Log($"  STR: {stats.TotalSTR:F1}, AGI: {stats.TotalAGI:F1}, VIT: {stats.TotalVIT:F1}, INT: {stats.TotalINT:F1}");
         }
         
+        /// <summary>
+        /// 스프라이트 애니메이션 초기화
+        /// </summary>
+        private void InitializeSpriteAnimator()
+        {
+            if (spriteAnimator == null || statsManager == null) return;
+            
+            // 현재 플레이어의 종족 정보 가져오기
+            var currentStats = statsManager.CurrentStats;
+            if (currentStats != null)
+            {
+                // 종족에 해당하는 RaceData 찾기
+                RaceData raceData = statsManager.CurrentStats.RaceData;
+                if (raceData != null)
+                {
+                    spriteAnimator.SetupAnimations(raceData);
+                    Debug.Log($"🎭 PlayerSpriteAnimator initialized for race: {currentStats.CharacterRace}");
+                }
+                else
+                {
+                    Debug.LogWarning($"⚠️ RaceData not found for race: {currentStats.CharacterRace}");
+                }
+            }
+        }
+        
         public void SetMoveSpeed(float speed)
         {
             currentMoveSpeed = speed;
@@ -403,6 +454,12 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             {
                 float actualDamage = statsManager.TakeDamage(damage, damageType);
                 Debug.Log($"Player took {actualDamage:F1} damage (reduced from {damage:F1})");
+                
+                // 피격 이펙트 재생
+                if (spriteAnimator != null)
+                {
+                    spriteAnimator.PlayHitEffect();
+                }
                 
                 // 죽음 처리
                 if (statsManager.IsDead)
@@ -430,6 +487,12 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             
             // DeathManager가 이제 모든 사망 처리를 담당하므로
             // 여기서는 최소한의 처리만 수행
+            
+            // 스프라이트 애니메이션 사망 재생
+            if (spriteAnimator != null)
+            {
+                spriteAnimator.PlayDeathAnimation();
+            }
             
             // 애니메이션 트리거 (DeathManager에서도 처리하지만 즉시 반응을 위해)
             if (animator != null)

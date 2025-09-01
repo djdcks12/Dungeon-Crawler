@@ -15,13 +15,15 @@ MonoBehaviour:
   effectName: Smear_Horizontal_01
   effectType: 0
   hitEffectFrames:
-  - {fileID: 4757251415096693921, guid: e337d75dcd1f5de4e8d7a2b09fb55ec2, type: 3}
-  - {fileID: -1073189902953685456, guid: e337d75dcd1f5de4e8d7a2b09fb55ec2, type: 3}
-  - {fileID: -160102796, guid: e337d75dcd1f5de4e8d7a2b09fb55ec2, type: 3}
-  - {fileID: -1722930414, guid: e337d75dcd1f5de4e8d7a2b09fb55ec2, type: 3}
-  - {fileID: -510961226, guid: e337d75dcd1f5de4e8d7a2b09fb55ec2, type: 3}
-  hitFrameRate: 5
-  hitDuration: 0.3
+  - {fileID: 6566990249812935391, guid: bba72f4c842e57547bc5a75518a3c0e2, type: 3}
+  - {fileID: 2215464939857069991, guid: bba72f4c842e57547bc5a75518a3c0e2, type: 3}
+  - {fileID: -5178808433615151375, guid: bba72f4c842e57547bc5a75518a3c0e2, type: 3}
+  - {fileID: -7558254343829563152, guid: bba72f4c842e57547bc5a75518a3c0e2, type: 3}
+  - {fileID: -3464336304830206612, guid: bba72f4c842e57547bc5a75518a3c0e2, type: 3}
+  - {fileID: 1759004381143251056, guid: bba72f4c842e57547bc5a75518a3c0e2, type: 3}
+  - {fileID: -4516089713774300905, guid: bba72f4c842e57547bc5a75518a3c0e2, type: 3}
+  hitFrameRate: 7
+  hitDuration: 0.4
   projectileStartFrames: []
   projectileRepeatableFrames: []
   projectileHitFrames: []

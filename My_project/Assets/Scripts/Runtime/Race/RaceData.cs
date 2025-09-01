@@ -32,12 +32,57 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         [Header("Default Effects")]
         [SerializeField] private EffectData defaultHitEffect; // 맨손 공격 시 기본 이펙트
         
+        [Header("Player Sprite Animations")]
+        [SerializeField] private Sprite[] idleSprites;
+        [SerializeField] private float idleFrameRate = 6f;
+        [SerializeField] private Sprite[] walkSprites;
+        [SerializeField] private float walkFrameRate = 8f;
+        [SerializeField] private Sprite[] attackSprites;
+        [SerializeField] private float attackFrameRate = 12f;
+        [SerializeField] private Sprite[] castingSprites;
+        [SerializeField] private float castingFrameRate = 10f;
+        [SerializeField] private Sprite[] deathSprites;
+        [SerializeField] private float deathFrameRate = 8f;
+        
         // 프로퍼티들
         public StatBlock BaseStats => baseStats;
         public StatGrowth StatGrowth => statGrowth;
         public ElementalStats ElementalAffinity => elementalAffinity;
         public RaceSpecialty[] Specialties => specialties;
         public EffectData DefaultHitEffect => defaultHitEffect;
+        
+        // 스프라이트 애니메이션 프로퍼티들
+        public Sprite[] IdleSprites => idleSprites;
+        public float IdleFrameRate => idleFrameRate;
+        public Sprite[] WalkSprites => walkSprites;
+        public float WalkFrameRate => walkFrameRate;
+        public Sprite[] AttackSprites => attackSprites;
+        public float AttackFrameRate => attackFrameRate;
+        public Sprite[] CastingSprites => castingSprites;
+        public float CastingFrameRate => castingFrameRate;
+        public Sprite[] DeathSprites => deathSprites;
+        public float DeathFrameRate => deathFrameRate;
+        
+        /// <summary>
+        /// 애니메이션 스프라이트 유효성 검사
+        /// </summary>
+        public bool HasValidIdleAnimation => idleSprites != null && idleSprites.Length > 0;
+        public bool HasValidWalkAnimation => walkSprites != null && walkSprites.Length > 0;
+        public bool HasValidAttackAnimation => attackSprites != null && attackSprites.Length > 0;
+        public bool HasValidCastingAnimation => castingSprites != null && castingSprites.Length > 0;
+        public bool HasValidDeathAnimation => deathSprites != null && deathSprites.Length > 0;
+        
+        /// <summary>
+        /// 기본 스프라이트 가져오기 (첫 번째 Idle 스프라이트)
+        /// </summary>
+        public Sprite GetDefaultSprite()
+        {
+            if (HasValidIdleAnimation)
+            {
+                return idleSprites[0];
+            }
+            return null;
+        }
         
         /// <summary>
         /// 특정 레벨에서의 스탯 계산

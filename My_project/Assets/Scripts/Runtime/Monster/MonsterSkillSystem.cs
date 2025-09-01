@@ -48,12 +48,8 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 InvokeRepeating(nameof(UpdateSkills), 1f, skillUpdateInterval);
             }
         }
-        public void CleanupSkillSystem()
-        { 
-            
-        }
         
-        public override void OnNetworkDespawn()
+        public void CleanupSkillSystem()
         {
             if (monsterEntity != null)
             {
@@ -61,7 +57,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             }
 
             CancelInvoke();
-            base.OnNetworkDespawn();
         }
         
         /// <summary>
