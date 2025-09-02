@@ -241,20 +241,23 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             
             if (eventData.button == PointerEventData.InputButton.Left)
             {
-                // UnifiedInventoryUI용
-                if (unifiedUI != null)
+                // 좌클릭: 아이템 정보 표시만 (장착/해제 안함)
+                if (!IsEmpty)
                 {
-                    unifiedUI.OnEquipmentSlotClick(equipmentSlot);
+                    Debug.Log($"🖱️ Left-clicked on equipped {currentItem.ItemData.ItemName} - showing info only");
+                    ShowItemInfo();
                 }
             }
             else if (eventData.button == PointerEventData.InputButton.Right)
             {
-                // 우클릭: 장비 해제
-                if (!IsEmpty && equipmentManager != null)
+                // 우클릭: 장비 해제 (UnifiedInventoryUI를 통한 안전한 처리)
+                if (!IsEmpty && unifiedUI != null)
                 {
-                    equipmentManager.UnequipItem(equipmentSlot, true);
+                    Debug.Log($"🖱️ Right-clicked on equipped {currentItem.ItemData.ItemName} - attempting to unequip");
+                    // 빈 인벤토리 슬롯을 찾아서 해제
+                    unifiedUI.OnEquipmentSlotClick(equipmentSlot);
                 }
-                else if (currentItem != null)
+                else if (!IsEmpty)
                 {
                     ShowItemInfo();
                 }
@@ -297,30 +300,53 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         public void OnDrop(PointerEventData eventData)
         {
+            Debug.Log($"🎯 EquipmentSlotUI.OnDrop called on {equipmentSlot}");
+            
             var draggedItem = unifiedUI?.GetDraggedItem();
             if (draggedItem != null)
             {
+                Debug.Log($"🔍 Found dragged item: {draggedItem.ItemData.ItemName}");
                 if (CanEquipItem(draggedItem))
                 {
+                    Debug.Log($"✅ Can equip item to {equipmentSlot}");
                     unifiedUI?.ProcessItemDrop(draggedItem, this);
+                }
+                else
+                {
+                    Debug.Log($"❌ Cannot equip {draggedItem.ItemData.ItemName} to {equipmentSlot}");
                 }
             }
             else
             {
+                Debug.Log($"🔍 No dragged item from unifiedUI, using legacy system");
                 // 기존 방식 (간소화된 처리)
                 var draggedObject = eventData.pointerDrag;
-                if (draggedObject == null) return;
+                if (draggedObject == null) 
+                {
+                    Debug.Log($"❌ No dragged object found");
+                    return;
+                }
+                
+                Debug.Log($"🔍 Dragged object: {draggedObject.name}");
                 
                 var inventorySlot = draggedObject.GetComponent<InventorySlotUI>();
-                if (inventorySlot != null)
+                if (inventorySlot != null && !inventorySlot.IsEmpty)
                 {
-                    Debug.Log("Inventory to equipment drag-drop via legacy system");
+                    Debug.Log($"📦 Inventory to equipment drag-drop: {inventorySlot.Item.ItemData.ItemName} to {equipmentSlot}");
+                    if (unifiedUI != null)
+                    {
+                        unifiedUI.EndInventoryDrag(inventorySlot, gameObject);
+                    }
                 }
                 
                 var equipmentSlotUI = draggedObject.GetComponent<EquipmentSlotUI>();
-                if (equipmentSlotUI != null && !equipmentSlotUI.IsEmpty)
+                if (equipmentSlotUI != null && !equipmentSlotUI.IsEmpty && equipmentSlotUI != this)
                 {
-                    Debug.Log("Equipment slot swapping via legacy system");
+                    Debug.Log($"⚔️ Equipment slot swapping: {equipmentSlotUI.Slot} to {equipmentSlot}");
+                    if (unifiedUI != null)
+                    {
+                        unifiedUI.EndEquipmentDrag(equipmentSlotUI, gameObject);
+                    }
                 }
             }
         }

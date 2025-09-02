@@ -337,16 +337,27 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         {
             SetDragOver(false);
             
+            Debug.Log($"🎯 InventorySlotUI.OnDrop called on slot {slotIndex}");
+            
             // 드래그된 오브젝트 확인
             var draggedObject = eventData.pointerDrag;
-            if (draggedObject == null) return;
+            if (draggedObject == null) 
+            {
+                Debug.Log($"❌ No dragged object found");
+                return;
+            }
+            
+            Debug.Log($"🔍 Dragged object: {draggedObject.name}");
             
             // 장비 슬롯에서 드래그된 경우
             var equipmentSlot = draggedObject.GetComponent<EquipmentSlotUI>();
             if (equipmentSlot != null && !equipmentSlot.IsEmpty)
             {
-                Debug.Log($"Equipment to inventory drop: {equipmentSlot.CurrentItem.ItemData.ItemName} to slot {slotIndex}");
-                // UnifiedInventoryUI에서 처리하도록 위임
+                Debug.Log($"⚔️ Equipment to inventory drop: {equipmentSlot.CurrentItem.ItemData.ItemName} to slot {slotIndex}");
+                if (inventoryUI != null)
+                {
+                    inventoryUI.EndEquipmentDrag(equipmentSlot, gameObject);
+                }
                 return;
             }
             
@@ -354,8 +365,24 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             var inventorySlot = draggedObject.GetComponent<InventorySlotUI>();
             if (inventorySlot != null && inventorySlot != this)
             {
-                Debug.Log($"Inventory slot swap: {inventorySlot.SlotIndex} to {slotIndex}");
-                // 슬롯 간 아이템 이동 처리
+                Debug.Log($"📦 Inventory slot swap: {inventorySlot.SlotIndex} to {slotIndex}");
+                // UnifiedInventoryUI를 통해 슬롯 간 아이템 이동 처리
+                if (inventoryUI != null)
+                {
+                    inventoryUI.EndInventoryDrag(inventorySlot, gameObject);
+                }
+                else
+                {
+                    Debug.LogError($"❌ inventoryUI is null!");
+                }
+            }
+            else if (inventorySlot == this)
+            {
+                Debug.Log($"✅ Same slot drop - no action needed");
+            }
+            else
+            {
+                Debug.Log($"❌ Unknown dragged object type: {draggedObject.name}");
             }
         }
         
