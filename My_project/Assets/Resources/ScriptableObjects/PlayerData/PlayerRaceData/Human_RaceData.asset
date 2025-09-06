@@ -86,7 +86,7 @@ MonoBehaviour:
   attackDamageFrame: 3
   hitSprites:
   - {fileID: 4237140444910105288, guid: 69d992f5996d77c4b848a45fc3b9f03a, type: 3}
-  hitFrameRate: 0.5
+  hitFrameRate: 3
   castingSprites:
   - {fileID: 4811190364059900513, guid: 00c62692d700cb34998e93c2d45521a2, type: 3}
   - {fileID: -3630134925126372854, guid: 00c62692d700cb34998e93c2d45521a2, type: 3}

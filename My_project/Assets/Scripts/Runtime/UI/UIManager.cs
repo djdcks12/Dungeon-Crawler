@@ -12,6 +12,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
     {
         [Header("UI 프리팹 경로")]
         [SerializeField] private string playerHUDPrefabPath = "UI/PlayerHUD";
+        [SerializeField] private string monsterTargetHUDPrefabPath = "UI/MonsterTargetHUD";
         [SerializeField] private string statsUIPrefabPath = "UI/StatsUI";
         [SerializeField] private string inventoryUIPrefabPath = "UI/AdvancedInventoryUI";
         [SerializeField] private string equipmentUIPrefabPath = "UI/EquipmentUI";
@@ -122,6 +123,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         {
             // 필수 UI들 로드
             LoadUI<PlayerHUD>(playerHUDPrefabPath);
+            LoadUI<MonsterTargetHUD>(monsterTargetHUDPrefabPath);
             LoadUI<StatsUI>(statsUIPrefabPath);
             LoadUI<UnifiedInventoryUI>(inventoryUIPrefabPath);
             LoadUI<PartyUI>(partyUIPrefabPath);

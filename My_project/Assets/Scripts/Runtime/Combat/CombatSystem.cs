@@ -15,6 +15,8 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         [SerializeField] private LayerMask playerLayerMask = 1 << 6; // Player layer
         [SerializeField] private bool enablePvP = true;
         
+        // 이벤트
+        public System.Action<MonsterEntity, float> OnMonsterAttacked;
         
         // 컴포넌트 참조
         private PlayerController playerController;
@@ -309,6 +311,9 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             string critText = isCritical ? " (CRITICAL)" : "";
             Debug.Log($"⚔️ {name} dealt {actualDamage:F1} {damageType} damage to {targetMonster.VariantData?.variantName ?? "Monster"}{critText}");
             
+            // 몬스터 공격 이벤트 발생 (MonsterTargetHUD가 구독)
+            OnMonsterAttacked?.Invoke(targetMonster, actualDamage);
+            
             // 인챈트 효과 적용 (실제 가한 데미지 기반)
             if (enchantManager != null && statsManager != null)
             {
@@ -532,6 +537,9 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                     var attackerNetworkObject = GetComponent<NetworkObject>();
                     ulong attackerClientId = attackerNetworkObject?.OwnerClientId ?? 0;
                     monsterEntity.TakeDamage(skillDamage, skillData.damageType, attackerClientId);
+                    
+                    // 몬스터 공격 이벤트 발생 (스킬 공격)
+                    OnMonsterAttacked?.Invoke(monsterEntity, skillDamage);
                 }
                 
                 // 플레이어에게 데미지 적용 (PvP)

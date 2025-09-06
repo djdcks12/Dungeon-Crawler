@@ -119,6 +119,12 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 rb.linearVelocity = Vector2.zero;
                 return;
             }
+            if(spriteAnimator.IsAttackAnimationPlaying())
+            {
+                // 공격 애니메이션 중에는 이동 불가
+                rb.linearVelocity = Vector2.zero;
+                return;
+            }
             
             Vector2 moveInput = playerInput.GetMoveInput();
             

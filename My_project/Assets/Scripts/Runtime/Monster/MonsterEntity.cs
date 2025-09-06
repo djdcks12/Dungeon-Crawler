@@ -335,9 +335,9 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         public void TakeDamage(float damage, DamageType damageType, ulong attackerClientId = 0)
         {   
-            if (IsDead)
+            if (IsDead || networkCurrentHP.Value <= 0f)
             {
-                Debug.LogWarning($"🩸 Monster already dead, ignoring damage");
+                Debug.LogWarning($"🩸 Monster already dead (IsDead={IsDead}, HP={networkCurrentHP.Value}), ignoring damage");
                 return;
             }
 
@@ -367,6 +367,13 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         private void ProcessDamage(float damage, DamageType damageType, ulong attackerClientId)
         {
+            // 이미 죽었으면 처리 중단
+            if (IsDead || networkCurrentHP.Value <= 0f)
+            {
+                Debug.LogWarning($"🩸 ProcessDamage: Monster already dead, aborting");
+                return;
+            }
+            
             float finalDamage = damage;
 
             // 방어력 적용
@@ -423,15 +430,17 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
 
             OnDamageTaken?.Invoke(finalDamage);
 
-            spriteAnimator?.PlayHitAnimation(()=>
+            // 사망 처리 (즉시 체크)
+            if (newHP <= 0f && !IsDead)
             {
-                // 사망 처리
-                if (newHP <= 0f && !IsDead)
-                {
-                    Debug.Log($"☠️ Monster dying: {variantData?.variantName ?? "Unknown"}");
-                    Die(attackerClientId);
-                }
-            });
+                Debug.Log($"☠️ Monster dying immediately: {variantData?.variantName ?? "Unknown"}");
+                Die(attackerClientId);
+            }
+            else if (newHP > 0f)
+            {
+                // 살아있으면 피격 애니메이션 재생
+                spriteAnimator?.PlayHitAnimation();
+            }
         }
         
         /// <summary>
@@ -447,7 +456,8 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 return;
             }
             
-            
+            // 즉시 사망 상태로 설정 (중요!)
+            networkIsDead.Value = true;
             
             // 즉시 콜라이더와 AI 비활성화 (더 이상 공격받지 않도록)
             var collider = GetComponent<Collider2D>();
@@ -462,6 +472,13 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 monsterAI.enabled = false;
             }
 
+            // 즉시 이벤트 발생
+            OnDeath?.Invoke();
+            
+            // 보상 지급
+            GiveRewardsToNearbyPlayers(killerClientId);
+
+            // 사망 애니메이션은 시각적 효과로만 사용
             spriteAnimator?.PlayDeathAnimation(()=>
             {
                 // 시각적 표시 (투명하게)
@@ -472,13 +489,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                     color.a = 0.3f; // 30% 투명도
                     spriteRenderer.color = color;
                 }
-                
-                networkIsDead.Value = true;
-
-                OnDeath?.Invoke();
-                
-                // 보상 지급
-                GiveRewardsToNearbyPlayers(killerClientId);
             });
             
         }

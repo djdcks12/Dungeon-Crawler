@@ -95,7 +95,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             {
                 StopCoroutine(currentAnimationCoroutine);
             }
-            
+
             currentAnimationCoroutine = StartCoroutine(PlayOneShotAnimationWithDamage(PlayerAnimationState.Attack, onComplete, speedMultiplier, onDamageFrame));
         }
         
