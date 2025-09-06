@@ -116,9 +116,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                     statsText += FormatStatBlock(itemData.StatBonuses);
                 }
                 
-                // 내구도 표시
-                statsText += $"\n내구도: {itemInstance.CurrentDurability}/{itemData.MaxDurability}";
-                
                 // 무기인 경우 공격력 표시
                 if (itemData.IsWeapon)
                 {

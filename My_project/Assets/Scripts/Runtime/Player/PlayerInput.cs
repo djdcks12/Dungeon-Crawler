@@ -12,6 +12,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         [Header("Input Settings")]
         [SerializeField] private KeyCode attackKey = KeyCode.Mouse0;
         [SerializeField] private KeyCode skillKey = KeyCode.Mouse1;
+        [SerializeField] private KeyCode statsKey = KeyCode.C;
         [SerializeField] private bool debugInput = true;
         
         private Vector2 moveInput;
@@ -53,6 +54,12 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 }
             }
             skillHeld = Input.GetKey(skillKey);
+            
+            // 스탯창 토글 입력
+            if (Input.GetKeyDown(statsKey))
+            {
+                ToggleStatsUI();
+            }
         }
         
         // 공용 접근 메서드들
@@ -95,6 +102,18 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         public void LogInputState()
         {
             Debug.Log($"Move: {moveInput}, Mouse: {mousePosition}, Attack: {attackPressed}, Skill: {skillPressed}");
+        }
+        
+        /// <summary>
+        /// 스탯 UI 토글
+        /// </summary>
+        private void ToggleStatsUI()
+        {
+            var statsUI = FindObjectOfType<StatsUI>();
+            if (statsUI != null)
+            {
+                statsUI.ToggleStatsPanel();
+            }
         }
     }
 }

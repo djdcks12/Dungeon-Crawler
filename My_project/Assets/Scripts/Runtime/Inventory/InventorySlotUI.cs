@@ -224,11 +224,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             // 등급 프레임
             gradeFrame.color = item.ItemData.GradeColor;
             
-            // 내구도가 낮으면 빨간색 틴트
-            if (item.ItemData.HasDurability && item.GetDurabilityPercentage() < 0.25f)
-            {
-                itemIconImage.color = Color.red;
-            }
         }
         
         /// <summary>

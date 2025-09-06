@@ -303,25 +303,12 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         public void HandleUIInput()
         {
-            // I키 - 인벤토리
-            if (Input.GetKeyDown(KeyCode.I))
-            {
-                Debug.Log("🔍 I key pressed! Attempting to toggle InventoryUI");
-                Debug.Log($"🔍 UIManager Instance exists: {Instance != null}");
-                Debug.Log($"🔍 Loaded UIs count: {loadedUIs.Count}");
-            }
-            
             // P키 - 파티
             if (Input.GetKeyDown(KeyCode.P))
             {
                 ToggleUI<PartyUI>();
             }
             
-            // C키 - 스탯
-            if (Input.GetKeyDown(KeyCode.C))
-            {
-                ToggleUI<StatsUI>();
-            }
             
             // B키 - 상점
             if (Input.GetKeyDown(KeyCode.B))

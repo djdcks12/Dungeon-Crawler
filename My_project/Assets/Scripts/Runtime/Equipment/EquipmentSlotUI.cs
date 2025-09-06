@@ -14,7 +14,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         [SerializeField] private Image itemIcon;
         [SerializeField] private Image gradeFrame;
         [SerializeField] private Text itemCountText; // 스택 가능한 아이템용
-        [SerializeField] private Image durabilityBar;
         [SerializeField] private Text slotLabel;
         
         [Header("Visual Settings")]
@@ -123,11 +122,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 itemCountText.text = "";
             }
             
-            if (durabilityBar != null)
-            {
-                durabilityBar.fillAmount = 0f;
-                durabilityBar.gameObject.SetActive(false);
-            }
         }
         
         /// <summary>
@@ -165,30 +159,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 }
             }
             
-            // 내구도 표시 (내구도가 있는 아이템인 경우)
-            if (durabilityBar != null && item.ItemData.HasDurability)
-            {
-                durabilityBar.gameObject.SetActive(true);
-                durabilityBar.fillAmount = item.CurrentDurability / (float)item.ItemData.MaxDurability;
-                
-                // 내구도에 따른 색상 변경
-                if (item.CurrentDurability <= item.ItemData.MaxDurability * 0.25f)
-                {
-                    durabilityBar.color = Color.red;
-                }
-                else if (item.CurrentDurability <= item.ItemData.MaxDurability * 0.5f)
-                {
-                    durabilityBar.color = Color.yellow;
-                }
-                else
-                {
-                    durabilityBar.color = Color.green;
-                }
-            }
-            else if (durabilityBar != null)
-            {
-                durabilityBar.gameObject.SetActive(false);
-            }
         }
         
         /// <summary>
@@ -440,10 +410,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                          $"타입: {itemData.ItemType}\n" +
                          $"설명: {itemData.Description}\n";
             
-            if (itemData.HasDurability)
-            {
-                info += $"내구도: {currentItem.CurrentDurability:F0}/{currentItem.ItemData.MaxDurability:F0}\n";
-            }
             
             if (itemData.StatBonuses.HasAnyStats())
             {

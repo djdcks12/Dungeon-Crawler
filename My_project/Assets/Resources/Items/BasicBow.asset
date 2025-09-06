@@ -18,7 +18,7 @@ MonoBehaviour:
   itemIcon: {fileID: 1490122312239849419, guid: e172d2f967d29c54d8d1d9324051b7bf, type: 3}
   itemType: 0
   grade: 1
-  equipmentSlot: 8
+  equipmentSlot: 9
   weaponCategory: 6
   stackSize: 1
   sellPrice: 80
@@ -41,6 +41,7 @@ MonoBehaviour:
     stability: 0
   criticalBonus: 0
   weaponDamageType: 0
+  hitEffect: {fileID: 11400000, guid: 0bc19c87374f1b64a9342bda65b3f4cf, type: 2}
   healAmount: 0
   manaAmount: 0
   consumableEffects: []

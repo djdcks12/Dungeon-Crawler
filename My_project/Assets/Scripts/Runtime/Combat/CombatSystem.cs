@@ -355,9 +355,9 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             if (statsManager?.CurrentStats == null) return null;
             
             // 장착된 무기가 있으면 무기 이펙트 사용
-            if (statsManager.CurrentStats.EquippedWeapon?.HitEffect != null)
+            if (statsManager.CurrentStats.EquippedWeapon?.ItemData?.HitEffect != null)
             {
-                return statsManager.CurrentStats.EquippedWeapon.HitEffect;
+                return statsManager.CurrentStats.EquippedWeapon.ItemData.HitEffect;
             }
             
             // 무기가 없으면 종족 기본 이펙트 사용

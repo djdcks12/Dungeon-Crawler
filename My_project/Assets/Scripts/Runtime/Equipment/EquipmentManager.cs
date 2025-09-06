@@ -318,12 +318,38 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             if (statsManager != null)
             {
                 statsManager.UpdateEquipmentStats(totalEquipmentStats);
+                
+                // 무기 장착 처리 - PlayerStatsData의 EquipWeapon 호출
+                HandleWeaponEquip();
             }
             
             // 스탯 변경 이벤트 발생
             OnEquipmentStatsChanged?.Invoke(totalEquipmentStats);
             
             Debug.Log($"📊 Equipment stats recalculated: {GetStatSummary(totalEquipmentStats)}");
+        }
+        
+        /// <summary>
+        /// 무기 장착 처리
+        /// </summary>
+        private void HandleWeaponEquip()
+        {
+            // 주무기나 양손무기 확인
+            var mainHandItem = equipmentData.GetEquippedItem(EquipmentSlot.MainHand);
+            var twoHandItem = equipmentData.GetEquippedItem(EquipmentSlot.TwoHand);
+            
+            ItemInstance weaponItem = twoHandItem ?? mainHandItem; // 양손무기 우선
+            
+            if (weaponItem != null && weaponItem.ItemData != null && weaponItem.ItemData.IsWeapon)
+            {
+                // 새로운 시스템: ItemInstance를 직접 전달
+                statsManager.CurrentStats.EquipWeapon(weaponItem);
+            }
+            else
+            {
+                // 무기가 없으면 해제
+                statsManager.CurrentStats.UnequipWeapon();
+            }
         }
         
         /// <summary>

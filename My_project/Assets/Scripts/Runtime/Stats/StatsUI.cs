@@ -13,7 +13,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
     {
         [Header("UI References")]
         [SerializeField] private GameObject statsPanel;
-        [SerializeField] private Button toggleStatsButton;
         [SerializeField] private Button closeStatsButton;
         
         [Header("Player Info")]
@@ -66,21 +65,15 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             // 로컬 플레이어의 StatsManager 찾기
             FindLocalPlayerStatsManager();
             
-            // 초기 상태 설정
+            // 초기 상태 설정 - statsPanel은 처음에 꺼진 상태
             if (statsPanel != null)
             {
-                statsPanel.SetActive(showStatsOnStart);
-                isStatsVisible = showStatsOnStart;
+                statsPanel.SetActive(false);
+                isStatsVisible = false;
             }
+            
         }
         
-        private void Update()
-        {
-            if (Input.GetKeyDown(toggleKey))
-            {
-                ToggleStatsPanel();
-            }
-        }
         
         private void OnEnable()
         {
@@ -101,6 +94,13 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 statsManager.OnStatsUpdated -= OnStatsUpdated;
                 statsManager.OnHealthChanged -= OnHealthChanged;
                 statsManager.OnLevelChanged -= OnLevelChanged;
+                
+                // EquipmentManager 이벤트 구독 해제
+                var equipmentManager = statsManager.GetComponent<EquipmentManager>();
+                if (equipmentManager != null)
+                {
+                    equipmentManager.OnEquipmentChanged -= OnEquipmentChanged;
+                }
             }
         }
         
@@ -146,11 +146,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         
         private void SetupButtonEvents()
         {
-            if (toggleStatsButton != null)
-            {
-                toggleStatsButton.onClick.AddListener(ToggleStatsPanel);
-            }
-            
             if (closeStatsButton != null)
             {
                 closeStatsButton.onClick.AddListener(CloseStatsPanel);
@@ -167,6 +162,14 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 if (networkBehaviour != null && networkBehaviour.IsLocalPlayer)
                 {
                     statsManager = controller.GetComponent<PlayerStatsManager>();
+                    
+                    // EquipmentManager 이벤트도 구독
+                    var equipmentManager = controller.GetComponent<EquipmentManager>();
+                    if (equipmentManager != null)
+                    {
+                        equipmentManager.OnEquipmentChanged += OnEquipmentChanged;
+                        Debug.Log("📊 StatsUI subscribed to EquipmentManager events");
+                    }
                     break;
                 }
             }
@@ -186,8 +189,14 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         public void ToggleStatsPanel()
         {
             isStatsVisible = !isStatsVisible;
+            
             if (statsPanel != null)
             {
+                // 디버깅: 어떤 GameObject를 켜고 끄는지 확인
+                Debug.Log($"Toggling GameObject: {statsPanel.name}");
+                Debug.Log($"This StatsUI is on GameObject: {gameObject.name}");
+                Debug.Log($"Are they the same? {statsPanel == gameObject}");
+                
                 statsPanel.SetActive(isStatsVisible);
             }
             
@@ -308,12 +317,16 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             
             if (attackDamageText != null)
             {
-                attackDamageText.text = $"Attack: {stats.AttackDamage:F1}";
+                // 민댐/맥댐 범위로 표시 (더 정확함)
+                var physicalDamage = stats.CombatStats.physicalDamage;
+                attackDamageText.text = $"Attack: {physicalDamage.minDamage:F0}-{physicalDamage.maxDamage:F0} (Avg: {stats.AttackDamage:F1})";
             }
             
             if (magicDamageText != null)
             {
-                magicDamageText.text = $"Magic: {stats.MagicDamage:F1}";
+                // 마법 데미지도 범위로 표시
+                var magicalDamage = stats.CombatStats.magicalDamage;
+                magicDamageText.text = $"Magic: {magicalDamage.minDamage:F0}-{magicalDamage.maxDamage:F0} (Avg: {stats.MagicDamage:F1})";
             }
             
             if (moveSpeedText != null)
@@ -340,6 +353,17 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         // 이벤트 콜백들
         private void OnStatsUpdated(PlayerStatsData stats)
         {
+            if (isStatsVisible)
+            {
+                UpdateAllUI();
+            }
+        }
+        
+        private void OnEquipmentChanged(EquipmentSlot slot, ItemInstance item)
+        {
+            Debug.Log($"📊 StatsUI detected equipment change: {slot} -> {item?.ItemData?.ItemName ?? "Empty"}");
+            
+            // 장비 변경 시 UI 즉시 업데이트
             if (isStatsVisible)
             {
                 UpdateAllUI();

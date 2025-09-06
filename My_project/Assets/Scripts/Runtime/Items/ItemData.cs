@@ -30,13 +30,12 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         
         [Header("장비 스탯 (장비 아이템만)")]
         [SerializeField] private StatBlock statBonuses = new StatBlock();
-        [SerializeField] private int durability = 100;
-        [SerializeField] private int maxDurability = 100;
         
         [Header("무기 속성 (무기만)")]
         [SerializeField] private DamageRange weaponDamageRange = new DamageRange(10, 15, 0);
         [SerializeField] private float criticalBonus = 0f;
         [SerializeField] private DamageType weaponDamageType = DamageType.Physical;
+        [SerializeField] private EffectData hitEffect;
         
         [Header("소모품 속성 (소모품만)")]
         [SerializeField] private float healAmount = 0f;
@@ -60,11 +59,10 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         public bool IsDroppable => isDroppable;
         public bool IsDestroyable => isDestroyable;
         public StatBlock StatBonuses => statBonuses;
-        public int Durability => durability;
-        public int MaxDurability => maxDurability;
         public DamageRange WeaponDamageRange => weaponDamageRange;
         public float CriticalBonus => criticalBonus;
         public DamageType WeaponDamageType => weaponDamageType;
+        public EffectData HitEffect => hitEffect;
         public float HealAmount => healAmount;
         public float ManaAmount => manaAmount;
         public StatusEffect[] ConsumableEffects => consumableEffects;
@@ -96,10 +94,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         public int MaxStackSize => CanStack ? stackSize : 1;
         
-        /// <summary>
-        /// 내구도가 있는지 확인
-        /// </summary>
-        public bool HasDurability => IsEquippable;
         
         /// <summary>
         /// 등급별 색상 자동 설정
@@ -146,51 +140,13 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 _ => 0f
             };
         }
-        
-        /// <summary>
-        /// 등급별 기본 판매가 배수 반환
-        /// </summary>
-        public static float GetGradePriceMultiplier(ItemGrade grade)
-        {
-            return grade switch
-            {
-                ItemGrade.Common => 1f,
-                ItemGrade.Uncommon => 3f,
-                ItemGrade.Rare => 10f,
-                ItemGrade.Epic => 30f,
-                ItemGrade.Legendary => 100f,
-                _ => 1f
-            };
-        }
-        
+
         /// <summary>
         /// 아이템의 총 가치 계산 (기본가 + 등급 배수)
         /// </summary>
         public long GetTotalValue()
         {
-            return (long)(sellPrice * GetGradePriceMultiplier(grade));
-        }
-        
-        /// <summary>
-        /// 내구도 감소
-        /// </summary>
-        public void DecreaseDurability(int amount = 1)
-        {
-            if (IsEquippable)
-            {
-                durability = Mathf.Max(0, durability - amount);
-            }
-        }
-        
-        /// <summary>
-        /// 내구도 수리
-        /// </summary>
-        public void RepairDurability(int amount)
-        {
-            if (IsEquippable)
-            {
-                durability = Mathf.Min(maxDurability, durability + amount);
-            }
+            return (long)sellPrice;
         }
         
         /// <summary>
@@ -198,9 +154,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         public bool CanUse()
         {
-            if (IsEquippable && durability <= 0)
-                return false;
-                
             return true;
         }
         
@@ -211,20 +164,11 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         {
             if (!IsWeapon) return new DamageRange(0, 0, 0);
             
-            // 기본 무기 데미지에 STR 적용
-            float strMultiplier = 1f + (strength * 0.1f);
-            float minDamage = weaponDamageRange.minDamage * strMultiplier;
-            float maxDamage = weaponDamageRange.maxDamage * strMultiplier;
+            // 무기 데미지 계산: 무기 기본 데미지 + STR 보너스
+            float minDamage = weaponDamageRange.minDamage + (strength * 1.5f);
+            float maxDamage = weaponDamageRange.maxDamage + (strength * 2.5f);
             
-            // 등급별 데미지 보너스
-            float gradeBonus = GetGradePriceMultiplier(grade) * 0.1f;
-            minDamage *= (1f + gradeBonus);
-            maxDamage *= (1f + gradeBonus);
-            
-            // 내구도에 따른 데미지 감소
-            float durabilityRatio = durability / (float)maxDurability;
-            minDamage *= durabilityRatio;
-            maxDamage *= durabilityRatio;
+            Debug.Log($"🗡️ Weapon damage calculation: Base({weaponDamageRange.minDamage}-{weaponDamageRange.maxDamage}) + STR({strength}) = {minDamage:F1}-{maxDamage:F1}");
             
             return new DamageRange(minDamage, maxDamage, stability);
         }
@@ -245,7 +189,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             
             if (IsEquippable)
             {
-                info += $"\n내구도: {durability}/{maxDurability}";
                 if (statBonuses.HasAnyStats())
                 {
                     info += $"\n{statBonuses.GetStatsText()}";

@@ -50,7 +50,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
 
         [Header("전투 스탯 (민댐/맥댐 시스템)")]
         [SerializeField] private CombatStats combatStats;
-        [SerializeField] private WeaponData equippedWeapon;
+        [SerializeField] private ItemInstance equippedWeaponItem;
 
         // 캐릭터 이름
         [SerializeField] private string characterName = "Unknown";
@@ -94,7 +94,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         public float CriticalChance => criticalChance;
         public float CriticalDamage => criticalDamage;
         public CombatStats CombatStats => combatStats;
-        public WeaponData EquippedWeapon => equippedWeapon;
+        public ItemInstance EquippedWeapon => equippedWeaponItem;
         public long Gold => gold;
         public long CurrentGold => gold;
 
@@ -224,9 +224,10 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         {
             // 물리 데미지 범위 계산
             DamageRange physicalRange;
-            if (equippedWeapon != null)
+            if (equippedWeaponItem != null && equippedWeaponItem.ItemData != null && equippedWeaponItem.ItemData.IsWeapon)
             {
-                physicalRange = equippedWeapon.CalculateDamageRange(TotalSTR, TotalSTAB);
+                physicalRange = equippedWeaponItem.ItemData.CalculateWeaponDamage(TotalSTR, TotalSTAB);
+                Debug.Log($"⚔️ Using equipped weapon: {equippedWeaponItem.ItemData.ItemName} (Damage: {physicalRange.minDamage:F1}-{physicalRange.maxDamage:F1})");
             }
             else
             {
@@ -234,13 +235,15 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 float baseMin = TotalSTR * 1.5f;
                 float baseMax = TotalSTR * 2.5f;
                 physicalRange = new DamageRange(baseMin, baseMax, 0f).GetStabilizedRange(TotalSTAB);
+                Debug.Log($"👊 Using bare hands (Damage: {physicalRange.minDamage:F1}-{physicalRange.maxDamage:F1})");
             }
 
             // 마법 데미지 범위 계산
             DamageRange magicalRange;
-            if (equippedWeapon != null && (equippedWeapon.Category == WeaponCategory.Staff || equippedWeapon.Category == WeaponCategory.Wand))
+            if (equippedWeaponItem != null && equippedWeaponItem.ItemData != null && 
+                (equippedWeaponItem.ItemData.WeaponCategory == WeaponCategory.Staff || equippedWeaponItem.ItemData.WeaponCategory == WeaponCategory.Wand))
             {
-                magicalRange = equippedWeapon.CalculateMagicDamageRange(TotalINT, TotalSTAB);
+                magicalRange = equippedWeaponItem.ItemData.CalculateWeaponDamage(TotalINT, TotalSTAB);
             }
             else
             {
@@ -252,9 +255,9 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
 
             // 치명타 계산
             float totalCritChance = TotalLUK * 0.0005f;
-            if (equippedWeapon != null)
+            if (equippedWeaponItem != null && equippedWeaponItem.ItemData != null)
             {
-                totalCritChance += equippedWeapon.CriticalBonus;
+                totalCritChance += equippedWeaponItem.ItemData.CriticalBonus;
             }
 
             // 전투 스탯 업데이트
@@ -403,31 +406,22 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             return skillDamage;
         }
 
-        // 무기 장착
-        public void EquipWeapon(WeaponData weapon)
+        // 무기 장착 (새로운 시스템)
+        public void EquipWeapon(ItemInstance weaponItem)
         {
-            equippedWeapon = weapon;
-
-            if (weapon != null)
-            {
-                equipmentBonusStats = equipmentBonusStats + weapon.StatBonuses;
-            }
-
+            equippedWeaponItem = weaponItem;
             RecalculateStats();
             OnStatsChanged?.Invoke(this);
+            Debug.Log($"⚔️ Equipped weapon: {weaponItem?.ItemData?.ItemName ?? "None"}");
         }
 
         // 무기 해제
         public void UnequipWeapon()
         {
-            if (equippedWeapon != null)
-            {
-                equipmentBonusStats = equipmentBonusStats + (equippedWeapon.StatBonuses * -1f);
-                equippedWeapon = null;
-            }
-
+            equippedWeaponItem = null;
             RecalculateStats();
             OnStatsChanged?.Invoke(this);
+            Debug.Log($"👊 Weapon unequipped - using bare hands");
         }
 
         // 데미지 받기
