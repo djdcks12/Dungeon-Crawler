@@ -48,6 +48,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         
         // 컴포넌트 참조
         private MonsterAI monsterAI;
+        private MonsterSpriteAnimator spriteAnimator;
         private MonsterSkillSystem skillSystem;
         private SpriteRenderer spriteRenderer;
         private Rigidbody2D rb;
@@ -82,6 +83,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             skillSystem = GetComponent<MonsterSkillSystem>();
             spriteRenderer = GetComponent<SpriteRenderer>();
             rb = GetComponent<Rigidbody2D>();
+            spriteAnimator = GetComponent<MonsterSpriteAnimator>();
             
             // 몬스터 생성 로직 (서버 체크는 GenerateMonster 내부에서)
             if (raceData != null && variantData != null)
@@ -400,9 +402,9 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             // 공격자를 참여자로 추가 (데미지가 실제로 들어갔을 때만)
             if (finalDamage > 0f)
             {
-                foreach(var spawnedObject in NetworkManager.Singleton.SpawnManager.SpawnedObjects)
+                foreach (var spawnedObject in NetworkManager.Singleton.SpawnManager.SpawnedObjects)
                 {
-                    if(spawnedObject.Value.IsPlayerObject && spawnedObject.Value.OwnerClientId == attackerClientId)
+                    if (spawnedObject.Value.IsPlayerObject && spawnedObject.Value.OwnerClientId == attackerClientId)
                     {
                         participatingPlayers.Add(spawnedObject.Key);
                     }
@@ -421,12 +423,15 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
 
             OnDamageTaken?.Invoke(finalDamage);
 
-            // 사망 처리
-            if (newHP <= 0f && !IsDead)
+            spriteAnimator?.PlayHitAnimation(()=>
             {
-                Debug.Log($"☠️ Monster dying: {variantData?.variantName ?? "Unknown"}");
-                Die(attackerClientId);
-            }
+                // 사망 처리
+                if (newHP <= 0f && !IsDead)
+                {
+                    Debug.Log($"☠️ Monster dying: {variantData?.variantName ?? "Unknown"}");
+                    Die(attackerClientId);
+                }
+            });
         }
         
         /// <summary>
@@ -442,7 +447,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 return;
             }
             
-            networkIsDead.Value = true;
+            
             
             // 즉시 콜라이더와 AI 비활성화 (더 이상 공격받지 않도록)
             var collider = GetComponent<Collider2D>();
@@ -456,20 +461,26 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             {
                 monsterAI.enabled = false;
             }
-            
-            // 시각적 표시 (투명하게)
-            var spriteRenderer = GetComponent<SpriteRenderer>();
-            if (spriteRenderer != null)
+
+            spriteAnimator?.PlayDeathAnimation(()=>
             {
-                var color = spriteRenderer.color;
-                color.a = 0.3f; // 30% 투명도
-                spriteRenderer.color = color;
-            }
+                // 시각적 표시 (투명하게)
+                var spriteRenderer = GetComponent<SpriteRenderer>();
+                if (spriteRenderer != null)
+                {
+                    var color = spriteRenderer.color;
+                    color.a = 0.3f; // 30% 투명도
+                    spriteRenderer.color = color;
+                }
+                
+                networkIsDead.Value = true;
+
+                OnDeath?.Invoke();
+                
+                // 보상 지급
+                GiveRewardsToNearbyPlayers(killerClientId);
+            });
             
-            OnDeath?.Invoke();
-            
-            // 보상 지급
-            GiveRewardsToNearbyPlayers(killerClientId);
         }
 
         /// 보상 지급 (공격에 참여한 플레이어들에게만)

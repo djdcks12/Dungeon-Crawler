@@ -48,13 +48,18 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         [SerializeField] private Sprite[] idleSprites; // Idle 상태 스프라이트 배열
         [SerializeField] private Sprite[] moveSprites; // 이동 상태 스프라이트 배열
         [SerializeField] private Sprite[] attackSprites; // 공격 상태 스프라이트 배열
+        [SerializeField] private int attackDamageFrame = 2; // 공격 애니메이션 중 몇 번째 프레임에서 데미지 적용 (0-based)
+        [SerializeField] private Sprite[] hitSprites; // 피격 상태 스프라이트 배열
         [SerializeField] private Sprite[] castingSprites; // 스킬 시전 상태 스프라이트 배열
+        [SerializeField] private Sprite[] deathSprites; // 사망 상태 스프라이트 배열
         
         [Header("Animation Settings")]
         [SerializeField] private float idleFrameRate = 6f;
         [SerializeField] private float moveFrameRate = 8f;
         [SerializeField] private float attackFrameRate = 12f;
         [SerializeField] private float castingFrameRate = 10f;
+        [SerializeField] private float hitFrameRate = 10f;
+        [SerializeField] private float deathFrameRate = 6f;
         
         [Header("Effects")]
         [SerializeField] private EffectData attackEffect; // 몬스터 공격 이펙트
@@ -78,11 +83,16 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         public Sprite[] MoveSprites => moveSprites;
         public Sprite[] AttackSprites => attackSprites;
         public Sprite[] CastingSprites => castingSprites;
+        public Sprite[] HitSprites => hitSprites;
+        public Sprite[] DeathSprites => deathSprites;
+        public int AttackDamageFrame => attackDamageFrame;
         public float IdleFrameRate => idleFrameRate;
         public float MoveFrameRate => moveFrameRate;
         public float AttackFrameRate => attackFrameRate;
         public float CastingFrameRate => castingFrameRate;
-        
+        public float HitFrameRate => hitFrameRate;
+        public float DeathFrameRate => deathFrameRate;
+
         /// <summary>
         /// 개체별 스탯 편차 적용
         /// </summary>

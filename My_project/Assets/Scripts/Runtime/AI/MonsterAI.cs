@@ -385,7 +385,8 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             networkState.Value = newState;
             
             Debug.Log($"{name} state changed: {previousState} → {newState}");
-            
+
+            if (newState == MonsterAIState.Dead) return;
             // 애니메이션 상태 업데이트
             UpdateAnimationState(newState);
         }
@@ -462,24 +463,23 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             lastAttackTime = Time.time;
             
             // 공격 애니메이션 재생
-            PlayAttackAnimation();
-            
-            // 실제 데미지 적용
-            var targetStatsManager = currentTarget.GetComponent<PlayerStatsManager>();
-            
-            if (targetStatsManager != null)
+            PlayAttackAnimation(()=>
             {
-                float actualDamage = targetStatsManager.TakeDamage(attackDamage, damageType);
+                // 실제 데미지 적용
+                var targetStatsManager = currentTarget.GetComponent<PlayerStatsManager>();
                 
-                // 모든 클라이언트에 공격 이펙트 및 애니메이션 동기화
-                TriggerAttackAnimationClientRpc(currentTarget.transform.position, actualDamage);
-                
-                Debug.Log($"👹 {name} attacked {currentTarget.name} for {actualDamage} damage");
-            }
-            else
-            {
-                Debug.LogError($"❌ {name} PlayerStatsManager not found on {currentTarget.name}");
-            }
+                if (targetStatsManager != null)
+                {
+                    float actualDamage = targetStatsManager.TakeDamage(attackDamage, damageType);
+                    
+                    // 모든 클라이언트에 공격 이펙트 및 애니메이션 동기화
+                    TriggerAttackAnimationClientRpc(currentTarget.transform.position, actualDamage);
+                    
+                    Debug.Log($"👹 {name} attacked {currentTarget.name} for {actualDamage} damage");
+                }
+            });
+            
+            
         }
         
         /// <summary>
@@ -562,14 +562,20 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// <summary>
         /// 공격 애니메이션 재생
         /// </summary>
-        protected void PlayAttackAnimation()
+        protected void PlayAttackAnimation(System.Action onDamageFrame = null)
         {
             if (spriteAnimator == null) return;
             
-            spriteAnimator.PlayAttackAnimation(() =>
+            spriteAnimator.PlayAttackAnimation(
+            () =>
             {
                 // 공격 애니메이션 완료 후 원래 상태로 복귀
                 UpdateAnimationState(currentState);
+            },
+            () =>
+            {
+                // 공격 애니메이션 중 데미지 프레임 콜백
+                onDamageFrame?.Invoke();
             });
         }
         

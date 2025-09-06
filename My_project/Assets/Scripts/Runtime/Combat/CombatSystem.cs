@@ -22,7 +22,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         private EnchantManager enchantManager;
         
         // 공격 상태
-        private bool isAttacking = false;
         private float attackStartTime;
         private Vector2 attackDirection;
         
@@ -40,7 +39,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         public void PerformBasicAttack()
         {
-            if (!IsOwner || isAttacking) return;
+            if (!IsOwner) return;
             
             // 가장 가까운 적을 찾아서 공격 (마우스 방향 대신)
             var nearestEnemy = FindNearestEnemy();
@@ -625,8 +624,8 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             Gizmos.color = Color.red;
             Gizmos.DrawWireSphere(transform.position, 2.0f);
             
-            // 공격 방향 시각화
-            if (isAttacking)
+            // 공격 방향 시각화 (최근 공격 방향)
+            if (attackDirection != Vector2.zero)
             {
                 Gizmos.color = Color.yellow;
                 Gizmos.DrawLine(transform.position, transform.position + (Vector3)attackDirection * 2.0f);

@@ -11,6 +11,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         Idle,
         Walk,
         Attack,
+        Hit,
         Casting,
         Death
     }
@@ -88,40 +89,53 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// <summary>
         /// 공격 애니메이션 재생 (한 번만)
         /// </summary>
-        public void PlayAttackAnimation(System.Action onComplete = null)
+        public void PlayAttackAnimation(System.Action onComplete = null, float speedMultiplier = 1.0f, System.Action onDamageFrame = null)
         {
             if (currentAnimationCoroutine != null)
             {
                 StopCoroutine(currentAnimationCoroutine);
             }
             
-            currentAnimationCoroutine = StartCoroutine(PlayOneShotAnimation(PlayerAnimationState.Attack, onComplete));
+            currentAnimationCoroutine = StartCoroutine(PlayOneShotAnimationWithDamage(PlayerAnimationState.Attack, onComplete, speedMultiplier, onDamageFrame));
         }
         
         /// <summary>
         /// 캐스팅 애니메이션 재생 (한 번만)
         /// </summary>
-        public void PlayCastingAnimation(System.Action onComplete = null)
+        public void PlayCastingAnimation(System.Action onComplete = null, float speedMultiplier = 1.0f)
         {
             if (currentAnimationCoroutine != null)
             {
                 StopCoroutine(currentAnimationCoroutine);
             }
             
-            currentAnimationCoroutine = StartCoroutine(PlayOneShotAnimation(PlayerAnimationState.Casting, onComplete));
+            currentAnimationCoroutine = StartCoroutine(PlayOneShotAnimation(PlayerAnimationState.Casting, onComplete, speedMultiplier));
         }
         
         /// <summary>
         /// 사망 애니메이션 재생 (한 번만, 루프 없음)
         /// </summary>
-        public void PlayDeathAnimation(System.Action onComplete = null)
+        public void PlayDeathAnimation(System.Action onComplete = null, float speedMultiplier = 1.0f)
         {
             if (currentAnimationCoroutine != null)
             {
                 StopCoroutine(currentAnimationCoroutine);
             }
             
-            currentAnimationCoroutine = StartCoroutine(PlayOneShotAnimation(PlayerAnimationState.Death, onComplete));
+            currentAnimationCoroutine = StartCoroutine(PlayOneShotAnimation(PlayerAnimationState.Death, onComplete, speedMultiplier));
+        }
+        
+        /// <summary>
+        /// 피격 애니메이션 재생 (한 번만)
+        /// </summary>
+        public void PlayHitAnimation(System.Action onComplete = null, float speedMultiplier = 1.0f)
+        {
+            if (currentAnimationCoroutine != null)
+            {
+                StopCoroutine(currentAnimationCoroutine);
+            }
+
+            currentAnimationCoroutine = StartCoroutine(PlayOneShotAnimation(PlayerAnimationState.Hit, onComplete, speedMultiplier));
         }
         
         /// <summary>
@@ -134,7 +148,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 StopCoroutine(currentAnimationCoroutine);
                 currentAnimationCoroutine = null;
             }
-            
+
             isPlaying = false;
             currentFrameIndex = 0;
             currentState = PlayerAnimationState.Idle;
@@ -174,7 +188,60 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// <summary>
         /// 한 번만 재생하는 애니메이션 코루틴
         /// </summary>
-        private IEnumerator PlayOneShotAnimation(PlayerAnimationState state, System.Action onComplete = null)
+        private IEnumerator PlayOneShotAnimation(PlayerAnimationState state, System.Action onComplete = null, float speedMultiplier = 1.0f)
+        {
+            var sprites = GetSpritesForState(state);
+            var frameRate = GetFrameRateForState(state);
+            
+            if (sprites == null || sprites.Length == 0)
+            {
+                Debug.LogWarning($"🎬 PlayerSpriteAnimator: No sprites for state {state}");
+                onComplete?.Invoke();
+                
+                // 사망 애니메이션이 아니면 Idle로 복귀
+                if (state != PlayerAnimationState.Death)
+                {
+                    PlayAnimation(PlayerAnimationState.Idle);
+                }
+                yield break;
+            }
+            
+            isPlaying = true;
+            currentState = state; // 현재 상태 설정
+            
+            // 공격 속도에 따라 애니메이션 속도 조정
+            float adjustedFrameRate = frameRate * speedMultiplier;
+            float frameTime = 1f / adjustedFrameRate;
+            
+            // 한 번만 재생
+            for (int i = 0; i < sprites.Length; i++)
+            {
+                if (spriteRenderer != null)
+                {
+                    spriteRenderer.sprite = sprites[i];
+                }
+                
+                yield return new WaitForSeconds(frameTime);
+            }
+            
+            onComplete?.Invoke();
+            
+            // 사망 애니메이션이 아니면 Idle 상태로 복귀
+            if (currentState != PlayerAnimationState.Death)
+            {
+                PlayAnimation(PlayerAnimationState.Idle);
+            }
+            else
+            {
+                // 사망 애니메이션은 마지막 프레임에서 정지
+                isPlaying = false;
+            }
+        }
+        
+        /// <summary>
+        /// 데미지 프레임 콜백이 있는 한 번만 재생하는 애니메이션 코루틴
+        /// </summary>
+        private IEnumerator PlayOneShotAnimationWithDamage(PlayerAnimationState state, System.Action onComplete = null, float speedMultiplier = 1.0f, System.Action onDamageFrame = null)
         {
             var sprites = GetSpritesForState(state);
             var frameRate = GetFrameRateForState(state);
@@ -193,12 +260,33 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             }
             
             isPlaying = true;
-            float frameTime = 1f / frameRate;
+            currentState = state; // 현재 상태 설정
+            
+            // 공격 속도에 따라 애니메이션 속도 조정
+            float adjustedFrameRate = frameRate * speedMultiplier;
+            float frameTime = 1f / adjustedFrameRate;
+            
+            // 데미지 적용 프레임 가져오기 (공격 애니메이션일 때만)
+            int damageFrame = -1;
+            if (state == PlayerAnimationState.Attack && currentRaceData != null)
+            {
+                damageFrame = currentRaceData.AttackDamageFrame;
+            }
             
             // 한 번만 재생
             for (int i = 0; i < sprites.Length; i++)
             {
-                spriteRenderer.sprite = sprites[i];
+                if (spriteRenderer != null)
+                {
+                    spriteRenderer.sprite = sprites[i];
+                }
+                
+                // 데미지 프레임에 도달하면 콜백 호출
+                if (i == damageFrame && onDamageFrame != null)
+                {
+                    onDamageFrame.Invoke();
+                }
+                
                 yield return new WaitForSeconds(frameTime);
             }
             
@@ -222,11 +310,12 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         private Sprite[] GetSpritesForState(PlayerAnimationState state)
         {
             if (currentRaceData == null) return null;
-            
+
             return state switch
             {
                 PlayerAnimationState.Idle => currentRaceData.IdleSprites,
                 PlayerAnimationState.Walk => currentRaceData.WalkSprites,
+                PlayerAnimationState.Hit => currentRaceData.HitSprites,
                 PlayerAnimationState.Attack => currentRaceData.AttackSprites,
                 PlayerAnimationState.Casting => currentRaceData.CastingSprites,
                 PlayerAnimationState.Death => currentRaceData.DeathSprites,
@@ -245,6 +334,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             {
                 PlayerAnimationState.Idle => currentRaceData.IdleFrameRate,
                 PlayerAnimationState.Walk => currentRaceData.WalkFrameRate,
+                PlayerAnimationState.Hit => currentRaceData.HitFrameRate,
                 PlayerAnimationState.Attack => currentRaceData.AttackFrameRate,
                 PlayerAnimationState.Casting => currentRaceData.CastingFrameRate,
                 PlayerAnimationState.Death => currentRaceData.DeathFrameRate,
@@ -269,6 +359,21 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         }
         
         /// <summary>
+        /// 공격 애니메이션이 재생 중인지 확인
+        /// </summary>
+        public bool IsAttackAnimationPlaying()
+        {
+            return isPlaying && currentState == PlayerAnimationState.Attack;
+        }
+
+        /// <summary>
+        /// 사망 애니메이션이 재생 중인지 확인
+        /// </summary>
+        public bool IsMovingOrIdleAnimationPlaying()
+        {
+            return isPlaying && (currentState == PlayerAnimationState.Idle || currentState == PlayerAnimationState.Walk);
+        }
+        /// <summary>
         /// RaceData 변경 (종족 변경 시 사용)
         /// </summary>
         public void ChangeRaceData(RaceData newRaceData)
@@ -277,28 +382,5 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             SetupAnimations(newRaceData);
         }
         
-        /// <summary>
-        /// 피격 이펙트 재생
-        /// </summary>
-        public void PlayHitEffect()
-        {
-            if (spriteRenderer != null)
-            {
-                StartCoroutine(HitFlashCoroutine());
-            }
-        }
-        
-        /// <summary>
-        /// 피격 플래시 효과
-        /// </summary>
-        private System.Collections.IEnumerator HitFlashCoroutine()
-        {
-            Color originalColor = spriteRenderer.color;
-            spriteRenderer.color = Color.red;
-            
-            yield return new WaitForSeconds(0.1f);
-            
-            spriteRenderer.color = originalColor;
-        }
     }
 }

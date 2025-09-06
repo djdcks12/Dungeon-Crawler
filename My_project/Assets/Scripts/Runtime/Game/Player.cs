@@ -74,14 +74,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             return playerController;
         }
         
-        public void TakeDamage(float damage)
-        {
-            if (playerController != null)
-            {
-                playerController.TakeDamage(damage);
-            }
-        }
-        
         public void SetMoveSpeed(float speed)
         {
             if (playerController != null)

@@ -39,6 +39,9 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         [SerializeField] private float walkFrameRate = 8f;
         [SerializeField] private Sprite[] attackSprites;
         [SerializeField] private float attackFrameRate = 12f;
+        [SerializeField] private int attackDamageFrame = 2; // 공격 애니메이션 중 몇 번째 프레임에서 데미지 적용 (0-based)
+        [SerializeField] private Sprite[] hitSprites;
+        [SerializeField] private float hitFrameRate = 12f;
         [SerializeField] private Sprite[] castingSprites;
         [SerializeField] private float castingFrameRate = 10f;
         [SerializeField] private Sprite[] deathSprites;
@@ -58,6 +61,9 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         public float WalkFrameRate => walkFrameRate;
         public Sprite[] AttackSprites => attackSprites;
         public float AttackFrameRate => attackFrameRate;
+        public int AttackDamageFrame => attackDamageFrame; // 데미지 적용 프레임
+        public Sprite[] HitSprites => hitSprites;
+        public float HitFrameRate => hitFrameRate;
         public Sprite[] CastingSprites => castingSprites;
         public float CastingFrameRate => castingFrameRate;
         public Sprite[] DeathSprites => deathSprites;

@@ -10,6 +10,8 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
     {
         Idle,
         Move,
+        Hit,
+        Death,
         Attack,
         Casting
     }
@@ -28,11 +30,15 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         private Sprite[] moveSprites;
         private Sprite[] attackSprites;
         private Sprite[] castingSprites;
+        private Sprite[] hitSprites;
+        private Sprite[] deathSprites;
         
         private float idleFrameRate = 6f;
         private float moveFrameRate = 8f;
         private float attackFrameRate = 12f;
         private float castingFrameRate = 10f;
+        private float hitFrameRate = 10f;
+        private float deathFrameRate = 6f;
         
         // 애니메이션 상태
         private Coroutine currentAnimationCoroutine;
@@ -66,13 +72,17 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             moveSprites = variantData.MoveSprites;
             attackSprites = variantData.AttackSprites;
             castingSprites = variantData.CastingSprites;
-            
+            hitSprites = variantData.HitSprites;
+            deathSprites = variantData.DeathSprites;
+
             // 프레임 레이트 설정
             idleFrameRate = variantData.IdleFrameRate;
             moveFrameRate = variantData.MoveFrameRate;
             attackFrameRate = variantData.AttackFrameRate;
             castingFrameRate = variantData.CastingFrameRate;
-            
+            hitFrameRate = variantData.HitFrameRate;
+            deathFrameRate = variantData.DeathFrameRate;
+
             // 기본적으로 Idle 애니메이션 시작
             PlayAnimation(MonsterAnimationState.Idle);
         }
@@ -99,14 +109,16 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// <summary>
         /// 공격 애니메이션 재생 (한 번만)
         /// </summary>
-        public void PlayAttackAnimation(System.Action onComplete = null)
+        public void PlayAttackAnimation(System.Action onComplete = null, System.Action onDamageFrame = null)
         {
+            if(currentState == MonsterAnimationState.Hit) return; // 피격 애니메이션 중에는 공격 애니메이션 재생 안 함
+            
             if (currentAnimationCoroutine != null)
             {
                 StopCoroutine(currentAnimationCoroutine);
             }
             
-            currentAnimationCoroutine = StartCoroutine(PlayOneShotAnimation(MonsterAnimationState.Attack, onComplete));
+            currentAnimationCoroutine = StartCoroutine(PlayOneShotAnimationWithDamage(MonsterAnimationState.Attack, onComplete,onDamageFrame));
         }
         
         /// <summary>
@@ -122,6 +134,26 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             currentAnimationCoroutine = StartCoroutine(PlayOneShotAnimation(MonsterAnimationState.Casting, onComplete));
         }
         
+        public void PlayHitAnimation(System.Action onComplete = null)
+        {
+            if (currentAnimationCoroutine != null)
+            {
+                StopCoroutine(currentAnimationCoroutine);
+            }
+
+            currentAnimationCoroutine = StartCoroutine(PlayOneShotAnimation(MonsterAnimationState.Hit, onComplete));
+        }
+
+        public void PlayDeathAnimation(System.Action onComplete = null)
+        {
+            if (currentAnimationCoroutine != null)
+            {
+                StopCoroutine(currentAnimationCoroutine);
+            }
+            
+            currentAnimationCoroutine = StartCoroutine(PlayOneShotAnimation(MonsterAnimationState.Death, onComplete));
+        }
+        
         /// <summary>
         /// 모든 애니메이션 중지
         /// </summary>
@@ -132,7 +164,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 StopCoroutine(currentAnimationCoroutine);
                 currentAnimationCoroutine = null;
             }
-            
+
             isPlaying = false;
             currentFrameIndex = 0;
             currentState = MonsterAnimationState.Idle;
@@ -181,12 +213,15 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             {
                 Debug.LogWarning($"MonsterSpriteAnimator: No sprites for state {state}");
                 onComplete?.Invoke();
-                // Idle로 복귀
-                PlayAnimation(MonsterAnimationState.Idle);
+                if (state != MonsterAnimationState.Death)
+                {
+                    PlayAnimation(MonsterAnimationState.Idle);
+                }
                 yield break;
             }
             
             isPlaying = true;
+            currentState = state; // 현재 상태 설정
             float frameTime = 1f / frameRate;
             
             // 한 번만 재생
@@ -197,9 +232,83 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             }
             
             onComplete?.Invoke();
-            
+
             // Idle 상태로 복귀
-            PlayAnimation(MonsterAnimationState.Idle);
+            // 사망 애니메이션이 아니면 Idle 상태로 복귀
+            if (currentState != MonsterAnimationState.Death)
+            {
+                PlayAnimation(MonsterAnimationState.Idle);
+            }
+            else
+            {
+                // 사망 애니메이션은 마지막 프레임에서 정지
+                isPlaying = false;
+            }
+        }
+
+        /// <summary>
+        /// 데미지 프레임 콜백이 있는 한 번만 재생하는 애니메이션 코루틴
+        /// </summary>
+        private IEnumerator PlayOneShotAnimationWithDamage(MonsterAnimationState state, System.Action onComplete = null, System.Action onDamageFrame = null)
+        {
+            var sprites = GetSpritesForState(state);
+            var frameRate = GetFrameRateForState(state);
+            
+            if (sprites == null || sprites.Length == 0)
+            {
+                Debug.LogWarning($"PlayerSpriteAnimator: No sprites for state {state}");
+                onComplete?.Invoke();
+                
+                // 사망 애니메이션이 아니면 Idle로 복귀
+                if (state != MonsterAnimationState.Death)
+                {
+                    PlayAnimation(MonsterAnimationState.Idle);
+                }
+                yield break;
+            }
+            
+            isPlaying = true;
+            currentState = state; // 현재 상태 설정
+            float frameTime = 1f / frameRate;
+            
+            // 공격 속도에 따라 애니메이션 속도 조정
+
+            // 데미지 적용 프레임 가져오기 (공격 애니메이션일 때만)
+            int damageFrame = -1;
+            if (state == MonsterAnimationState.Attack && currentVariantData != null)
+            {
+                damageFrame = currentVariantData.AttackDamageFrame;
+            }
+            
+            // 한 번만 재생
+            for (int i = 0; i < sprites.Length; i++)
+            {
+                if (spriteRenderer != null)
+                {
+                    spriteRenderer.sprite = sprites[i];
+                }
+                
+                // 데미지 프레임에 도달하면 콜백 호출
+                if (i == damageFrame && onDamageFrame != null)
+                {
+                    onDamageFrame.Invoke();
+                }
+                
+                yield return new WaitForSeconds(frameTime);
+            }
+            
+            onComplete?.Invoke();
+            
+            // 사망 애니메이션이 아니면 Idle 상태로 복귀
+            if (state != MonsterAnimationState.Death)
+            {
+                PlayAnimation(MonsterAnimationState.Idle);
+            }
+            else
+            {
+                // 사망 애니메이션은 마지막 프레임에서 정지
+                isPlaying = false;
+            }
         }
         
         /// <summary>
@@ -210,6 +319,8 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             return state switch
             {
                 MonsterAnimationState.Idle => idleSprites,
+                MonsterAnimationState.Hit => hitSprites,
+                MonsterAnimationState.Death => deathSprites,
                 MonsterAnimationState.Move => moveSprites,
                 MonsterAnimationState.Attack => attackSprites,
                 MonsterAnimationState.Casting => castingSprites,
@@ -228,6 +339,8 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 MonsterAnimationState.Move => moveFrameRate,
                 MonsterAnimationState.Attack => attackFrameRate,
                 MonsterAnimationState.Casting => castingFrameRate,
+                MonsterAnimationState.Hit => hitFrameRate,
+                MonsterAnimationState.Death => deathFrameRate,
                 _ => idleFrameRate
             };
         }

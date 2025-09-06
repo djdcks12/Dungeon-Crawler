@@ -281,6 +281,8 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             
             Debug.Log($"💔 {name} TakeDamage - HP: {oldHP} → {newHP}, actualDamage: {finalDamage}, type: {damageType}");
             
+            playerController.TakeDamage();
+
             // 죽음 처리
             if (newHP <= 0f)
             {

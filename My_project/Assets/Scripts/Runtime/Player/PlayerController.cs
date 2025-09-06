@@ -100,7 +100,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             HandleAttack();
             HandleSkill();
             HandleUI();
-            HandleItemPickup();
         }
         
         private void FixedUpdate()
@@ -113,6 +112,13 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         private void HandleMovement()
         {
             if (playerInput == null || rb == null) return;
+
+            if (statsManager != null && statsManager.CurrentStats != null && statsManager.IsDead)
+            {
+                // 죽은 상태에서는 이동 불가
+                rb.linearVelocity = Vector2.zero;
+                return;
+            }
             
             Vector2 moveInput = playerInput.GetMoveInput();
             
@@ -135,8 +141,8 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             // velocity를 직접 설정 (NetworkRigidbody2D가 자동으로 네트워크 동기화)
             rb.linearVelocity = targetVelocity;
             
-            // 스프라이트 애니메이션 업데이트
-            if (spriteAnimator != null)
+            // 스프라이트 애니메이션 업데이트 (공격 애니메이션 중이 아닐 때만)
+            if (spriteAnimator != null && spriteAnimator.IsMovingOrIdleAnimationPlaying())
             {
                 if (moveInput.magnitude > 0.1f)
                 {
@@ -206,7 +212,8 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         {
             if (playerInput == null) return;
             
-            if (playerInput.GetAttackInput() && CanAttack())
+            // 마우스 버튼을 누르고 있는 동안 계속 공격 시도
+            if (playerInput.IsAttackHeld() && CanAttack())
             {
                 PerformAttack();
             }
@@ -214,26 +221,53 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         
         private bool CanAttack()
         {
-            return Time.time >= lastAttackTime + currentAttackCooldown;
+            // 공격 애니메이션이 재생 중이면 공격 불가
+            if (spriteAnimator?.IsAttackAnimationPlaying() ?? false)
+            {
+                return false;
+            }
+            
+            // 스탯에서 실시간 공격 속도 가져오기
+            float attackSpeed = statsManager?.CurrentStats?.AttackSpeed ?? 1.0f;
+            float actualCooldown = baseAttackCooldown / attackSpeed; // 공격속도가 높을수록 쿨다운 짧아짐
+            
+            return Time.time >= lastAttackTime + actualCooldown;
         }
         
         private void PerformAttack()
         {
             lastAttackTime = Time.time;
             
-            // 스프라이트 애니메이션 공격 재생
+            // 공격 속도에 따른 애니메이션 속도 계산
+            float attackSpeed = statsManager?.CurrentStats?.AttackSpeed ?? 1.0f;
+            
+            // 스프라이트 애니메이션 공격 재생 (데미지 프레임에서 실제 공격 실행)
             if (spriteAnimator != null)
             {
-                spriteAnimator.PlayAttackAnimation();
+                spriteAnimator.PlayAttackAnimation(
+                    onComplete: null, 
+                    speedMultiplier: attackSpeed,
+                    onDamageFrame: () => ExecuteActualAttack() // 데미지 프레임에서 실제 공격 실행
+                );
             }
-            
+            else
+            {
+                // 스프라이트 애니메이터가 없으면 즉시 공격
+                ExecuteActualAttack();
+            }
             
             // 기존 애니메이터와 호환
             if (animator != null && animator.runtimeAnimatorController != null)
             {
                 animator.SetTrigger("Attack");
             }
-            
+        }
+        
+        /// <summary>
+        /// 실제 공격 실행 (데미지 프레임에서 호출)
+        /// </summary>
+        private void ExecuteActualAttack()
+        {
             // CombatSystem을 통한 실제 공격 처리
             if (combatSystem != null)
             {
@@ -245,7 +279,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             {
                 playerNetwork.TriggerAttackServerRpc();
             }
-            
         }
         
         private void HandleSkill()
@@ -450,17 +483,15 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             currentMoveSpeed = speed;
         }
         
-        public void TakeDamage(float damage, DamageType damageType = DamageType.Physical)
+        public void TakeDamage()
         {
             if (statsManager != null)
             {
-                float actualDamage = statsManager.TakeDamage(damage, damageType);
-                Debug.Log($"Player took {actualDamage:F1} damage (reduced from {damage:F1})");
                 
                 // 피격 이펙트 재생
                 if (spriteAnimator != null)
                 {
-                    spriteAnimator.PlayHitEffect();
+                    spriteAnimator.PlayHitAnimation();
                 }
                 
                 // 죽음 처리
@@ -468,10 +499,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 {
                     OnPlayerDeath();
                 }
-            }
-            else
-            {
-                Debug.Log($"Player took {damage} damage (no stats manager)");
             }
         }
         
@@ -572,21 +599,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         }
         
         /// <summary>
-        /// Z키로 아이템 픽업 처리
-        /// </summary>
-        private void HandleItemPickup()
-        {
-            if (!IsLocalPlayer) return;
-            if (playerInput == null) return;
-            
-            // Z키 입력 체크
-            if (Input.GetKeyDown(KeyCode.Z))
-            {
-                TryPickupNearbyItems();
-            }
-        }
-        
-        /// <summary>
         /// 근처 아이템 픽업 시도
         /// </summary>
         private void TryPickupNearbyItems()
@@ -616,19 +628,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             }
         }
         
-        // 디버그 기능
-        private void OnDrawGizmosSelected()
-        {
-            // 공격 사거리 시각화
-            Gizmos.color = Color.red;
-            Gizmos.DrawWireSphere(transform.position, attackRange);
-            
-            // 이동 방향 시각화
-            if (Application.isPlaying && rb != null)
-            {
-                Gizmos.color = Color.blue;
-                Gizmos.DrawLine(transform.position, transform.position + (Vector3)rb.linearVelocity.normalized * 2f);
-            }
-        }
+        
     }
 }
