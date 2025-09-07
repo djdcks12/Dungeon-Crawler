@@ -304,6 +304,9 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         private void SetupMonsterEntity(GameObject monsterObject, MonsterEntitySpawnData spawnData, float grade, MonsterEntity monsterEntity)
         {            
+            // 몬스터를 Layer 3으로 설정
+            monsterObject.layer = 3;
+            
             // 몬스터 생성 (종족 + 개체 + 등급)
             Debug.Log($"🔧 SetupMonsterEntity: Calling GenerateMonster with race={spawnData.raceData?.raceName}, variant={spawnData.variantData?.variantName}, grade={grade}");
             monsterEntity.GenerateMonster(spawnData.raceData, spawnData.variantData, grade);
@@ -314,7 +317,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             // 활성 몬스터 목록에 추가
             activeMonsters.Add(monsterEntity);
             
-            Debug.Log($"✨ Spawned {spawnData.variantData.variantName} ({grade}) on floor {currentFloor}");
+            Debug.Log($"✨ Spawned {spawnData.variantData.variantName} ({grade}) on floor {currentFloor} - Layer: {monsterObject.layer}");
         }
         
         /// <summary>

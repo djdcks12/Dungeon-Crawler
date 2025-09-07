@@ -406,6 +406,9 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
 
             Debug.Log($"🩸 HP change: {oldHP:F1} → {newHP:F1} (damage: {finalDamage:F1})");
 
+            // Hit 애니메이션 재생 (모든 클라이언트에서)
+            TriggerHitAnimationClientRpc();
+
             // 공격자를 참여자로 추가 (데미지가 실제로 들어갔을 때만)
             if (finalDamage > 0f)
             {
@@ -443,6 +446,18 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             }
         }
         
+        /// <summary>
+        /// Hit 애니메이션 재생 (모든 클라이언트에서)
+        /// </summary>
+        [ClientRpc]
+        private void TriggerHitAnimationClientRpc()
+        {
+            if (spriteAnimator != null)
+            {
+                spriteAnimator.PlayHitAnimation();
+            }
+        }
+
         /// <summary>
         /// 사망 처리 (서버에서만)
         /// </summary>

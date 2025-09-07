@@ -210,12 +210,15 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 return;
             }
             
-            // 순찰 지점으로 이동
-            MoveTowards(patrolTarget, moveSpeed * 0.5f);
-            
             // 순찰 지점에 도착했는지 확인
             if (Vector3.Distance(transform.position, patrolTarget) < 0.5f)
             {
+                // 도착했으면 즉시 정지
+                if (rb != null)
+                {
+                    rb.linearVelocity = Vector2.zero;
+                }
+                
                 patrolTimer += Time.deltaTime;
                 
                 if (patrolTimer >= patrolWaitTime)
@@ -223,6 +226,11 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                     SetNewPatrolTarget();
                     patrolTimer = 0f;
                 }
+            }
+            else
+            {
+                // 순찰 지점으로 이동
+                MoveTowards(patrolTarget, moveSpeed * 0.5f);
             }
         }
         
@@ -278,8 +286,20 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 return;
             }
             
+            // 공격 상태에서는 이동하지 않으므로 즉시 정지
+            if (rb != null)
+            {
+                rb.linearVelocity = Vector2.zero;
+            }
+            
             // 타겟을 바라보기
             LookAt(currentTarget.transform.position);
+            
+            // Hit 애니메이션 중이면 공격하지 않고 대기
+            if (IsHitAnimationPlaying())
+            {
+                return; // Hit 애니메이션 완료까지 대기
+            }
             
             // 공격 실행
             if (Time.time >= lastAttackTime + attackCooldown)
@@ -293,12 +313,15 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         private void UpdateReturnState()
         {
-            // 스폰 지점으로 이동
-            MoveTowards(spawnPosition, moveSpeed * 0.8f);
-            
             // 스폰 지점에 도착
             if (Vector3.Distance(transform.position, spawnPosition) < 1f)
             {
+                // 도착했으면 즉시 정지
+                if (rb != null)
+                {
+                    rb.linearVelocity = Vector2.zero;
+                }
+                
                 // 체력 회복 (MonsterEntity 사용)
                 if (monsterEntity != null)
                 {
@@ -307,6 +330,11 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 }
                 
                 ChangeState(MonsterAIState.Idle);
+            }
+            else
+            {
+                // 스폰 지점으로 이동
+                MoveTowards(spawnPosition, moveSpeed * 0.8f);
             }
         }
         
@@ -433,25 +461,83 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             if (rb == null) return;
             
             Vector3 direction = (targetPosition - transform.position).normalized;
-            rb.linearVelocity = direction * speed;
+            Vector2 desiredMovement = direction * speed;
             
-            // 이동 방향으로 회전
-            LookAt(targetPosition);
+            // 막힌 방향 필터링 - 실제 이동 가능한 부분만
+            Vector2 actualMovement = MovementBlocker.FilterMovement(transform, desiredMovement);
+            
+            // 실제 이동 적용 (플레이어와 동일하게 즉시 멈춤)
+            rb.linearVelocity = actualMovement;
+            
+            // 애니메이션과 방향은 원래 의도한 방향 기준 (막혀도 시도하는 느낌)
+            if (desiredMovement.magnitude > 0.1f)
+            {
+                UpdateMonsterFacing(desiredMovement);
+                
+                // Hit 애니메이션이 재생 중이 아닐 때만 Move 애니메이션 재생
+                if (spriteAnimator != null && !IsHitAnimationPlaying())
+                {
+                    spriteAnimator.PlayAnimation(MonsterAnimationState.Move);
+                }
+            }
+            else
+            {
+                // 이동하지 않을 때는 즉시 정지
+                rb.linearVelocity = Vector2.zero;
+                
+                // Hit 애니메이션이 재생 중이 아닐 때만 Idle 애니메이션 재생
+                if (spriteAnimator != null && !IsHitAnimationPlaying())
+                {
+                    spriteAnimator.PlayAnimation(MonsterAnimationState.Idle);
+                }
+            }
         }
         
         /// <summary>
-        /// 특정 위치를 바라보기 (Scale 기반)
+        /// 몬스터 방향 업데이트 (원래 의도한 방향 기준)
+        /// </summary>
+        private void UpdateMonsterFacing(Vector2 movement)
+        {
+            if (spriteRenderer != null && movement.x != 0)
+            {
+                spriteRenderer.flipX = movement.x < 0;
+            }
+        }
+        
+        /// <summary>
+        /// Hit 애니메이션이 재생 중인지 확인
+        /// </summary>
+        private bool IsHitAnimationPlaying()
+        {
+            if (spriteAnimator == null) return false;
+            
+            bool isHitState = spriteAnimator.GetCurrentState() == MonsterAnimationState.Hit;
+            bool isPlaying = spriteAnimator.IsPlaying;
+            bool result = isHitState && isPlaying;
+            
+            // 디버깅을 위한 로그 (필요시 주석 해제)
+            // Debug.Log($"[{name}] IsHitAnimationPlaying: Hit={isHitState}, Playing={isPlaying}, Result={result}");
+            
+            return result;
+        }
+        
+        /// <summary>
+        /// 특정 위치를 바라보기 (SpriteRenderer flipX 기반)
         /// </summary>
         protected void LookAt(Vector3 targetPosition)
         {
+            if (spriteRenderer == null) return;
+            
             Vector3 direction = (targetPosition - transform.position);
             if (Mathf.Abs(direction.x) > 0.1f) // 최소 거리 임계값
             {
-                // 좌우 방향에 따라 Scale 변경
-                float lookDirection = direction.x > 0 ? 1f : -1f;
+                // 플레이어가 왼쪽에 있으면 flipX = true (왼쪽을 바라봄)
+                // 플레이어가 오른쪽에 있으면 flipX = false (오른쪽을 바라봄)
+                bool shouldFlipX = direction.x < 0;
+                spriteRenderer.flipX = shouldFlipX;
                 
-                Vector3 currentScale = transform.localScale;
-                transform.localScale = new Vector3(lookDirection * Mathf.Abs(currentScale.x), currentScale.y, currentScale.z);
+                // 디버깅 로그 (필요시 주석 해제)
+                // Debug.Log($"[{name}] LookAt: direction.x={direction.x:F2}, flipX={shouldFlipX}");
             }
         }
         
@@ -460,26 +546,78 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         protected virtual void PerformAttack()
         {
+            if (currentTarget == null) return;
+            
+            // 공격 전에 반드시 타겟 방향으로 돌기
+            LookAt(currentTarget.transform.position);
+            
             lastAttackTime = Time.time;
             
             // 공격 애니메이션 재생
             PlayAttackAnimation(()=>
             {
-                // 실제 데미지 적용
-                var targetStatsManager = currentTarget.GetComponent<PlayerStatsManager>();
-                
-                if (targetStatsManager != null)
+                // 공격 시점에도 다시 한번 타겟 방향 확인
+                if (currentTarget != null)
                 {
-                    float actualDamage = targetStatsManager.TakeDamage(attackDamage, damageType);
+                    LookAt(currentTarget.transform.position);
                     
-                    // 모든 클라이언트에 공격 이펙트 및 애니메이션 동기화
-                    TriggerAttackAnimationClientRpc(currentTarget.transform.position, actualDamage);
-                    
-                    Debug.Log($"👹 {name} attacked {currentTarget.name} for {actualDamage} damage");
+                    // 정면 방향으로만 공격 판정
+                    if (IsTargetInFrontAttackRange())
+                    {
+                        // 실제 데미지 적용
+                        var targetStatsManager = currentTarget.GetComponent<PlayerStatsManager>();
+                        
+                        if (targetStatsManager != null)
+                        {
+                            float actualDamage = targetStatsManager.TakeDamage(attackDamage, damageType);
+                            
+                            // 모든 클라이언트에 공격 이펙트 및 애니메이션 동기화
+                            TriggerAttackAnimationClientRpc(currentTarget.transform.position, actualDamage);
+                            
+                            Debug.Log($"👹 {name} attacked {currentTarget.name} for {actualDamage} damage");
+                        }
+                    }
+                    else
+                    {
+                        Debug.Log($"👹 {name} missed attack - target not in front range");
+                    }
                 }
             });
+        }
+        
+        /// <summary>
+        /// 타겟이 정면 공격 범위에 있는지 확인
+        /// </summary>
+        private bool IsTargetInFrontAttackRange()
+        {
+            if (currentTarget == null) return false;
             
+            Vector3 toTarget = currentTarget.transform.position - transform.position;
+            float distanceToTarget = toTarget.magnitude;
             
+            // 거리 체크
+            if (distanceToTarget > attackRange) return false;
+            
+            // 방향 체크 (정면 90도 범위)
+            Vector3 forward = GetFacingDirection();
+            float angle = Vector3.Angle(forward, toTarget.normalized);
+            
+            return angle <= 45f; // 정면 90도 범위 (좌우 45도씩)
+        }
+        
+        /// <summary>
+        /// 현재 바라보는 방향 반환
+        /// </summary>
+        private Vector3 GetFacingDirection()
+        {
+            // 스프라이트 flipX 기준으로 방향 결정
+            if (spriteRenderer != null)
+            {
+                return spriteRenderer.flipX ? Vector3.left : Vector3.right;
+            }
+            
+            // 기본값은 오른쪽
+            return Vector3.right;
         }
         
         /// <summary>

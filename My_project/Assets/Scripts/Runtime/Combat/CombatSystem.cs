@@ -11,8 +11,8 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
     public class CombatSystem : NetworkBehaviour
     {
         [Header("Combat Settings")]
-        [SerializeField] private LayerMask enemyLayerMask = 1; // Default layer (0)
-        [SerializeField] private LayerMask playerLayerMask = 1 << 6; // Player layer
+        [SerializeField] private LayerMask enemyLayerMask = 1 << 3; // Layer 3 (플레이어/몬스터 통합)
+        [SerializeField] private LayerMask playerLayerMask = 1 << 3; // Layer 3 (플레이어/몬스터 통합)
         [SerializeField] private bool enablePvP = true;
         
         // 이벤트
@@ -120,7 +120,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         }
         
         /// <summary>
-        /// 공격 범위 내 타겟 감지
+        /// 공격 범위 내 타겟 감지 (정면 방향만)
         /// </summary>
         private List<Collider2D> DetectTargetsInRange(Vector2 attackPosition, Vector2 attackDirection)
         {
@@ -142,10 +142,26 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 // 자기 자신은 제외
                 if (collider.transform == transform) continue;
                 
-                targets.Add(collider);
+                // 정면 방향 체크 (90도 범위)
+                if (IsTargetInFrontRange(attackPosition, attackDirection, collider.transform.position))
+                {
+                    targets.Add(collider);
+                }
             }
             
             return targets;
+        }
+        
+        /// <summary>
+        /// 타겟이 정면 범위에 있는지 확인
+        /// </summary>
+        private bool IsTargetInFrontRange(Vector2 attackerPos, Vector2 attackDirection, Vector3 targetPos)
+        {
+            Vector2 toTarget = (targetPos - (Vector3)attackerPos).normalized;
+            float angle = Vector2.Angle(attackDirection.normalized, toTarget);
+            
+            // 정면 90도 범위 (좌우 45도씩)
+            return angle <= 45f;
         }
         
         /// <summary>

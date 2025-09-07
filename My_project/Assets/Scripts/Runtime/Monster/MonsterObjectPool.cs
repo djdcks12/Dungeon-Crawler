@@ -46,6 +46,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         private GameObject CreateNewPoolMonster()
         {
             var monsterObject = new GameObject("PooledMonster");
+            monsterObject.layer = 3; // Layer 3으로 설정
             monsterObject.SetActive(false);
             monsterObject.transform.SetParent(transform);
             

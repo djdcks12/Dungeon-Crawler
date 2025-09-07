@@ -24,7 +24,7 @@ GameObject:
   - component: {fileID: 6948513946298089167}
   - component: {fileID: -6421413699694815572}
   - component: {fileID: 5342110689793155604}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: DungeonPlayer
   m_TagString: Player
   m_Icon: {fileID: 0}
@@ -348,7 +348,12 @@ MonoBehaviour:
       criticalChance: 0
       criticalMultiplier: 2
       stability: 0
-    equippedWeapon: {fileID: 0}
+    equippedWeaponItem:
+      itemId: 
+      instanceId: d1b5dd15-bf0e-440d-b308-6e059281c895
+      quantity: 1
+      acquisitionTime: 1757154539
+      enchantments: []
     characterName: Unknown
     equippedSoulIds: 
 --- !u!114 &8389054499754392800
@@ -443,10 +448,10 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   enemyLayerMask:
     serializedVersion: 2
-    m_Bits: 1
+    m_Bits: 8
   playerLayerMask:
     serializedVersion: 2
-    m_Bits: 64
+    m_Bits: 8
   enablePvP: 1
 --- !u!114 &6948513946298089167
 MonoBehaviour:
@@ -462,6 +467,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.PlayerInput
   attackKey: 323
   skillKey: 324
+  statsKey: 99
   debugInput: 1
 --- !u!114 &-6421413699694815572
 MonoBehaviour:

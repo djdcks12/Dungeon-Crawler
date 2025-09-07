@@ -573,6 +573,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.UIManager
   ShowTopMostFoldoutHeaderGroup: 1
   playerHUDPrefabPath: UI/PlayerHUD
+  monsterTargetHUDPrefabPath: UI/MonsterTargetHUD
   statsUIPrefabPath: UI/AdvancedStatsUI
   inventoryUIPrefabPath: UI/UnifiedInventoryUI
   equipmentUIPrefabPath: UI/EquipmentUI

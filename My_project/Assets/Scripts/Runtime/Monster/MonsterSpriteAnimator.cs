@@ -45,6 +45,10 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         private int currentFrameIndex = 0;
         private bool isPlaying = false;
         
+        // 외부에서 접근 가능한 프로퍼티
+        public MonsterAnimationState CurrentState => currentState;
+        public bool IsPlaying => isPlaying;
+        
         private void Awake()
         {
             spriteRenderer = GetComponent<SpriteRenderer>();
@@ -88,10 +92,16 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         }
         
         /// <summary>
-        /// 애니메이션 상태 변경
+        /// 애니메이션 상태 변경 (Hit 애니메이션 우선순위 보장)
         /// </summary>
         public void PlayAnimation(MonsterAnimationState state)
         {
+            // Hit 애니메이션이 재생 중이면 다른 애니메이션은 무시 (Death 제외)
+            if (currentState == MonsterAnimationState.Hit && isPlaying && state != MonsterAnimationState.Death)
+            {
+                return;
+            }
+            
             if (currentState == state && isPlaying) return; // 같은 상태면 무시
             
             currentState = state;
@@ -104,6 +114,25 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             
             // 새 애니메이션 시작
             currentAnimationCoroutine = StartCoroutine(AnimationCoroutine(state));
+        }
+        
+        /// <summary>
+        /// Hit 애니메이션 전용 (강제 재생)
+        /// </summary>
+        public void PlayHitAnimation(System.Action onComplete = null)
+        {
+            // Hit 애니메이션은 항상 우선 재생
+            if (currentAnimationCoroutine != null)
+            {
+                StopCoroutine(currentAnimationCoroutine);
+            }
+            
+            currentState = MonsterAnimationState.Hit;
+            currentAnimationCoroutine = StartCoroutine(PlayOneShotAnimation(MonsterAnimationState.Hit, () => {
+                // Hit 애니메이션 완료 후 상태를 명시적으로 Idle로 설정
+                currentState = MonsterAnimationState.Idle;
+                onComplete?.Invoke();
+            }));
         }
         
         /// <summary>
@@ -134,15 +163,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             currentAnimationCoroutine = StartCoroutine(PlayOneShotAnimation(MonsterAnimationState.Casting, onComplete));
         }
         
-        public void PlayHitAnimation(System.Action onComplete = null)
-        {
-            if (currentAnimationCoroutine != null)
-            {
-                StopCoroutine(currentAnimationCoroutine);
-            }
-
-            currentAnimationCoroutine = StartCoroutine(PlayOneShotAnimation(MonsterAnimationState.Hit, onComplete));
-        }
 
         public void PlayDeathAnimation(System.Action onComplete = null)
         {
@@ -231,18 +251,22 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 yield return new WaitForSeconds(frameTime);
             }
             
+            // 애니메이션 완료 처리
+            isPlaying = false;
+            currentAnimationCoroutine = null;
+            
+            // onComplete 콜백 실행 (여기서 상태가 변경될 수 있음)
             onComplete?.Invoke();
 
-            // Idle 상태로 복귀
-            // 사망 애니메이션이 아니면 Idle 상태로 복귀
-            if (currentState != MonsterAnimationState.Death)
+            // onComplete에서 상태가 변경되지 않았으면 Idle로 복귀
+            if (currentState == state && state != MonsterAnimationState.Death)
             {
                 PlayAnimation(MonsterAnimationState.Idle);
             }
-            else
+            else if (state == MonsterAnimationState.Death)
             {
-                // 사망 애니메이션은 마지막 프레임에서 정지
-                isPlaying = false;
+                // 사망 애니메이션은 마지막 프레임에서 정지 (isPlaying은 이미 false)
+                currentState = MonsterAnimationState.Death;
             }
         }
 
@@ -297,17 +321,22 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 yield return new WaitForSeconds(frameTime);
             }
             
+            // 애니메이션 완료 처리
+            isPlaying = false;
+            currentAnimationCoroutine = null;
+            
+            // onComplete 콜백 실행
             onComplete?.Invoke();
             
-            // 사망 애니메이션이 아니면 Idle 상태로 복귀
-            if (state != MonsterAnimationState.Death)
+            // onComplete에서 상태가 변경되지 않았으면 Idle로 복귀
+            if (currentState == state && state != MonsterAnimationState.Death)
             {
                 PlayAnimation(MonsterAnimationState.Idle);
             }
-            else
+            else if (state == MonsterAnimationState.Death)
             {
-                // 사망 애니메이션은 마지막 프레임에서 정지
-                isPlaying = false;
+                // 사망 애니메이션은 마지막 프레임에서 정지 (isPlaying은 이미 false)
+                currentState = MonsterAnimationState.Death;
             }
         }
         
@@ -353,12 +382,5 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             return currentState;
         }
         
-        /// <summary>
-        /// 애니메이션이 재생 중인지 확인
-        /// </summary>
-        public bool IsPlaying()
-        {
-            return isPlaying;
-        }
     }
 }

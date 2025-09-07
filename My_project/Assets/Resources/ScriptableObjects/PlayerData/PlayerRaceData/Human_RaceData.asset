@@ -83,7 +83,7 @@ MonoBehaviour:
   - {fileID: 6855488510596582009, guid: 8300d6d6a9caa4046939223b76dbbd0b, type: 3}
   - {fileID: -7259909186463099801, guid: 8300d6d6a9caa4046939223b76dbbd0b, type: 3}
   attackFrameRate: 6
-  attackDamageFrame: 3
+  attackDamageFrame: 2
   hitSprites:
   - {fileID: 4237140444910105288, guid: 69d992f5996d77c4b848a45fc3b9f03a, type: 3}
   hitFrameRate: 3

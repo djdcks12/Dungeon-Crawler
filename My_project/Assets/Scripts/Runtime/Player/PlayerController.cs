@@ -141,13 +141,16 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 actualMoveSpeed = statsManager.CurrentStats.MoveSpeed;
             }
             
-            // NetworkRigidbody2D와 호환되는 velocity 기반 이동
-            Vector2 targetVelocity = moveInput * actualMoveSpeed;
+            // 원하는 이동 벡터 계산
+            Vector2 desiredMovement = moveInput * actualMoveSpeed;
             
-            // velocity를 직접 설정 (NetworkRigidbody2D가 자동으로 네트워크 동기화)
-            rb.linearVelocity = targetVelocity;
+            // 막힌 방향 필터링 - 실제 이동 가능한 부분만
+            Vector2 actualMovement = MovementBlocker.FilterMovement(transform, desiredMovement);
             
-            // 스프라이트 애니메이션 업데이트 (공격 애니메이션 중이 아닐 때만)
+            // 실제 이동 적용 (NetworkRigidbody2D가 자동으로 네트워크 동기화)
+            rb.linearVelocity = actualMovement;
+            
+            // 애니메이션은 원래 입력 기준으로 재생 (막혀도 움직이는 느낌)
             if (spriteAnimator != null && spriteAnimator.IsMovingOrIdleAnimationPlaying())
             {
                 if (moveInput.magnitude > 0.1f)
@@ -160,8 +163,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 }
             }
             
-            
-            // 애니메이션 파라미터 설정 (기존 애니메이터와 호환)
+            // 기존 애니메이터도 원래 입력 기준
             if (animator != null && animator.runtimeAnimatorController != null)
             {
                 animator.SetFloat("Speed", moveInput.magnitude);
