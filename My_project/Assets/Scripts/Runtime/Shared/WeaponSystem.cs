@@ -13,6 +13,8 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         public string weaponName;
         public WeaponType weaponType;
         public WeaponCategory category;
+        [Header("New Weapon System")]
+        public WeaponGroup weaponGroup = WeaponGroup.SwordShield; // 새로운 무기군 시스템
         public ItemGrade rarity = ItemGrade.Common;
         [TextArea(2, 4)]
         public string description;
