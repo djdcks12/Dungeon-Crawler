@@ -158,20 +158,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         }
         
         /// <summary>
-        /// 특정 카테고리의 무기가 착용되어 있는지 확인
-        /// </summary>
-        public bool HasWeaponOfCategory(WeaponCategory category)
-        {
-            var mainHandItem = GetEquippedItem(EquipmentSlot.MainHand);
-            var offHandItem = GetEquippedItem(EquipmentSlot.OffHand);
-            var twoHandItem = GetEquippedItem(EquipmentSlot.TwoHand);
-            
-            return (mainHandItem?.ItemData?.WeaponCategory == category) ||
-                   (offHandItem?.ItemData?.WeaponCategory == category) ||
-                   (twoHandItem?.ItemData?.WeaponCategory == category);
-        }
-        
-        /// <summary>
         /// 장비로 인한 총 스탯 보너스 계산
         /// </summary>
         public StatBlock CalculateTotalStatBonus()

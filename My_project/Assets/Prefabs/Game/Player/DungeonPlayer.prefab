@@ -24,6 +24,8 @@ GameObject:
   - component: {fileID: 6948513946298089167}
   - component: {fileID: -6421413699694815572}
   - component: {fileID: 5342110689793155604}
+  - component: {fileID: 3491813709977653729}
+  - component: {fileID: 3196421396826389320}
   m_Layer: 3
   m_Name: DungeonPlayer
   m_TagString: Player
@@ -258,8 +260,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.PlayerStatsManager
   ShowTopMostFoldoutHeaderGroup: 1
   currentStats:
-    characterRace: 0
+    characterRace: 1
     raceData: {fileID: 11400000, guid: da26f13e7c25c314a93a6146f2352b64, type: 2}
+    currentJobType: 5
+    jobData: {fileID: 11400000, guid: 78ef80df32358de4c87eff564d4ecba3, type: 2}
     currentStats:
       strength: 0
       agility: 0
@@ -356,6 +360,9 @@ MonoBehaviour:
       enchantments: []
     characterName: Unknown
     equippedSoulIds: 
+  playerRace: 1
+  currentJobType: 5
+  primaryWeaponGroup: 0
 --- !u!114 &8389054499754392800
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -496,3 +503,33 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   equipmentData:
     equipmentSlots: []
+--- !u!114 &3491813709977653729
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3851752766134567891}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fce08aa41b6c76e47958f7d2496bbdaf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.WeaponProficiencySystem
+  ShowTopMostFoldoutHeaderGroup: 1
+  expPerHit: 1
+  humanBonusMultiplier: 1.1
+--- !u!114 &3196421396826389320
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3851752766134567891}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e30fc607db961874082a30885672f560, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.NewSkillLearningSystem
+  ShowTopMostFoldoutHeaderGroup: 1
+  skillLearningLevels: 010000000300000005000000070000000a000000
+  npcInteractionRange: 3

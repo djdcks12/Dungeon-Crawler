@@ -83,8 +83,8 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             creationState.selectedRace = selectedRace;
             creationState.currentStep = CharacterCreationStep.WeaponGroupSelection;
             
-            // 선택된 종족에 따른 무기 타입 옵션 계산
-            WeaponGroup[] availableWeaponGroups = GetAvailableWeaponGroupsForRace(selectedRace);
+            // 선택된 종족에 따른 무기군 옵션 계산
+            WeaponGroup[] availableWeaponGroups = WeaponTypeMapper.GetAvailableWeaponGroups(selectedRace);
             OnWeaponGroupOptionsUpdated?.Invoke(availableWeaponGroups);
             
             Debug.Log($"종족 선택 완료: {selectedRace} - 무기 타입을 선택하세요.");
@@ -95,23 +95,36 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         public void SelectWeaponGroup(WeaponGroup selectedWeaponGroup)
         {
+            // 선택한 종족이 해당 무기군을 사용할 수 있는지 확인
+            if (!WeaponTypeMapper.CanRaceUseWeaponGroup(creationState.selectedRace, selectedWeaponGroup))
+            {
+                OnCreationError?.Invoke($"{creationState.selectedRace} 종족은 {selectedWeaponGroup} 무기군을 사용할 수 없습니다.");
+                return;
+            }
+            
             creationState.selectedWeaponGroup = selectedWeaponGroup;
             creationState.currentStep = CharacterCreationStep.JobSelection;
             
-            // 종족 + 무기 타입 조합에 따른 직업 옵션 계산
-            JobData[] availableJobsForCombo = GetAvailableJobsForRaceAndWeapon(
+            // 종족 + 무기군 조합에 따른 직업 옵션 계산
+            JobType[] availableJobTypes = WeaponTypeMapper.GetAvailableJobTypes(
                 creationState.selectedRace, 
                 selectedWeaponGroup);
             
-            if (availableJobsForCombo.Length == 0)
+            if (availableJobTypes.Length == 0)
             {
                 OnCreationError?.Invoke("해당 조합에 선택 가능한 직업이 없습니다.");
                 return;
             }
             
+            // JobType을 JobData로 변환 (실제 구현에서는 JobDatabase나 Resources에서 로드)
+            JobData[] availableJobsForCombo = availableJobTypes
+                .Select(jobType => Resources.Load<JobData>($"Jobs/{jobType}"))
+                .Where(jobData => jobData != null)
+                .ToArray();
+            
             OnJobOptionsUpdated?.Invoke(availableJobsForCombo);
             
-            Debug.Log($"무기 타입 선택 완료: {selectedWeaponGroup} - 직업을 선택하세요.");
+            Debug.Log($"무기군 선택 완료: {selectedWeaponGroup} - 선택 가능한 직업: {string.Join(", ", availableJobTypes)}");
         }
         
         /// <summary>
@@ -139,72 +152,22 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         }
         
         /// <summary>
-        /// 선택된 종족에서 사용 가능한 무기군 반환
-        /// </summary>
-        private WeaponGroup[] GetAvailableWeaponGroupsForRace(Race race)
-        {
-            var weaponGroups = new List<WeaponGroup>();
-            
-            switch (race)
-            {
-                case Race.Human:
-                    weaponGroups.AddRange(new[] { 
-                        WeaponGroup.SwordShield, WeaponGroup.TwoHandedSword, // 검 계열
-                        WeaponGroup.TwoHandedAxe,                            // 도끼 계열
-                        WeaponGroup.Bow,                                     // 활 계열
-                        WeaponGroup.Staff, WeaponGroup.Wand                  // 마법 계열
-                    });
-                    break;
-                    
-                case Race.Elf:
-                    weaponGroups.AddRange(new[] { 
-                        WeaponGroup.SwordShield, WeaponGroup.TwoHandedSword, // 검 계열
-                        WeaponGroup.Bow,                                     // 활 계열
-                        WeaponGroup.Staff, WeaponGroup.Wand                  // 마법 계열
-                    });
-                    break;
-                    
-                case Race.Beast:
-                    weaponGroups.AddRange(new[] { 
-                        WeaponGroup.TwoHandedAxe,                            // 도끼 계열
-                        WeaponGroup.Bow,                                     // 활 계열
-                        WeaponGroup.Dagger, WeaponGroup.Fist                 // 단검/격투 계열
-                    });
-                    break;
-            }
-            
-            return weaponGroups.ToArray();
-        }
-        
-        /// <summary>
-        /// 종족 + 무기 타입 조합에서 선택 가능한 직업들 반환
-        /// </summary>
-        private JobData[] GetAvailableJobsForRaceAndWeapon(Race race, WeaponGroup weaponGroup)
-        {
-            return availableJobs.Where(job => 
-                job.jobRequirements.Any(req => 
-                    req.requiredRace == race && req.requiredWeaponGroup == weaponGroup
-                )
-            ).ToArray();
-        }
-        
-        /// <summary>
         /// 캐릭터 생성 조건 검증
         /// </summary>
         private bool ValidateCharacterCreation(CharacterCreationState state)
         {
             // 모든 선택이 완료되었는지 확인
-            if (state.selectedRace == Race.None || 
-                state.selectedJob == null || 
+            if (state.selectedJob == null || 
                 state.currentStep != CharacterCreationStep.JobSelection)
             {
                 return false;
             }
             
-            // 선택된 직업이 종족+무기 조합을 지원하는지 확인
-            return state.selectedJob.jobRequirements.Any(req => 
-                req.requiredRace == state.selectedRace && 
-                req.requiredWeaponGroup == state.selectedWeaponGroup);
+            // 선택된 조합이 유효한지 확인 (WeaponTypeMapper 사용)
+            JobType[] availableJobTypes = WeaponTypeMapper.GetAvailableJobTypes(
+                state.selectedRace, state.selectedWeaponGroup);
+            
+            return availableJobTypes.Contains(state.selectedJob.jobType);
         }
         
         /// <summary>
@@ -219,7 +182,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 weaponGroup = creationState.selectedWeaponGroup,
                 startingLevel = startingLevel,
                 startingGold = startingGold,
-                inheritedSouls = soulInheritance.GetSelectedSouls()
+                inheritedSouls = new SoulData[0]
             };
             
             // 캐릭터 데이터 생성 완료 이벤트

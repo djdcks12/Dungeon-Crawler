@@ -14,6 +14,11 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         [Header("Stats Data")]
         [SerializeField] private PlayerStatsData currentStats;
         
+        [Header("New Job System")]
+        [SerializeField] private Race playerRace = Race.Human;
+        [SerializeField] private JobType currentJobType = JobType.Navigator;
+        [SerializeField] private WeaponGroup primaryWeaponGroup = WeaponGroup.SwordShield;
+        
         [Header("Stats Synchronization")]
         private NetworkVariable<int> networkLevel = new NetworkVariable<int>(1, 
             NetworkVariableReadPermission.Everyone, 
@@ -62,11 +67,18 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         public System.Action<float, float> OnManaChanged;
         public System.Action OnExperienceChanged;
         public System.Action OnPlayerDeath; // 사망 이벤트
-        public System.Action<int> OnLevelChanged;
+        public System.Action<int> OnLevelChanged; // 기존 시스템 호환성
+        public System.Action<int> OnLevelUp; // 새로운 스킬 시스템용
         
         
         public PlayerStatsData CurrentStats => currentStats;
         public bool IsDead => networkCurrentHP.Value <= 0f;
+        
+        // New Job System Properties
+        public Race PlayerRace => playerRace;
+        public JobType CurrentJobType => currentJobType;
+        public WeaponGroup PrimaryWeaponGroup => primaryWeaponGroup;
+        public int CurrentLevel => networkLevel.Value;
         
         // NetworkVariable 접근용 프로퍼티들
         public int NetworkLevel => networkLevel.Value;
@@ -102,7 +114,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             if (currentStats != null)
             {
                 PlayerStatsData.OnStatsChanged += OnStatsChanged;
-                PlayerStatsData.OnLevelUp += OnLevelUp;
+                PlayerStatsData.OnLevelUp += HandleLevelUpEffect;
                 PlayerStatsData.OnHPChanged += OnHPChanged;
                 PlayerStatsData.OnMPChanged += OnMPChanged;
             }
@@ -122,7 +134,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             if (currentStats != null)
             {
                 PlayerStatsData.OnStatsChanged -= OnStatsChanged;
-                PlayerStatsData.OnLevelUp -= OnLevelUp;
+                PlayerStatsData.OnLevelUp -= HandleLevelUpEffect;
                 PlayerStatsData.OnHPChanged -= OnHPChanged;
                 PlayerStatsData.OnMPChanged -= OnMPChanged;
             }
@@ -456,7 +468,14 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         // 네트워크 이벤트 콜백들
         private void OnNetworkLevelChanged(int previousValue, int newValue)
         {
+            // 기존 시스템 호환성을 위한 OnLevelChanged 이벤트
             OnLevelChanged?.Invoke(newValue);
+            
+            // 레벨업인 경우에만 새로운 스킬 시스템용 이벤트 발생
+            if (newValue > previousValue)
+            {
+                OnLevelUp?.Invoke(newValue);
+            }
         }
         
         private void OnNetworkExpChanged(long previousValue, long newValue)
@@ -530,7 +549,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             }
         }
         
-        private void OnLevelUp(int newLevel)
+        private void HandleLevelUpEffect(int newLevel)
         {
             Debug.Log($"Player {gameObject.name} leveled up to {newLevel}!");
             

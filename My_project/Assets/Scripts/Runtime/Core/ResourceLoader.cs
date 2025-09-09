@@ -149,42 +149,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             }
         }
         
-        /// <summary>
-        /// 무기 스프라이트 로드
-        /// </summary>
-        public static Sprite GetWeaponSprite(WeaponType weaponType)
-        {
-            string weaponPath = GetWeaponSpritePath(weaponType);
-            return LoadSprite(weaponPath);
-        }
-        
-        /// <summary>
-        /// 무기 스프라이트 경로 생성
-        /// </summary>
-        private static string GetWeaponSpritePath(WeaponType weaponType)
-        {
-            switch (weaponType)
-            {
-                case WeaponType.Longsword:
-                case WeaponType.Rapier:
-                case WeaponType.Broadsword:
-                    return "Weapons/Wood/Wood";
-                    
-                case WeaponType.Mace:
-                case WeaponType.Warhammer:
-                    return "Weapons/Bone/Bone";
-                    
-                case WeaponType.Dagger:
-                case WeaponType.CurvedDagger:
-                    return "Weapons/Bone/Bone";
-                    
-                case WeaponType.Fists:
-                    return "Weapons/Hands/Hands";
-                    
-                default:
-                    return "Weapons/Wood/Wood";
-            }
-        }
         
         /// <summary>
         /// 캐시 클리어

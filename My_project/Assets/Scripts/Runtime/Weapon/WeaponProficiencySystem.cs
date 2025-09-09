@@ -1,12 +1,13 @@
 using UnityEngine;
 using Unity.Netcode;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Unity.Template.Multiplayer.NGO.Runtime
 {
     /// <summary>
     /// 무기 숙련도 시스템
-    /// 각 무기군별로 0~100 숙련도를 관리하고 최소 데미지를 보정
+    /// 각 WeaponType별로 0~100 숙련도를 관리하고 최소 데미지를 보정
     /// </summary>
     public class WeaponProficiencySystem : NetworkBehaviour
     {
@@ -14,10 +15,10 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         [SerializeField] private float expPerHit = 1.0f;
         [SerializeField] private float humanBonusMultiplier = 1.1f; // 인간 종족 보너스 10%
         
-        // 무기군별 숙련도 (0~100)
-        private Dictionary<WeaponGroup, float> proficiencies = new Dictionary<WeaponGroup, float>();
+        // WeaponType별 숙련도 (0~100)
+        private Dictionary<WeaponType, float> proficiencies = new Dictionary<WeaponType, float>();
         
-        // 네트워크 동기화용 (WeaponGroup은 enum이므로 int로 변환해서 동기화)
+        // 네트워크 동기화용 (WeaponType은 enum이므로 int로 변환해서 동기화)
         private NetworkVariable<ProficiencyData> networkProficiencies = new NetworkVariable<ProficiencyData>(
             new ProficiencyData(), NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
         
@@ -26,8 +27,8 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         private EquipmentManager equipmentManager;
         
         // 이벤트
-        public System.Action<WeaponGroup, float> OnProficiencyChanged;
-        public System.Action<WeaponGroup, int> OnProficiencyLevelUp; // 레벨업 (10, 20, 30... 단위)
+        public System.Action<WeaponType, float> OnProficiencyChanged;
+        public System.Action<WeaponType, int> OnProficiencyLevelUp; // 레벨업 (10, 20, 30... 단위)
         
         public override void OnNetworkSpawn()
         {
@@ -45,16 +46,16 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         
         private void InitializeProficiencies()
         {
-            foreach (WeaponGroup weaponGroup in System.Enum.GetValues(typeof(WeaponGroup)))
+            foreach (WeaponType weaponType in System.Enum.GetValues(typeof(WeaponType)))
             {
-                proficiencies[weaponGroup] = 0f;
+                proficiencies[weaponType] = 0f;
             }
         }
         
         /// <summary>
         /// 적 공격시 숙련도 경험치 획득
         /// </summary>
-        public void GainProficiencyExp(WeaponGroup weaponGroup, float damage)
+        public void GainProficiencyExp(WeaponType weaponType, float damage)
         {
             if (!IsOwner) return;
             
@@ -69,13 +70,13 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             // 데미지에 비례한 추가 경험치 (소수점)
             expGain += damage * 0.01f;
             
-            float currentProf = proficiencies[weaponGroup];
+            float currentProf = proficiencies.ContainsKey(weaponType) ? proficiencies[weaponType] : 0f;
             float newProf = Mathf.Clamp(currentProf + expGain, 0f, 100f);
             
             if (newProf != currentProf)
             {
-                proficiencies[weaponGroup] = newProf;
-                OnProficiencyChanged?.Invoke(weaponGroup, newProf);
+                proficiencies[weaponType] = newProf;
+                OnProficiencyChanged?.Invoke(weaponType, newProf);
                 
                 // 10 단위로 레벨업 체크
                 int oldLevel = Mathf.FloorToInt(currentProf / 10f);
@@ -83,7 +84,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 
                 if (newLevel > oldLevel)
                 {
-                    OnProficiencyLevelUp?.Invoke(weaponGroup, newLevel);
+                    OnProficiencyLevelUp?.Invoke(weaponType, newLevel);
                 }
                 
                 // 네트워크 동기화
@@ -92,27 +93,27 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         }
         
         /// <summary>
-        /// 특정 무기군의 숙련도 반환 (0~100)
+        /// 특정 무기 타입의 숙련도 반환 (0~100)
         /// </summary>
-        public float GetProficiency(WeaponGroup weaponGroup)
+        public float GetProficiency(WeaponType weaponType)
         {
-            return proficiencies.ContainsKey(weaponGroup) ? proficiencies[weaponGroup] : 0f;
+            return proficiencies.ContainsKey(weaponType) ? proficiencies[weaponType] : 0f;
         }
         
         /// <summary>
         /// 숙련도 계수 반환 (0.0~1.0)
         /// </summary>
-        public float GetProficiencyRatio(WeaponGroup weaponGroup)
+        public float GetProficiencyRatio(WeaponType weaponType)
         {
-            return GetProficiency(weaponGroup) / 100f;
+            return GetProficiency(weaponType) / 100f;
         }
         
         /// <summary>
         /// 무기 데미지에 숙련도 보정 적용
         /// </summary>
-        public float ApplyProficiencyToMinDamage(WeaponGroup weaponGroup, float minDamage, float maxDamage)
+        public float ApplyProficiencyToMinDamage(WeaponType weaponType, float minDamage, float maxDamage)
         {
-            float proficiencyRatio = GetProficiencyRatio(weaponGroup);
+            float proficiencyRatio = GetProficiencyRatio(weaponType);
             
             // 보정된 최소 데미지 = 기존 최소 데미지 + (최대 데미지 - 최소 데미지) * 숙련도 비율
             float effectiveMinDamage = minDamage + (maxDamage - minDamage) * proficiencyRatio;
@@ -121,18 +122,29 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         }
         
         /// <summary>
-        /// 현재 장착중인 무기의 무기군 반환
+        /// 현재 장착중인 무기의 WeaponType 반환
         /// </summary>
-        public WeaponGroup GetCurrentWeaponGroup()
+        public WeaponType GetCurrentWeaponType()
         {
             var mainWeapon = equipmentManager.Equipment.GetEquippedItem(EquipmentSlot.MainHand);
-            if (mainWeapon != null && mainWeapon.itemData is WeaponData weaponData)
+            if (mainWeapon != null && mainWeapon.ItemData != null && mainWeapon.ItemData.IsWeapon)
             {
-                return weaponData.weaponGroup;
+                return mainWeapon.ItemData.WeaponType;
             }
             
             // 맨손일 경우 격투 무기로 처리
-            return WeaponGroup.Fist;
+            return WeaponType.Fists;
+        }
+        
+        /// <summary>
+        /// 현재 장착중인 무기의 WeaponGroup 반환 (호환성용)
+        /// [Deprecated] GetCurrentWeaponType() 사용 권장
+        /// </summary>
+        [System.Obsolete("Use GetCurrentWeaponType() instead")]
+        public WeaponGroup GetCurrentWeaponGroup()
+        {
+            WeaponType currentType = GetCurrentWeaponType();
+            return WeaponTypeMapper.GetWeaponGroup(currentType);
         }
         
         private void SyncProficiencyToNetwork()
@@ -172,57 +184,82 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
     }
     
     /// <summary>
-    /// 네트워크 동기화용 숙련도 데이터
+    /// 네트워크 동기화용 숙련도 데이터 - 동적 WeaponType 관리
     /// </summary>
     [System.Serializable]
     public struct ProficiencyData : Unity.Netcode.INetworkSerializable
     {
-        public float swordShield;
-        public float twoHandedSword;
-        public float twoHandedAxe;
-        public float dagger;
-        public float bow;
-        public float staff;
-        public float wand;
-        public float fist;
+        public WeaponType[] weaponTypes;
+        public float[] proficiencyValues;
         
-        public void UpdateFromDictionary(Dictionary<WeaponGroup, float> proficiencies)
+        public void UpdateFromDictionary(Dictionary<WeaponType, float> proficiencies)
         {
-            swordShield = proficiencies.GetValueOrDefault(WeaponGroup.SwordShield, 0f);
-            twoHandedSword = proficiencies.GetValueOrDefault(WeaponGroup.TwoHandedSword, 0f);
-            twoHandedAxe = proficiencies.GetValueOrDefault(WeaponGroup.TwoHandedAxe, 0f);
-            dagger = proficiencies.GetValueOrDefault(WeaponGroup.Dagger, 0f);
-            bow = proficiencies.GetValueOrDefault(WeaponGroup.Bow, 0f);
-            staff = proficiencies.GetValueOrDefault(WeaponGroup.Staff, 0f);
-            wand = proficiencies.GetValueOrDefault(WeaponGroup.Wand, 0f);
-            fist = proficiencies.GetValueOrDefault(WeaponGroup.Fist, 0f);
+            // 0보다 큰 값만 동기화 (사용하는 무기만)
+            var activeProficiencies = proficiencies.Where(kvp => kvp.Value > 0f).ToArray();
+            
+            weaponTypes = activeProficiencies.Select(kvp => kvp.Key).ToArray();
+            proficiencyValues = activeProficiencies.Select(kvp => kvp.Value).ToArray();
         }
         
-        public Dictionary<WeaponGroup, float> ToDictionary()
+        public Dictionary<WeaponType, float> ToDictionary()
         {
-            return new Dictionary<WeaponGroup, float>
+            var result = new Dictionary<WeaponType, float>();
+            
+            if (weaponTypes != null && proficiencyValues != null)
             {
-                { WeaponGroup.SwordShield, swordShield },
-                { WeaponGroup.TwoHandedSword, twoHandedSword },
-                { WeaponGroup.TwoHandedAxe, twoHandedAxe },
-                { WeaponGroup.Dagger, dagger },
-                { WeaponGroup.Bow, bow },
-                { WeaponGroup.Staff, staff },
-                { WeaponGroup.Wand, wand },
-                { WeaponGroup.Fist, fist }
-            };
+                int length = Mathf.Min(weaponTypes.Length, proficiencyValues.Length);
+                for (int i = 0; i < length; i++)
+                {
+                    result[weaponTypes[i]] = proficiencyValues[i];
+                }
+            }
+            
+            return result;
         }
         
         public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
         {
-            serializer.SerializeValue(ref swordShield);
-            serializer.SerializeValue(ref twoHandedSword);
-            serializer.SerializeValue(ref twoHandedAxe);
-            serializer.SerializeValue(ref dagger);
-            serializer.SerializeValue(ref bow);
-            serializer.SerializeValue(ref staff);
-            serializer.SerializeValue(ref wand);
-            serializer.SerializeValue(ref fist);
+            // 배열 길이 동기화
+            int weaponCount = weaponTypes?.Length ?? 0;
+            serializer.SerializeValue(ref weaponCount);
+            
+            // WeaponType 배열 동기화
+            if (serializer.IsWriter && weaponTypes != null)
+            {
+                for (int i = 0; i < weaponTypes.Length; i++)
+                {
+                    int weaponTypeInt = (int)weaponTypes[i];
+                    serializer.SerializeValue(ref weaponTypeInt);
+                }
+            }
+            else if (serializer.IsReader)
+            {
+                weaponTypes = new WeaponType[weaponCount];
+                for (int i = 0; i < weaponCount; i++)
+                {
+                    int weaponTypeInt = 0;
+                    serializer.SerializeValue(ref weaponTypeInt);
+                    weaponTypes[i] = (WeaponType)weaponTypeInt;
+                }
+            }
+            
+            // 숙련도 값 배열 동기화
+            if (serializer.IsWriter && proficiencyValues != null)
+            {
+                for (int i = 0; i < proficiencyValues.Length; i++)
+                {
+                    float value = proficiencyValues[i];
+                    serializer.SerializeValue(ref value);
+                }
+            }
+            else if (serializer.IsReader)
+            {
+                proficiencyValues = new float[weaponCount];
+                for (int i = 0; i < weaponCount; i++)
+                {
+                    serializer.SerializeValue(ref proficiencyValues[i]);
+                }
+            }
         }
     }
 }

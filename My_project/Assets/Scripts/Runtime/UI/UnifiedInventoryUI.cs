@@ -556,20 +556,20 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         private bool IsWeaponCompatible(ItemInstance item, EquipmentSlot slot)
         {
-            var weaponCategory = item.ItemData.WeaponCategory;
+            if (!item.ItemData.IsWeapon) return false;
             
-            return slot switch
-            {
-                EquipmentSlot.MainHand => weaponCategory == WeaponCategory.Sword ||
-                                        weaponCategory == WeaponCategory.Dagger ||
-                                        weaponCategory == WeaponCategory.Axe ||
-                                        weaponCategory == WeaponCategory.Mace,
-                EquipmentSlot.OffHand => weaponCategory == WeaponCategory.Shield ||
-                                       weaponCategory == WeaponCategory.Dagger,
-                EquipmentSlot.TwoHand => weaponCategory == WeaponCategory.Bow ||
-                                       weaponCategory == WeaponCategory.Staff,
-                _ => false
-            };
+            WeaponGroup weaponGroup = item.ItemData.WeaponGroup;
+            EquipmentSlot requiredSlot = WeaponTypeMapper.GetEquipmentSlot(weaponGroup);
+            
+            // 기본적으로 WeaponGroup이 요구하는 슬롯과 일치해야 함
+            if (requiredSlot == slot) return true;
+            
+            // 예외 케이스: 단검은 MainHand와 OffHand 둘 다 가능
+            if (weaponGroup == WeaponGroup.Dagger && 
+                (slot == EquipmentSlot.MainHand || slot == EquipmentSlot.OffHand))
+                return true;
+            
+            return false;
         }
         
         // ======================== 드래그&드롭 시스템 ========================

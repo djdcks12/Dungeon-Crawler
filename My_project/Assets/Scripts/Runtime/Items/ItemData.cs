@@ -20,7 +20,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         [SerializeField] private ItemType itemType = ItemType.Equipment;
         [SerializeField] private ItemGrade grade = ItemGrade.Common;
         [SerializeField] private EquipmentSlot equipmentSlot = EquipmentSlot.None;
-        [SerializeField] private WeaponCategory weaponCategory = WeaponCategory.None;
+        [SerializeField] private WeaponType weaponType = WeaponType.Fists; // 구체적 무기 타입
         
         [Header("기본 속성")]
         [SerializeField] private int stackSize = 1;
@@ -53,7 +53,8 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         public ItemType ItemType => itemType;
         public ItemGrade Grade => grade;
         public EquipmentSlot EquipmentSlot => equipmentSlot;
-        public WeaponCategory WeaponCategory => weaponCategory;
+        public WeaponType WeaponType => weaponType;
+        public WeaponGroup WeaponGroup => WeaponTypeMapper.GetWeaponGroup(weaponType);
         public int StackSize => stackSize;
         public long SellPrice => sellPrice;
         public bool IsDroppable => isDroppable;

@@ -1,5 +1,6 @@
 using UnityEngine;
 using Unity.Netcode;
+using System.Linq;
 
 namespace Unity.Template.Multiplayer.NGO.Runtime
 {
@@ -12,9 +13,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         [Header("Weapon Information")]
         public string weaponName;
         public WeaponType weaponType;
-        public WeaponCategory category;
-        [Header("New Weapon System")]
-        public WeaponGroup weaponGroup = WeaponGroup.SwordShield; // 새로운 무기군 시스템
         public ItemGrade rarity = ItemGrade.Common;
         [TextArea(2, 4)]
         public string description;
@@ -43,7 +41,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         
         // 프로퍼티들
         public WeaponType Type => weaponType;
-        public WeaponCategory Category => category;
+        public WeaponGroup WeaponGroup => WeaponTypeMapper.GetWeaponGroup(weaponType);
         public ItemGrade Rarity => rarity;
         public StatBlock StatBonuses => statBonuses;
         public float AttackSpeed => attackSpeed;
@@ -80,7 +78,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         public DamageRange CalculateMagicDamageRange(float playerINT, float playerStability = 0f)
         {
             // 마법 무기가 아니면 0 반환
-            if (category != WeaponCategory.Staff && category != WeaponCategory.Wand)
+            if (!WeaponTypeMapper.IsMagicalWeaponGroup(WeaponGroup))
                 return new DamageRange(0, 0, 0);
                 
             // 기본 민댐/맥댐 계산 (마법용)
@@ -162,11 +160,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                     break;
                     
                 // 둔기류 (고댐 불안정)
-                case WeaponType.Mace:
-                    weapon.minDamagePercent = 50f;
-                    weapon.maxDamagePercent = 150f;
-                    weapon.stabilityBonus = -2f;
-                    break;
                 case WeaponType.Warhammer:
                     weapon.minDamagePercent = 40f;
                     weapon.maxDamagePercent = 160f;
@@ -213,52 +206,223 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
     }
     
     /// <summary>
-    /// 무기 타입 열거형
+    /// 무기 타입 열거형 - 숙련도 및 개별 아이템 관리 단위
     /// </summary>
     public enum WeaponType
     {
-        // 검류
+        // SwordShield 그룹 (한손검/방패)
         Longsword,
         Rapier,
         Broadsword,
+        Gladius,
+        Scimitar,
         
-        // 둔기류  
-        Mace,
+        // TwoHandedSword 그룹 (양손 대검)
+        Greatsword,
+        Claymore,
+        Flamberge,
+        Zweihander,
+        
+        // TwoHandedAxe 그룹 (양손 도끼/둔기)
+        Battleaxe,
         Warhammer,
+        Maul,
+        Greataxe,
         
-        // 단검류
+        // Dagger 그룹 (단검)
         Dagger,
         CurvedDagger,
+        Stiletto,
+        Kris,
         
-        // 활/석궁류
+        // Bow 그룹 (활/석궁)
         Longbow,
         Crossbow,
+        CompoundBow,
+        Shortbow,
         
-        // 지팡이류
+        // Staff 그룹 (지팡이)
         OakStaff,
         CrystalStaff,
+        FireStaff,
+        IceStaff,
+        HolyStaff,
         
-        // 기타
+        // Wand 그룹 (마법봉)
+        MagicWand,
+        CrystalWand,
+        RuneWand,
+        ElementalWand,
+        
+        // Fist 그룹 (격투 무기)
         Fists,      // 맨손
-        Shield      // 방패
+        Knuckles,
+        Claws,
+        Gauntlets
     }
     
     /// <summary>
-    /// 무기 카테고리
+    /// WeaponType을 WeaponGroup으로 매핑하는 유틸리티
     /// </summary>
-    public enum WeaponCategory
+    public static class WeaponTypeMapper
     {
-        None,       // 없음 (기본값)
-        Sword,      // 검
-        Blunt,      // 둔기 (Mace로도 사용)
-        Dagger,     // 단검
-        Axe,        // 도끼
-        Mace,       // 메이스
-        Bow,        // 활
-        Staff,      // 지팡이
-        Wand,       // 완드
-        Shield,     // 방패
-        Fists       // 맨손
+        public static WeaponGroup GetWeaponGroup(WeaponType weaponType)
+        {
+            return weaponType switch
+            {
+                // SwordShield 그룹
+                WeaponType.Longsword or WeaponType.Rapier or WeaponType.Broadsword or 
+                WeaponType.Gladius or WeaponType.Scimitar => WeaponGroup.SwordShield,
+                
+                // TwoHandedSword 그룹
+                WeaponType.Greatsword or WeaponType.Claymore or WeaponType.Flamberge or 
+                WeaponType.Zweihander => WeaponGroup.TwoHandedSword,
+                
+                // TwoHandedAxe 그룹
+                WeaponType.Battleaxe or WeaponType.Warhammer or WeaponType.Maul or 
+                WeaponType.Greataxe => WeaponGroup.TwoHandedAxe,
+                
+                // Dagger 그룹
+                WeaponType.Dagger or WeaponType.CurvedDagger or WeaponType.Stiletto or 
+                WeaponType.Kris => WeaponGroup.Dagger,
+                
+                // Bow 그룹
+                WeaponType.Longbow or WeaponType.Crossbow or WeaponType.CompoundBow or 
+                WeaponType.Shortbow => WeaponGroup.Bow,
+                
+                // Staff 그룹
+                WeaponType.OakStaff or WeaponType.CrystalStaff or WeaponType.FireStaff or 
+                WeaponType.IceStaff or WeaponType.HolyStaff => WeaponGroup.Staff,
+                
+                // Wand 그룹
+                WeaponType.MagicWand or WeaponType.CrystalWand or WeaponType.RuneWand or 
+                WeaponType.ElementalWand => WeaponGroup.Wand,
+                
+                // Fist 그룹
+                WeaponType.Fists or WeaponType.Knuckles or WeaponType.Claws or 
+                WeaponType.Gauntlets => WeaponGroup.Fist,
+                
+                _ => WeaponGroup.SwordShield // 기본값
+            };
+        }
+        
+        /// <summary>
+        /// WeaponGroup이 마법 데미지를 사용하는지 확인
+        /// </summary>
+        public static bool IsMagicalWeaponGroup(WeaponGroup weaponGroup)
+        {
+            return weaponGroup == WeaponGroup.Staff || weaponGroup == WeaponGroup.Wand;
+        }
+        
+        /// <summary>
+        /// WeaponGroup에 따른 장비 슬롯 결정
+        /// </summary>
+        public static EquipmentSlot GetEquipmentSlot(WeaponGroup weaponGroup)
+        {
+            return weaponGroup switch
+            {
+                WeaponGroup.SwordShield => EquipmentSlot.MainHand,
+                WeaponGroup.Dagger => EquipmentSlot.MainHand,
+                WeaponGroup.TwoHandedSword => EquipmentSlot.TwoHand,
+                WeaponGroup.TwoHandedAxe => EquipmentSlot.TwoHand,
+                WeaponGroup.Bow => EquipmentSlot.TwoHand,
+                WeaponGroup.Staff => EquipmentSlot.TwoHand,
+                WeaponGroup.Wand => EquipmentSlot.MainHand,
+                WeaponGroup.Fist => EquipmentSlot.MainHand,
+                _ => EquipmentSlot.MainHand
+            };
+        }
+        
+        /// <summary>
+        /// 종족별 사용 가능한 WeaponGroup 목록
+        /// </summary>
+        public static WeaponGroup[] GetAvailableWeaponGroups(Race race)
+        {
+            return race switch
+            {
+                Race.Human => new[] { 
+                    WeaponGroup.SwordShield, 
+                    WeaponGroup.TwoHandedSword, 
+                    WeaponGroup.Bow, 
+                    WeaponGroup.Fist 
+                },
+                Race.Elf => new[] { 
+                    WeaponGroup.Bow, 
+                    WeaponGroup.Staff, 
+                    WeaponGroup.Wand 
+                },
+                Race.Beast => new[] { 
+                    WeaponGroup.TwoHandedAxe, 
+                    WeaponGroup.Dagger, 
+                    WeaponGroup.Bow, 
+                    WeaponGroup.Fist, 
+                    WeaponGroup.Staff 
+                },
+                _ => new[] { WeaponGroup.Fist }
+            };
+        }
+        
+        /// <summary>
+        /// 종족-무기군 조합별 선택 가능한 직업 목록
+        /// </summary>
+        public static JobType[] GetAvailableJobTypes(Race race, WeaponGroup weaponGroup)
+        {
+            return (race, weaponGroup) switch
+            {
+                // Human 조합
+                (Race.Human, WeaponGroup.SwordShield) => new[] { 
+                    JobType.Navigator, JobType.Scout, JobType.Guardian, JobType.Templar 
+                },
+                (Race.Human, WeaponGroup.TwoHandedSword) => new[] { 
+                    JobType.Guardian, JobType.Templar, JobType.Berserker, JobType.Duelist 
+                },
+                (Race.Human, WeaponGroup.Bow) => new[] { 
+                    JobType.Navigator, JobType.Scout, JobType.Tracker, JobType.Sniper 
+                },
+                (Race.Human, WeaponGroup.Fist) => new[] { 
+                    JobType.Berserker, JobType.Duelist, JobType.Trapper 
+                },
+                
+                // Elf 조합
+                (Race.Elf, WeaponGroup.Bow) => new[] { 
+                    JobType.Scout, JobType.Tracker, JobType.Sniper 
+                },
+                (Race.Elf, WeaponGroup.Staff) => new[] { 
+                    JobType.Mage, JobType.Warlock, JobType.Druid 
+                },
+                (Race.Elf, WeaponGroup.Wand) => new[] { 
+                    JobType.Mage, JobType.Cleric, JobType.Amplifier 
+                },
+                
+                // Beast 조합
+                (Race.Beast, WeaponGroup.TwoHandedAxe) => new[] { 
+                    JobType.Berserker, JobType.Duelist, JobType.ElementalBruiser 
+                },
+                (Race.Beast, WeaponGroup.Dagger) => new[] { 
+                    JobType.Assassin, JobType.Tracker, JobType.Trapper 
+                },
+                (Race.Beast, WeaponGroup.Bow) => new[] { 
+                    JobType.Tracker, JobType.Sniper 
+                },
+                (Race.Beast, WeaponGroup.Fist) => new[] { 
+                    JobType.Berserker, JobType.Assassin, JobType.ElementalBruiser 
+                },
+                (Race.Beast, WeaponGroup.Staff) => new[] { 
+                    JobType.Druid, JobType.ElementalBruiser 
+                },
+                
+                _ => new[] { JobType.Navigator } // 기본값
+            };
+        }
+        
+        /// <summary>
+        /// 특정 종족이 특정 무기군을 사용할 수 있는지 확인
+        /// </summary>
+        public static bool CanRaceUseWeaponGroup(Race race, WeaponGroup weaponGroup)
+        {
+            var availableGroups = GetAvailableWeaponGroups(race);
+            return availableGroups.Contains(weaponGroup);
+        }
     }
     
     // ItemGrade는 ItemData.cs에서 정의됨 (통합된 아이템 등급 시스템)

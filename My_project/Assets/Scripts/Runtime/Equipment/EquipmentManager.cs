@@ -228,29 +228,15 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 return item.ItemData.EquipmentSlot;
             }
             
-            // WeaponCategory에 따른 슬롯 결정
-            switch (item.ItemData.WeaponCategory)
+            // WeaponGroup에 따른 슬롯 결정
+            if (item.ItemData.IsWeapon)
             {
-                case WeaponCategory.Sword:
-                case WeaponCategory.Dagger:
-                case WeaponCategory.Axe:
-                case WeaponCategory.Mace:
-                    return EquipmentSlot.MainHand;
-                
-                case WeaponCategory.Bow:
-                case WeaponCategory.Staff:
-                    return EquipmentSlot.TwoHand;
-                
-                case WeaponCategory.Shield:
-                    return EquipmentSlot.OffHand;
-                
-                case WeaponCategory.None:
-                    // 방어구나 악세서리 판단
-                    return DetermineArmorSlot(item);
-                
-                default:
-                    return EquipmentSlot.None;
+                WeaponGroup weaponGroup = item.ItemData.WeaponGroup;
+                return WeaponTypeMapper.GetEquipmentSlot(weaponGroup);
             }
+            
+            // 무기가 아닌 경우 방어구나 악세서리 판단
+            return DetermineArmorSlot(item);
         }
         
         /// <summary>

@@ -10,7 +10,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
     {
         [Header("Visual Components")]
         [SerializeField] private SpriteRenderer characterRenderer;
-        [SerializeField] private SpriteRenderer weaponRenderer;
         [SerializeField] private Animator characterAnimator;
         
         [Header("Visual Settings")]
@@ -33,7 +32,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         private Race currentRace = Race.Human;
         private int currentDirection = 0; // 0=Down, 1=Side, 2=Up
         private PlayerAnimationType currentAnimationType = PlayerAnimationType.Idle;
-        private WeaponType currentWeaponType = WeaponType.Fists;
         
         // 컴포넌트 참조
         private PlayerController playerController;
@@ -89,15 +87,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 }
             }
             
-            // 무기 렌더러 설정
-            if (weaponRenderer == null)
-            {
-                var weaponObject = new GameObject("WeaponSprite");
-                weaponObject.transform.SetParent(transform);
-                weaponObject.transform.localPosition = Vector3.zero;
-                weaponRenderer = weaponObject.AddComponent<SpriteRenderer>();
-                weaponRenderer.sortingOrder = 1; // 캐릭터보다 앞에
-            }
             
             // 기본 설정
             if (characterRenderer != null)
@@ -127,8 +116,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 SetRace(Race.Human);
             }
             
-            // 기본 무기 설정
-            SetWeapon(WeaponType.Fists);
             
             // 기본 애니메이션 설정
             SetAnimation(PlayerAnimationType.Idle);
@@ -149,14 +136,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             UpdateCharacterSprite();
         }
         
-        /// <summary>
-        /// 무기 설정
-        /// </summary>
-        public void SetWeapon(WeaponType weaponType)
-        {
-            currentWeaponType = weaponType;
-            UpdateWeaponSprite();
-        }
         
         /// <summary>
         /// 애니메이션 타입 설정
@@ -254,10 +233,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             if (Mathf.Abs(mouseDirection.x) > 0.1f)
             {
                 characterRenderer.flipX = mouseDirection.x < 0;
-                if (weaponRenderer != null)
-                {
-                    weaponRenderer.flipX = mouseDirection.x < 0;
-                }
             }
         }
         
@@ -287,28 +262,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             }
         }
         
-        /// <summary>
-        /// 무기 스프라이트 업데이트
-        /// </summary>
-        private void UpdateWeaponSprite()
-        {
-            if (weaponRenderer == null) return;
-            
-            // 맨손이면 무기 숨기기
-            if (currentWeaponType == WeaponType.Fists)
-            {
-                weaponRenderer.sprite = null;
-                return;
-            }
-            
-            Sprite weaponSprite = ResourceLoader.GetWeaponSprite(currentWeaponType);
-            weaponRenderer.sprite = weaponSprite;
-            
-            if (weaponSprite != null)
-            {
-                Debug.Log($"Updated weapon sprite: {currentWeaponType}");
-            }
-        }
         
         /// <summary>
         /// 네트워크 이벤트 - 종족 변경
@@ -342,35 +295,13 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         public void TriggerAttackAnimation()
         {
-            // 무기 타입에 따른 공격 애니메이션 선택
-            PlayerAnimationType attackAnim = GetAttackAnimationType(currentWeaponType);
-            
-            SetAnimation(attackAnim);
+            // 기본 공격 애니메이션 사용
+            SetAnimation(PlayerAnimationType.Attack_Slice);
             
             // 잠시 후 Idle로 복귀
             Invoke(nameof(ReturnToIdle), 0.5f);
         }
         
-        /// <summary>
-        /// 무기 타입에 따른 공격 애니메이션 가져오기
-        /// </summary>
-        private PlayerAnimationType GetAttackAnimationType(WeaponType weaponType)
-        {
-            switch (weaponType)
-            {
-                case WeaponType.Longsword:
-                case WeaponType.Rapier:
-                case WeaponType.Broadsword:
-                    return PlayerAnimationType.Attack_Slice;
-                    
-                case WeaponType.Dagger:
-                case WeaponType.CurvedDagger:
-                    return PlayerAnimationType.Attack_Pierce;
-                    
-                default:
-                    return PlayerAnimationType.Attack_Slice;
-            }
-        }
         
         /// <summary>
         /// Idle 애니메이션으로 복귀

@@ -465,22 +465,24 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         }
         
         /// <summary>
-        /// 무기 호환성 확인
+        /// 무기 호환성 확인 - WeaponGroup 기반
         /// </summary>
         private bool IsWeaponCompatible(ItemInstance item)
         {
-            var weaponCategory = item.ItemData.WeaponCategory;
+            var weaponGroup = item.ItemData.WeaponGroup;
             
             return equipmentSlot switch
             {
-                EquipmentSlot.MainHand => weaponCategory == WeaponCategory.Sword ||
-                                        weaponCategory == WeaponCategory.Dagger ||
-                                        weaponCategory == WeaponCategory.Axe ||
-                                        weaponCategory == WeaponCategory.Mace,
-                EquipmentSlot.OffHand => weaponCategory == WeaponCategory.Shield ||
-                                       weaponCategory == WeaponCategory.Dagger,
-                EquipmentSlot.TwoHand => weaponCategory == WeaponCategory.Bow ||
-                                       weaponCategory == WeaponCategory.Staff,
+                EquipmentSlot.MainHand => weaponGroup == WeaponGroup.SwordShield ||
+                                        weaponGroup == WeaponGroup.Dagger ||
+                                        weaponGroup == WeaponGroup.TwoHandedAxe ||
+                                        weaponGroup == WeaponGroup.Fist,
+                EquipmentSlot.OffHand => weaponGroup == WeaponGroup.SwordShield ||
+                                       weaponGroup == WeaponGroup.Dagger,
+                EquipmentSlot.TwoHand => weaponGroup == WeaponGroup.TwoHandedSword ||
+                                       weaponGroup == WeaponGroup.TwoHandedAxe ||
+                                       weaponGroup == WeaponGroup.Bow ||
+                                       weaponGroup == WeaponGroup.Staff,
                 _ => false
             };
         }

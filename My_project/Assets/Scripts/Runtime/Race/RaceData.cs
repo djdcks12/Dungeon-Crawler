@@ -177,6 +177,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
     /// </summary>
     public enum Race
     {
+        None,       // 선택되지 않음
         Human,      // 인간 - 균형형
         Elf,        // 엘프 - 마법 특화
         Beast,      // 수인 - 물리 특화

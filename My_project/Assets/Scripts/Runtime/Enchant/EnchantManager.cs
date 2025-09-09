@@ -162,11 +162,11 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         }
         
         /// <summary>
-        /// 인챈트와 아이템의 호환성 검사
+        /// 인챈트와 아이템의 호환성 검사 - WeaponGroup 기반
         /// </summary>
         private bool IsEnchantCompatible(ItemInstance item, EnchantData enchant)
         {
-            var weaponCategory = item.ItemData.WeaponCategory;
+            var weaponGroup = item.ItemData.WeaponGroup;
             var equipSlot = item.ItemData.EquipmentSlot;
             
             switch (enchant.enchantType)
@@ -175,7 +175,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 case EnchantType.Sharpness:
                 case EnchantType.CriticalHit:
                 case EnchantType.LifeSteal:
-                    return weaponCategory != WeaponCategory.None;
+                    return item.ItemData.IsWeapon;
                 
                 // 방어구 전용 인챈트
                 case EnchantType.Protection:
@@ -194,7 +194,8 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 
                 // 마법 무기/장비 전용
                 case EnchantType.MagicBoost:
-                    return weaponCategory == WeaponCategory.Staff || 
+                    return weaponGroup == WeaponGroup.Staff || 
+                           weaponGroup == WeaponGroup.Wand ||
                            equipSlot == EquipmentSlot.Ring1 || 
                            equipSlot == EquipmentSlot.Ring2 || 
                            equipSlot == EquipmentSlot.Necklace;

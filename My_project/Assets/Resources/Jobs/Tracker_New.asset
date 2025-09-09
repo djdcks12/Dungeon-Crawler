@@ -1,0 +1,74 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 97ef07b3505892848b7afdb6235468dc, type: 3}
+  m_Name: Tracker
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.JobData
+  jobName: "추적자"
+  jobNameEn: Tracker
+  description: "몬스터의 흔적을 따라
+숨겨진 것들을 찾아내는
+추적 전문가."
+  jobIcon: {fileID: 0}
+  jobRole: 0
+  jobType: 3
+  strengthGrowth: 2
+  dexterityGrowth: 3
+  intelligenceGrowth: 2
+  vitalityGrowth: 2
+  luckGrowth: 1
+  primaryStat1: 1
+  primaryStat2: 2
+  jobRequirements:
+  - requiredRace: 2
+    requiredWeaponGroup: 4
+  skillSet:
+    level1Skills:
+      choiceA: {fileID: 0}
+      choiceB: {fileID: 0}
+      choiceC: {fileID: 0}
+      goldCostA: 100
+      goldCostB: 100
+      goldCostC: 100
+      conceptA: "몬스터의 발자국을 따라 그들의 위치를 추적한다."
+      conceptB: "(패시브) 숨겨진 아이템을 발견할 확률이 15% 증가한다."
+      conceptC: "적에게 표식을 남겨 일정 시간 위치를 추적한다."
+    level3Skills:
+      choiceA: {fileID: 0}
+      choiceB: {fileID: 0}
+      choiceC: {fileID: 0}
+      goldCostA: 200
+      goldCostB: 200
+      goldCostC: 200
+      conceptA: "도망치는 적을 추적하여 이동 속도를 감소시킨다."
+      conceptB: "몬스터의 생체 신호를 감지하여 벽 너머에서도 확인한다."
+      conceptC: "특정 몬스터 종족에 대한 추가 정보를 제공한다."
+    level5Skills:
+      choiceA: {fileID: 0}
+      choiceB: {fileID: 0}
+      choiceC: {fileID: 0}
+      goldCostA: 300
+      goldCostB: 300
+      goldCostC: 300
+      conceptA: "몬스터의 약점을 분석하여 치명타 확률을 증가시킨다."
+      conceptB: "환경을 이용한 덫을 설치한다."
+      conceptC: "레어 몬스터의 출현 위치를 예측한다."
+    level7Skills:
+      choiceA: {fileID: 0}
+      choiceB: {fileID: 0}
+      choiceC: {fileID: 0}
+      goldCostA: 500
+      goldCostB: 500
+      goldCostC: 500
+      conceptA: "몬스터 무리의 리더를 찾아 표시한다."
+      conceptB: "적의 도주 경로를 차단한다."
+      conceptC: "보스 몬스터의 행동 패턴을 예측한다."
+    ultimateSkill: {fileID: 0}

@@ -14,6 +14,10 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         [Header("Race Information")]
         [SerializeField] private Race characterRace = Race.Human;
         [SerializeField] private RaceData raceData;
+        
+        [Header("Job Information")] 
+        [SerializeField] private JobType currentJobType = JobType.Navigator;
+        [SerializeField] private JobData jobData;
 
         [Header("Current Stats (Calculated)")]
         [SerializeField] private StatBlock currentStats;
@@ -67,6 +71,8 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         // 프로퍼티들
         public Race CharacterRace => characterRace;
         public RaceData RaceData => raceData;
+        public JobType CurrentJobType => currentJobType;
+        public JobData JobData => jobData;
         public StatBlock CurrentStats => currentStats;
 
         // 총 스탯 (종족 + 영혼 + 장비 + 인챈트)
@@ -113,7 +119,8 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             characterRace = race;
             raceData = data;
 
-            currentStats = raceData.CalculateStatsAtLevel(currentLevel);
+            // 종족과 직업을 통합한 스탯 계산
+            currentStats = CalculateCombinedStatsAtLevel(currentLevel);
             RecalculateStats();
             OnStatsChanged?.Invoke(this);
         }
@@ -157,14 +164,14 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             }
         }
 
-        // 레벨업 (종족별 고정 성장)
+        // 레벨업 (종족 + 직업 통합 성장)
         private void LevelUp()
         {
             currentLevel++;
             currentExp -= expToNextLevel;
 
-            // 종족별 스탯 자동 성장
-            currentStats = raceData.CalculateStatsAtLevel(currentLevel);
+            // 종족 + 직업별 스탯 자동 성장
+            currentStats = CalculateCombinedStatsAtLevel(currentLevel);
             
             // 스탯 재계산 (체력/마나는 현재 상태 유지)
             RecalculateStats();
@@ -175,7 +182,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             OnLevelUp?.Invoke(currentLevel);
             OnStatsChanged?.Invoke(this);
 
-            Debug.Log($"Level Up! Now Level {currentLevel} - Race: {characterRace}");
+            Debug.Log($"Level Up! Now Level {currentLevel} - Race: {characterRace}, Job: {currentJobType}");
         }
 
         // 레벨별 필요 경험치 계산
@@ -241,7 +248,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             // 마법 데미지 범위 계산
             DamageRange magicalRange;
             if (equippedWeaponItem != null && equippedWeaponItem.ItemData != null && 
-                (equippedWeaponItem.ItemData.WeaponCategory == WeaponCategory.Staff || equippedWeaponItem.ItemData.WeaponCategory == WeaponCategory.Wand))
+                WeaponTypeMapper.IsMagicalWeaponGroup(equippedWeaponItem.ItemData.WeaponGroup))
             {
                 magicalRange = equippedWeaponItem.ItemData.CalculateWeaponDamage(TotalINT, TotalSTAB);
             }
@@ -521,6 +528,52 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             RecalculateStats();
             currentHP = maxHP;
             currentMP = maxMP;
+        }
+        
+        /// <summary>
+        /// 직업 데이터 설정 (캐릭터 생성 시 또는 전직 시)
+        /// </summary>
+        public void SetJobData(JobType newJobType, JobData newJobData)
+        {
+            currentJobType = newJobType;
+            jobData = newJobData;
+            
+            // 현재 레벨에 맞춰서 스탯 재계산
+            currentStats = CalculateCombinedStatsAtLevel(currentLevel);
+            RecalculateStats();
+            
+            OnStatsChanged?.Invoke(this);
+            
+            Debug.Log($"Job set to {newJobType} for {characterRace} character");
+        }
+        
+        /// <summary>
+        /// 종족과 직업을 통합한 레벨별 스탯 계산
+        /// </summary>
+        private StatBlock CalculateCombinedStatsAtLevel(int level)
+        {
+            // 기본: 종족 스탯 계산
+            StatBlock raceStats = raceData?.CalculateStatsAtLevel(level) ?? new StatBlock();
+            
+            // 직업 추가 성장 계산 (레벨 2부터 적용)
+            if (jobData != null && level > 1)
+            {
+                float jobGrowthMultiplier = level - 1; // 1레벨 기준이므로 -1
+                
+                return new StatBlock
+                {
+                    strength = raceStats.strength + (jobData.strengthGrowth * jobGrowthMultiplier),
+                    agility = raceStats.agility + (jobData.dexterityGrowth * jobGrowthMultiplier),
+                    vitality = raceStats.vitality + (jobData.vitalityGrowth * jobGrowthMultiplier),
+                    intelligence = raceStats.intelligence + (jobData.intelligenceGrowth * jobGrowthMultiplier),
+                    defense = raceStats.defense, // 직업별 방어력 성장은 없음 (기존과 동일)
+                    magicDefense = raceStats.magicDefense, // 직업별 마법방어력 성장도 없음
+                    luck = raceStats.luck + (jobData.luckGrowth * jobGrowthMultiplier),
+                    stability = raceStats.stability // 안정성은 종족 고유
+                };
+            }
+            
+            return raceStats;
         }
 
         // 디버그 정보

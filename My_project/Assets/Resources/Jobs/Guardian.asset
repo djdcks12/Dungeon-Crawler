@@ -1,0 +1,76 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 97ef07b3505892848b7afdb6235468dc, type: 3}
+  m_Name: Guardian
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.JobData
+  jobName: "\uD56D\uD574\uC0AC"
+  jobNameEn: Navigator
+  description: "\uB358\uC804\uC758 \uB2E4\uC74C \uCE35\uC73C\uB85C \r\n\uAC00\uB294
+    \uAE38\uC744 \uCC3E\uB294 \r\n\uC720\uC77C\uD55C \uC9C1\uC5C5."
+  jobIcon: {fileID: 0}
+  jobRole: 0
+  jobType: 1
+  strengthGrowth: 1
+  dexterityGrowth: 2
+  intelligenceGrowth: 3
+  vitalityGrowth: 2
+  luckGrowth: 2
+  primaryStat1: 0
+  primaryStat2: 1
+  jobRequirements:
+  - requiredRace: 1
+    requiredWeaponGroup: 0
+  skillSet:
+    level1Skills:
+      choiceA: {fileID: 0}
+      choiceB: {fileID: 0}
+      choiceC: {fileID: 0}
+      goldCostA: 100
+      goldCostB: 100
+      goldCostC: 100
+      conceptA: "\uBBF8\uB2C8\uB9F5\uC5D0 \uB2E4\uC74C \uCE35\uC73C\uB85C \uAC00\uB294
+        \uBC29\uD5A5\uC744 \uD56D\uC0C1 \uD45C\uC2DC\uD55C\uB2E4. "
+      conceptB: "(\uD328\uC2DC\uBE0C) \uD30C\uD2F0\uC758 \uBE44\uC804\uD22C \uC2DC
+        \uC774\uB3D9 \uC18D\uB3C4\uAC00 10% \uC99D\uAC00\uD55C\uB2E4. "
+      conceptC: ": 5\uCD08\uAC04 \uC790\uC2E0\uC758 \uC774\uB3D9 \uC18D\uB3C4\uB97C
+        30%  \uC99D\uAC00\uC2DC\uD0A8\uB2E4."
+    level3Skills:
+      choiceA: {fileID: 0}
+      choiceB: {fileID: 0}
+      choiceC: {fileID: 0}
+      goldCostA: 100
+      goldCostB: 100
+      goldCostC: 100
+      conceptA: 
+      conceptB: 
+      conceptC: 
+    level5Skills:
+      choiceA: {fileID: 0}
+      choiceB: {fileID: 0}
+      choiceC: {fileID: 0}
+      goldCostA: 100
+      goldCostB: 100
+      goldCostC: 100
+      conceptA: 
+      conceptB: 
+      conceptC: 
+    level7Skills:
+      choiceA: {fileID: 0}
+      choiceB: {fileID: 0}
+      choiceC: {fileID: 0}
+      goldCostA: 100
+      goldCostB: 100
+      goldCostC: 100
+      conceptA: 
+      conceptB: 
+      conceptC: 
+    ultimateSkill: {fileID: 0}

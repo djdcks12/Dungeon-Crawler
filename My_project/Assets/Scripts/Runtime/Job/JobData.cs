@@ -28,10 +28,11 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         public int luckGrowth = 1;
         
         [Header("Primary Stats")]
-        public StatType primaryStat1 = StatType.Strength;
-        public StatType primaryStat2 = StatType.Dexterity;
+        public StatType primaryStat1 = StatType.STR;
+        public StatType primaryStat2 = StatType.AGI;
         
         [Header("Available Races & Weapon Types")]
+        [System.Obsolete("Use WeaponTypeMapper.GetAvailableJobTypes() instead")]
         public JobRequirement[] jobRequirements;
         
         [Header("Skills")]
@@ -82,17 +83,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         Amplifier = 15      // 증폭술사
     }
     
-    /// <summary>
-    /// 스탯 타입
-    /// </summary>
-    public enum StatType
-    {
-        Strength,
-        Dexterity, 
-        Intelligence,
-        Vitality,
-        Luck
-    }
     
     /// <summary>
     /// 직업 선택 조건 (종족 + 무기 타입)
