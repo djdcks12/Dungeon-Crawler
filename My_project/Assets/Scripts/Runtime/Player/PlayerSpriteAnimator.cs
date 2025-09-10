@@ -23,8 +23,13 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
     public class PlayerSpriteAnimator : MonoBehaviour
     {
         private SpriteRenderer spriteRenderer;
-        private RaceData currentRaceData;
+        private RaceData currentRaceData; // 하위 호환성용 (기존 RaceData도 지원)
+        private RaceWeaponGroupData currentCombinationData; // 새로운 종족-무기군 데이터
         private PlayerAnimationState currentState = PlayerAnimationState.Idle;
+        
+        // 현재 종족-무기군 상태
+        private Race currentRace = Race.Human;
+        private WeaponGroup currentWeaponGroup = WeaponGroup.Fist;
         
         // 애니메이션 상태
         private Coroutine currentAnimationCoroutine;
@@ -45,11 +50,42 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         }
         
         /// <summary>
-        /// RaceData로 애니메이션 설정
+        /// 종족-무기군 조합으로 애니메이션 설정 (새로운 방식)
+        /// </summary>
+        public void SetupAnimations(Race race, WeaponGroup weaponGroup)
+        {
+            currentRace = race;
+            currentWeaponGroup = weaponGroup;
+            
+            // RaceWeaponGroupManager에서 조합 데이터 로드
+            currentCombinationData = RaceWeaponGroupManager.GetCombinationData(race, weaponGroup);
+            currentRaceData = null; // 새로운 방식 사용 시 기존 데이터는 null
+            
+            if (currentCombinationData == null)
+            {
+                Debug.LogWarning($"PlayerSpriteAnimator: No combination data found for {race}_{weaponGroup}");
+                return;
+            }
+            
+            // 기본 스프라이트 설정
+            if (currentCombinationData.HasValidIdleAnimation)
+            {
+                spriteRenderer.sprite = currentCombinationData.GetDefaultSprite();
+            }
+            
+            // 기본적으로 Idle 애니메이션 시작
+            PlayAnimation(PlayerAnimationState.Idle);
+            
+            Debug.Log($"🎭 PlayerSpriteAnimator setup: {race}_{weaponGroup}");
+        }
+        
+        /// <summary>
+        /// RaceData로 애니메이션 설정 (하위 호환성용)
         /// </summary>
         public void SetupAnimations(RaceData raceData)
         {
             currentRaceData = raceData;
+            currentCombinationData = null; // 기존 방식 사용 시 새 데이터는 null
             
             if (raceData == null)
             {
@@ -65,6 +101,8 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             
             // 기본적으로 Idle 애니메이션 시작
             PlayAnimation(PlayerAnimationState.Idle);
+            
+            Debug.Log($"🎭 PlayerSpriteAnimator setup (legacy): RaceData");
         }
         
         /// <summary>
@@ -268,9 +306,16 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             
             // 데미지 적용 프레임 가져오기 (공격 애니메이션일 때만)
             int damageFrame = -1;
-            if (state == PlayerAnimationState.Attack && currentRaceData != null)
+            if (state == PlayerAnimationState.Attack)
             {
-                damageFrame = currentRaceData.AttackDamageFrame;
+                if (currentCombinationData != null)
+                {
+                    damageFrame = currentCombinationData.AttackDamageFrame;
+                }
+                else if (currentRaceData != null)
+                {
+                    damageFrame = currentRaceData.AttackDamageFrame;
+                }
             }
             
             // 한 번만 재생
@@ -305,41 +350,79 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         }
         
         /// <summary>
-        /// 상태에 따른 스프라이트 배열 반환
+        /// 상태에 따른 스프라이트 배열 반환 (새로운 조합 데이터 우선)
         /// </summary>
         private Sprite[] GetSpritesForState(PlayerAnimationState state)
         {
-            if (currentRaceData == null) return null;
-
-            return state switch
+            // 새로운 종족-무기군 데이터 우선 사용
+            if (currentCombinationData != null)
             {
-                PlayerAnimationState.Idle => currentRaceData.IdleSprites,
-                PlayerAnimationState.Walk => currentRaceData.WalkSprites,
-                PlayerAnimationState.Hit => currentRaceData.HitSprites,
-                PlayerAnimationState.Attack => currentRaceData.AttackSprites,
-                PlayerAnimationState.Casting => currentRaceData.CastingSprites,
-                PlayerAnimationState.Death => currentRaceData.DeathSprites,
-                _ => currentRaceData.IdleSprites
-            };
+                return state switch
+                {
+                    PlayerAnimationState.Idle => currentCombinationData.IdleSprites,
+                    PlayerAnimationState.Walk => currentCombinationData.WalkSprites,
+                    PlayerAnimationState.Hit => currentCombinationData.HitSprites,
+                    PlayerAnimationState.Attack => currentCombinationData.AttackSprites,
+                    PlayerAnimationState.Casting => currentCombinationData.CastingSprites,
+                    PlayerAnimationState.Death => currentCombinationData.DeathSprites,
+                    _ => currentCombinationData.IdleSprites
+                };
+            }
+            
+            // 하위 호환성: 기존 RaceData 사용
+            if (currentRaceData != null)
+            {
+                return state switch
+                {
+                    PlayerAnimationState.Idle => currentRaceData.IdleSprites,
+                    PlayerAnimationState.Walk => currentRaceData.WalkSprites,
+                    PlayerAnimationState.Hit => currentRaceData.HitSprites,
+                    PlayerAnimationState.Attack => currentRaceData.AttackSprites,
+                    PlayerAnimationState.Casting => currentRaceData.CastingSprites,
+                    PlayerAnimationState.Death => currentRaceData.DeathSprites,
+                    _ => currentRaceData.IdleSprites
+                };
+            }
+            
+            return null;
         }
         
         /// <summary>
-        /// 상태에 따른 프레임 레이트 반환
+        /// 상태에 따른 프레임 레이트 반환 (새로운 조합 데이터 우선)
         /// </summary>
         private float GetFrameRateForState(PlayerAnimationState state)
         {
-            if (currentRaceData == null) return 6f;
-            
-            return state switch
+            // 새로운 종족-무기군 데이터 우선 사용
+            if (currentCombinationData != null)
             {
-                PlayerAnimationState.Idle => currentRaceData.IdleFrameRate,
-                PlayerAnimationState.Walk => currentRaceData.WalkFrameRate,
-                PlayerAnimationState.Hit => currentRaceData.HitFrameRate,
-                PlayerAnimationState.Attack => currentRaceData.AttackFrameRate,
-                PlayerAnimationState.Casting => currentRaceData.CastingFrameRate,
-                PlayerAnimationState.Death => currentRaceData.DeathFrameRate,
-                _ => currentRaceData.IdleFrameRate
-            };
+                return state switch
+                {
+                    PlayerAnimationState.Idle => currentCombinationData.IdleFrameRate,
+                    PlayerAnimationState.Walk => currentCombinationData.WalkFrameRate,
+                    PlayerAnimationState.Hit => currentCombinationData.HitFrameRate,
+                    PlayerAnimationState.Attack => currentCombinationData.AttackFrameRate,
+                    PlayerAnimationState.Casting => currentCombinationData.CastingFrameRate,
+                    PlayerAnimationState.Death => currentCombinationData.DeathFrameRate,
+                    _ => currentCombinationData.IdleFrameRate
+                };
+            }
+            
+            // 하위 호환성: 기존 RaceData 사용
+            if (currentRaceData != null)
+            {
+                return state switch
+                {
+                    PlayerAnimationState.Idle => currentRaceData.IdleFrameRate,
+                    PlayerAnimationState.Walk => currentRaceData.WalkFrameRate,
+                    PlayerAnimationState.Hit => currentRaceData.HitFrameRate,
+                    PlayerAnimationState.Attack => currentRaceData.AttackFrameRate,
+                    PlayerAnimationState.Casting => currentRaceData.CastingFrameRate,
+                    PlayerAnimationState.Death => currentRaceData.DeathFrameRate,
+                    _ => currentRaceData.IdleFrameRate
+                };
+            }
+            
+            return 6f; // 기본값
         }
         
         /// <summary>
@@ -374,12 +457,40 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             return isPlaying && (currentState == PlayerAnimationState.Idle || currentState == PlayerAnimationState.Walk);
         }
         /// <summary>
-        /// RaceData 변경 (종족 변경 시 사용)
+        /// 무기군 변경 (장비 변경 시 사용)
+        /// </summary>
+        public void ChangeWeaponGroup(WeaponGroup newWeaponGroup)
+        {
+            if (currentWeaponGroup != newWeaponGroup)
+            {
+                StopAllAnimations();
+                SetupAnimations(currentRace, newWeaponGroup);
+            }
+        }
+        
+        /// <summary>
+        /// RaceData 변경 (종족 변경 시 사용 - 하위 호환성)
         /// </summary>
         public void ChangeRaceData(RaceData newRaceData)
         {
             StopAllAnimations();
             SetupAnimations(newRaceData);
+        }
+        
+        /// <summary>
+        /// 현재 종족-무기군 조합 반환
+        /// </summary>
+        public (Race race, WeaponGroup weaponGroup) GetCurrentCombination()
+        {
+            return (currentRace, currentWeaponGroup);
+        }
+        
+        /// <summary>
+        /// 현재 사용 중인 데이터 타입 확인
+        /// </summary>
+        public bool IsUsingCombinationData()
+        {
+            return currentCombinationData != null;
         }
         
     }

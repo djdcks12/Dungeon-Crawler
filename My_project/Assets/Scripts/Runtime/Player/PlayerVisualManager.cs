@@ -4,14 +4,15 @@ using Unity.Netcode;
 namespace Unity.Template.Multiplayer.NGO.Runtime
 {
     /// <summary>
-    /// 플레이어 비주얼 매니저 - 종족별 스프라이트 및 애니메이션 관리
+    /// 플레이어 비주얼 매니저 - 종족-무기군 조합별 애니메이션 관리
+    /// PlayerSpriteAnimator를 통해 실제 애니메이션 처리
     /// </summary>
     public class PlayerVisualManager : NetworkBehaviour
     {
         [Header("Visual Components")]
         [SerializeField] private SpriteRenderer characterRenderer;
         [SerializeField] private Animator characterAnimator;
-        
+
         [Header("Visual Settings")]
         [SerializeField] private bool autoSetupOnSpawn = true;
         [SerializeField] private float characterScale = 1f;
@@ -30,13 +31,15 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             
         // 현재 상태
         private Race currentRace = Race.Human;
-        private int currentDirection = 0; // 0=Down, 1=Side, 2=Up
+        private WeaponGroup currentWeaponGroup = WeaponGroup.Fist;
         private PlayerAnimationType currentAnimationType = PlayerAnimationType.Idle;
         
         // 컴포넌트 참조
         private PlayerController playerController;
         private PlayerStatsManager statsManager;
-        
+        private PlayerSpriteAnimator spriteAnimator;
+        private EquipmentManager equipmentManager;
+
         public override void OnNetworkSpawn()
         {
             base.OnNetworkSpawn();
@@ -63,6 +66,11 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             networkDirection.OnValueChanged -= OnDirectionChanged;
             networkAnimationType.OnValueChanged -= OnAnimationTypeChanged;
             
+            if (equipmentManager != null)
+            {
+                equipmentManager.OnEquipmentChanged -= OnEquipmentChanged;
+            }
+            
             base.OnNetworkDespawn();
         }
         
@@ -73,31 +81,23 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         {
             playerController = GetComponent<PlayerController>();
             statsManager = GetComponent<PlayerStatsManager>();
+            equipmentManager = GetComponent<EquipmentManager>();
             
-            // SpriteRenderer가 없으면 생성
-            if (characterRenderer == null)
+            // PlayerSpriteAnimator 가져오기 (실제 애니메이션 처리를 담당)
+            spriteAnimator = GetComponent<PlayerSpriteAnimator>();
+            if (spriteAnimator == null)
             {
-                characterRenderer = GetComponent<SpriteRenderer>();
-                if (characterRenderer == null)
-                {
-                    var rendererObject = new GameObject("CharacterSprite");
-                    rendererObject.transform.SetParent(transform);
-                    rendererObject.transform.localPosition = Vector3.zero;
-                    characterRenderer = rendererObject.AddComponent<SpriteRenderer>();
-                }
+                spriteAnimator = gameObject.AddComponent<PlayerSpriteAnimator>();
             }
             
-            
-            // 기본 설정
-            if (characterRenderer != null)
+            // 장비 변경 이벤트 구독
+            if (equipmentManager != null)
             {
-                characterRenderer.sortingLayerName = "Characters";
-                characterRenderer.sortingOrder = 0;
-                characterRenderer.color = characterTint;
-                
-                // 스케일 적용
-                transform.localScale = Vector3.one * characterScale;
+                equipmentManager.OnEquipmentChanged += OnEquipmentChanged;
             }
+            
+            // characterRenderer는 더 이상 사용하지 않음 (PlayerSpriteAnimator가 처리)
+            Debug.Log("🎭 PlayerVisualManager: Using PlayerSpriteAnimator for rendering");
         }
         
         /// <summary>
@@ -108,17 +108,23 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             // 스탯 매니저에서 종족 정보 가져오기
             if (statsManager?.CurrentStats != null)
             {
-                SetRace(statsManager.CurrentStats.CharacterRace);
+                currentRace = statsManager.CurrentStats.CharacterRace;
             }
             else
             {
-                // 기본값 설정
-                SetRace(Race.Human);
+                currentRace = Race.Human;
             }
             
+            // 장비 매니저에서 현재 무기군 정보 가져오기
+            currentWeaponGroup = GetCurrentWeaponGroup();
             
-            // 기본 애니메이션 설정
-            SetAnimation(PlayerAnimationType.Idle);
+            // PlayerSpriteAnimator에 종족-무기군 설정
+            if (spriteAnimator != null)
+            {
+                spriteAnimator.SetupAnimations(currentRace, currentWeaponGroup);
+            }
+            
+            Debug.Log($"🎭 Initial visuals setup: {currentRace}_{currentWeaponGroup}");
         }
         
         /// <summary>
@@ -126,19 +132,25 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         public void SetRace(Race race)
         {
-            currentRace = race;
-            
-            if (IsOwner)
+            if (currentRace != race)
             {
-                networkRace.Value = race;
+                currentRace = race;
+                
+                if (IsOwner)
+                {
+                    networkRace.Value = race;
+                }
+                
+                // 종족 변경 시 PlayerSpriteAnimator 업데이트
+                if (spriteAnimator != null)
+                {
+                    spriteAnimator.SetupAnimations(currentRace, currentWeaponGroup);
+                }
             }
-            
-            UpdateCharacterSprite();
         }
-        
-        
+
         /// <summary>
-        /// 애니메이션 타입 설정
+        /// 애니메이션 타입 설정 - PlayerSpriteAnimator로 위임
         /// </summary>
         public void SetAnimation(PlayerAnimationType animationType)
         {
@@ -149,119 +161,67 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 networkAnimationType.Value = animationType;
             }
             
-            UpdateCharacterSprite();
+            // PlayerSpriteAnimator로 애니메이션 전환
+            if (spriteAnimator != null)
+            {
+                PlayerAnimationState animState = ConvertToAnimationState(animationType);
+                spriteAnimator.PlayAnimation(animState);
+            }
         }
         
         /// <summary>
-        /// 방향 설정 (이동 방향에 따라) - 사용 안함
+        /// 방향 설정 (사용 안함 - 레거시)
         /// </summary>
         public void SetDirection(Vector2 moveDirection)
         {
-            // 이동 방향으로는 더 이상 캐릭터 방향을 설정하지 않음
-            // 마우스 방향으로만 설정
+            // 더 이상 사용하지 않음 - 종족-무기군 시스템에서는 방향 개념 없음
         }
         
         /// <summary>
-        /// 마우스 방향에 따른 캐릭터 바라보는 방향 설정
+        /// 마우스 방향 설정 (사용 안함 - 레거시)
         /// </summary>
         public void SetDirectionFromMouse(Vector2 mouseDirection)
         {
-            int newDirection = CalculateDirectionFromMouse(mouseDirection);
-            
-            if (newDirection != currentDirection)
-            {
-                currentDirection = newDirection;
-                
-                if (IsOwner)
-                {
-                    networkDirection.Value = newDirection;
-                }
-                
-                UpdateCharacterSprite();
-                UpdateSpriteFlipFromMouse(mouseDirection);
-            }
+            // 더 이상 사용하지 않음 - 종족-무기군 시스템에서는 방향 개념 없음
         }
         
         /// <summary>
-        /// 이동 방향으로부터 스프라이트 방향 계산 (사용 안함)
-        /// </summary>
-        private int CalculateDirection(Vector2 moveDirection)
-        {
-            if (moveDirection.magnitude < 0.1f) return currentDirection; // 정지 시 기존 방향 유지
-            
-            float angle = Mathf.Atan2(moveDirection.y, moveDirection.x) * Mathf.Rad2Deg;
-            
-            // 8방향을 4방향으로 매핑
-            if (angle >= -45f && angle < 45f) return 1; // Right (Side)
-            else if (angle >= 45f && angle < 135f) return 2; // Up
-            else if (angle >= -135f && angle < -45f) return 0; // Down
-            else return 1; // Left (Side, 플립 적용)
-        }
-        
-        /// <summary>
-        /// 마우스 방향으로부터 스프라이트 방향 계산
-        /// </summary>
-        private int CalculateDirectionFromMouse(Vector2 mouseDirection)
-        {
-            if (mouseDirection.magnitude < 0.1f) return currentDirection; // 변화가 없으면 기존 방향 유지
-            
-            float angle = Mathf.Atan2(mouseDirection.y, mouseDirection.x) * Mathf.Rad2Deg;
-            
-            // 8방향을 4방향으로 매핑
-            if (angle >= -45f && angle < 45f) return 1; // Right (Side)
-            else if (angle >= 45f && angle < 135f) return 2; // Up
-            else if (angle >= -135f && angle < -45f) return 0; // Down
-            else return 1; // Left (Side, 플립 적용)
-        }
-        
-        /// <summary>
-        /// 스프라이트 플립 적용 (이동 방향 - 사용 안함)
-        /// </summary>
-        private void UpdateSpriteFlip(Vector2 moveDirection)
-        {
-            // 이동 방향으로는 더 이상 플립하지 않음
-        }
-        
-        /// <summary>
-        /// 마우스 방향에 따른 스프라이트 플립 적용
-        /// </summary>
-        private void UpdateSpriteFlipFromMouse(Vector2 mouseDirection)
-        {
-            if (characterRenderer == null) return;
-            
-            // 마우스 방향에 따른 좌우 플립
-            if (Mathf.Abs(mouseDirection.x) > 0.1f)
-            {
-                characterRenderer.flipX = mouseDirection.x < 0;
-            }
-        }
-        
-        /// <summary>
-        /// 캐릭터 스프라이트 업데이트
+        /// 캐릭터 스프라이트 업데이트 - 레거시 코드 제거됨
+        /// 실제 애니메이션은 PlayerSpriteAnimator가 처리
         /// </summary>
         private void UpdateCharacterSprite()
         {
-            if (characterRenderer == null) return;
-            
-            Sprite characterSprite = ResourceLoader.GetPlayerSprite(currentRace, currentAnimationType, currentDirection);
-            
-            if (characterSprite != null)
+            // 더 이상 사용되지 않음 - PlayerSpriteAnimator가 직접 RaceData로 처리
+            Debug.Log($"PlayerVisualManager.UpdateCharacterSprite() deprecated - use PlayerSpriteAnimator instead");
+        }
+
+        /// <summary>
+        /// 공격 애니메이션 트리거 - PlayerSpriteAnimator로 위임
+        /// </summary>
+        public void TriggerAttackAnimation()
+        {
+            if (spriteAnimator != null)
             {
-                characterRenderer.sprite = characterSprite;
-                Debug.Log($"Updated character sprite: {currentRace} - {currentAnimationType} - {GetDirectionName(currentDirection)}");
-            }
-            else
-            {
-                // 기본 스프라이트 로드 시도
-                characterSprite = ResourceLoader.GetPlayerSprite(Race.Human, PlayerAnimationType.Idle, 0);
-                if (characterSprite != null)
-                {
-                    characterRenderer.sprite = characterSprite;
-                    Debug.LogWarning($"Using fallback sprite for {currentRace}");
-                }
+                spriteAnimator.PlayAttackAnimation(() => {
+                    // 공격 완료 후 Idle로 복귀
+                    currentAnimationType = PlayerAnimationType.Idle;
+                });
             }
         }
         
+        /// <summary>
+        /// 피격 이펙트 - PlayerSpriteAnimator로 위임
+        /// </summary>
+        public void PlayHitEffect()
+        {
+            if (spriteAnimator != null)
+            {
+                spriteAnimator.PlayHitAnimation(() => {
+                    // 피격 완료 후 Idle로 복귀
+                    currentAnimationType = PlayerAnimationType.Idle;
+                });
+            }
+        }
         
         /// <summary>
         /// 네트워크 이벤트 - 종족 변경
@@ -269,16 +229,18 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         private void OnRaceChanged(Race previousValue, Race newValue)
         {
             currentRace = newValue;
-            UpdateCharacterSprite();
+            if (spriteAnimator != null)
+            {
+                spriteAnimator.SetupAnimations(currentRace, currentWeaponGroup);
+            }
         }
         
         /// <summary>
-        /// 네트워크 이벤트 - 방향 변경
+        /// 네트워크 이벤트 - 방향 변경 (사용 안함)
         /// </summary>
         private void OnDirectionChanged(int previousValue, int newValue)
         {
-            currentDirection = newValue;
-            UpdateCharacterSprite();
+            // 더 이상 사용하지 않음
         }
         
         /// <summary>
@@ -287,69 +249,77 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         private void OnAnimationTypeChanged(PlayerAnimationType previousValue, PlayerAnimationType newValue)
         {
             currentAnimationType = newValue;
-            UpdateCharacterSprite();
-        }
-        
-        /// <summary>
-        /// 공격 애니메이션 트리거
-        /// </summary>
-        public void TriggerAttackAnimation()
-        {
-            // 기본 공격 애니메이션 사용
-            SetAnimation(PlayerAnimationType.Attack_Slice);
-            
-            // 잠시 후 Idle로 복귀
-            Invoke(nameof(ReturnToIdle), 0.5f);
-        }
-        
-        
-        /// <summary>
-        /// Idle 애니메이션으로 복귀
-        /// </summary>
-        private void ReturnToIdle()
-        {
-            SetAnimation(PlayerAnimationType.Idle);
-        }
-        
-        /// <summary>
-        /// 피격 이펙트
-        /// </summary>
-        public void PlayHitEffect()
-        {
-            SetAnimation(PlayerAnimationType.Hit);
-            Invoke(nameof(ReturnToIdle), 0.3f);
-            
-            // 빨간색 플래시 효과
-            if (characterRenderer != null)
+            if (spriteAnimator != null)
             {
-                StartCoroutine(HitFlashCoroutine());
+                PlayerAnimationState animState = ConvertToAnimationState(newValue);
+                spriteAnimator.PlayAnimation(animState);
             }
         }
         
         /// <summary>
-        /// 피격 플래시 효과
+        /// 현재 장착한 무기의 WeaponGroup 가져오기
         /// </summary>
-        private System.Collections.IEnumerator HitFlashCoroutine()
+        private WeaponGroup GetCurrentWeaponGroup()
         {
-            Color originalColor = characterRenderer.color;
-            characterRenderer.color = Color.red;
+            if (equipmentManager != null)
+            {
+                var mainWeapon = equipmentManager.Equipment.GetEquippedItem(EquipmentSlot.MainHand);
+                if (mainWeapon?.ItemData?.IsWeapon == true)
+                {
+                    return mainWeapon.ItemData.WeaponGroup;
+                }
+                
+                var twoHandWeapon = equipmentManager.Equipment.GetEquippedItem(EquipmentSlot.TwoHand);
+                if (twoHandWeapon?.ItemData?.IsWeapon == true)
+                {
+                    return twoHandWeapon.ItemData.WeaponGroup;
+                }
+            }
             
-            yield return new WaitForSeconds(0.1f);
-            
-            characterRenderer.color = originalColor;
+            return WeaponGroup.Fist; // 기본값
         }
         
         /// <summary>
-        /// 방향명 가져오기 (디버그용)
+        /// PlayerAnimationType을 PlayerAnimationState로 변환
         /// </summary>
-        private string GetDirectionName(int direction)
+        private PlayerAnimationState ConvertToAnimationState(PlayerAnimationType animationType)
         {
-            switch (direction)
+            return animationType switch
             {
-                case 0: return "Down";
-                case 1: return "Side";
-                case 2: return "Up";
-                default: return "Unknown";
+                PlayerAnimationType.Idle => PlayerAnimationState.Idle,
+                PlayerAnimationType.Walk => PlayerAnimationState.Walk,
+                PlayerAnimationType.Run => PlayerAnimationState.Walk, // Run은 Walk로 매핑
+                PlayerAnimationType.Attack_Slice => PlayerAnimationState.Attack,
+                PlayerAnimationType.Attack_Pierce => PlayerAnimationState.Attack,
+                PlayerAnimationType.Hit => PlayerAnimationState.Hit,
+                PlayerAnimationType.Death => PlayerAnimationState.Death,
+                PlayerAnimationType.Collect => PlayerAnimationState.Idle,
+                _ => PlayerAnimationState.Idle
+            };
+        }
+        
+        /// <summary>
+        /// 장비 변경 이벤트 핸들러
+        /// </summary>
+        private void OnEquipmentChanged(EquipmentSlot slot, ItemInstance item)
+        {
+            // 무기 슬롯이 변경된 경우만 처리
+            if (slot == EquipmentSlot.MainHand || slot == EquipmentSlot.TwoHand)
+            {
+                WeaponGroup newWeaponGroup = GetCurrentWeaponGroup();
+                
+                if (currentWeaponGroup != newWeaponGroup)
+                {
+                    currentWeaponGroup = newWeaponGroup;
+                    
+                    // PlayerSpriteAnimator에 무기군 변경 알림
+                    if (spriteAnimator != null)
+                    {
+                        spriteAnimator.ChangeWeaponGroup(newWeaponGroup);
+                    }
+                    
+                    Debug.Log($"🛡️ Weapon group changed to: {newWeaponGroup}");
+                }
             }
         }
         
@@ -364,14 +334,11 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         }
         
         /// <summary>
-        /// 종족 변경 테스트 (에디터용)
+        /// 현재 종족-무기군 조합 반환
         /// </summary>
-        [ContextMenu("Test Race Change")]
-        public void TestRaceChange()
+        public (Race race, WeaponGroup weaponGroup) GetCurrentCombination()
         {
-            Race nextRace = (Race)(((int)currentRace + 1) % 4);
-            SetRace(nextRace);
-            Debug.Log($"Changed race to: {nextRace}");
+            return (currentRace, currentWeaponGroup);
         }
     }
 }
