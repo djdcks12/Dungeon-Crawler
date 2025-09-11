@@ -25,14 +25,14 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         private NetworkVariable<int> networkDirection = new NetworkVariable<int>(0,
             NetworkVariableReadPermission.Everyone,
             NetworkVariableWritePermission.Owner);
-        private NetworkVariable<PlayerAnimationType> networkAnimationType = new NetworkVariable<PlayerAnimationType>(PlayerAnimationType.Idle,
+        private NetworkVariable<PlayerAnimationState> networkAnimationState = new NetworkVariable<PlayerAnimationState>(PlayerAnimationState.Idle,
             NetworkVariableReadPermission.Everyone,
             NetworkVariableWritePermission.Owner);
             
         // 현재 상태
         private Race currentRace = Race.Human;
         private WeaponGroup currentWeaponGroup = WeaponGroup.Fist;
-        private PlayerAnimationType currentAnimationType = PlayerAnimationType.Idle;
+        private PlayerAnimationState currentAnimationState = PlayerAnimationState.Idle;
         
         // 컴포넌트 참조
         private PlayerController playerController;
@@ -50,7 +50,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             // 네트워크 변수 이벤트 구독
             networkRace.OnValueChanged += OnRaceChanged;
             networkDirection.OnValueChanged += OnDirectionChanged;
-            networkAnimationType.OnValueChanged += OnAnimationTypeChanged;
+            networkAnimationState.OnValueChanged += OnAnimationStateChanged;
             
             // 초기 비주얼 설정
             if (autoSetupOnSpawn)
@@ -64,7 +64,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             // 이벤트 구독 해제
             networkRace.OnValueChanged -= OnRaceChanged;
             networkDirection.OnValueChanged -= OnDirectionChanged;
-            networkAnimationType.OnValueChanged -= OnAnimationTypeChanged;
+            networkAnimationState.OnValueChanged -= OnAnimationStateChanged;
             
             if (equipmentManager != null)
             {
@@ -150,22 +150,21 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         }
 
         /// <summary>
-        /// 애니메이션 타입 설정 - PlayerSpriteAnimator로 위임
+        /// 애니메이션 상태 설정 - PlayerSpriteAnimator로 위임
         /// </summary>
-        public void SetAnimation(PlayerAnimationType animationType)
+        public void SetAnimation(PlayerAnimationState animationState)
         {
-            currentAnimationType = animationType;
+            currentAnimationState = animationState;
             
             if (IsOwner)
             {
-                networkAnimationType.Value = animationType;
+                networkAnimationState.Value = animationState;
             }
             
             // PlayerSpriteAnimator로 애니메이션 전환
             if (spriteAnimator != null)
             {
-                PlayerAnimationState animState = ConvertToAnimationState(animationType);
-                spriteAnimator.PlayAnimation(animState);
+                spriteAnimator.PlayAnimation(animationState);
             }
         }
         
@@ -204,7 +203,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             {
                 spriteAnimator.PlayAttackAnimation(() => {
                     // 공격 완료 후 Idle로 복귀
-                    currentAnimationType = PlayerAnimationType.Idle;
+                    currentAnimationState = PlayerAnimationState.Idle;
                 });
             }
         }
@@ -218,7 +217,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             {
                 spriteAnimator.PlayHitAnimation(() => {
                     // 피격 완료 후 Idle로 복귀
-                    currentAnimationType = PlayerAnimationType.Idle;
+                    currentAnimationState = PlayerAnimationState.Idle;
                 });
             }
         }
@@ -244,15 +243,14 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         }
         
         /// <summary>
-        /// 네트워크 이벤트 - 애니메이션 타입 변경
+        /// 네트워크 이벤트 - 애니메이션 상태 변경
         /// </summary>
-        private void OnAnimationTypeChanged(PlayerAnimationType previousValue, PlayerAnimationType newValue)
+        private void OnAnimationStateChanged(PlayerAnimationState previousValue, PlayerAnimationState newValue)
         {
-            currentAnimationType = newValue;
+            currentAnimationState = newValue;
             if (spriteAnimator != null)
             {
-                PlayerAnimationState animState = ConvertToAnimationState(newValue);
-                spriteAnimator.PlayAnimation(animState);
+                spriteAnimator.PlayAnimation(newValue);
             }
         }
         
@@ -279,24 +277,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             return WeaponGroup.Fist; // 기본값
         }
         
-        /// <summary>
-        /// PlayerAnimationType을 PlayerAnimationState로 변환
-        /// </summary>
-        private PlayerAnimationState ConvertToAnimationState(PlayerAnimationType animationType)
-        {
-            return animationType switch
-            {
-                PlayerAnimationType.Idle => PlayerAnimationState.Idle,
-                PlayerAnimationType.Walk => PlayerAnimationState.Walk,
-                PlayerAnimationType.Run => PlayerAnimationState.Walk, // Run은 Walk로 매핑
-                PlayerAnimationType.Attack_Slice => PlayerAnimationState.Attack,
-                PlayerAnimationType.Attack_Pierce => PlayerAnimationState.Attack,
-                PlayerAnimationType.Hit => PlayerAnimationState.Hit,
-                PlayerAnimationType.Death => PlayerAnimationState.Death,
-                PlayerAnimationType.Collect => PlayerAnimationState.Idle,
-                _ => PlayerAnimationState.Idle
-            };
-        }
         
         /// <summary>
         /// 장비 변경 이벤트 핸들러
