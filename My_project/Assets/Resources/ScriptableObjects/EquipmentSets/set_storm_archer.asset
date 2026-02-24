@@ -1,0 +1,86 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ec1b857f93ff80c49888a44a0b9ed44e, type: 3}
+  m_Name: set_storm_archer
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.EquipmentSetData
+  setId: set_storm_archer
+  setName: "\uD3ED\uD48D\uC758 \uAD81\uC0AC"
+  description: "\uBC14\uB78C\uC744 \uB2E4\uC2A4\uB9AC\uB294 \uAD81\uC218\uC758 \uC138\uD2B8"
+  itemIds:
+  - Longbow_Epic
+  - Helmet_Epic
+  - ChestArmor_Epic
+  - Greaves_Epic
+  - Boots_Epic
+  bonus2Piece:
+    strength: 0
+    agility: 6
+    vitality: 0
+    intelligence: 0
+    defense: 0
+    magicDefense: 0
+    luck: 3
+    stability: 0
+  bonus2HP: 15
+  bonus2MP: 15
+  bonus2Desc: AGI+6, LUK+3, HP+15
+  bonus3Piece:
+    strength: 0
+    agility: 10
+    vitality: 0
+    intelligence: 0
+    defense: 0
+    magicDefense: 0
+    luck: 5
+    stability: 0
+  bonus3HP: 25
+  bonus3MP: 25
+  bonus3CritChance: 6
+  bonus3CritDamage: 12
+  bonus3Desc: "AGI+10, \uD06C\uB9AC+6%, \uD06C\uB380+12%"
+  bonus4Piece:
+    strength: 0
+    agility: 15
+    vitality: 0
+    intelligence: 0
+    defense: 0
+    magicDefense: 0
+    luck: 8
+    stability: 0
+  bonus4HP: 40
+  bonus4MP: 35
+  bonus4CritChance: 9
+  bonus4CritDamage: 20
+  bonus4MoveSpeed: 8
+  bonus4AttackSpeed: 8
+  bonus4Desc: "AGI+15, \uD06C\uB9AC+9%, \uC774\uB3D9+8%, \uACF5\uC18D+8%"
+  bonus5Piece:
+    strength: 0
+    agility: 22
+    vitality: 0
+    intelligence: 0
+    defense: 0
+    magicDefense: 0
+    luck: 12
+    stability: 4
+  bonus5HP: 60
+  bonus5MP: 50
+  bonus5CritChance: 13
+  bonus5CritDamage: 30
+  bonus5MoveSpeed: 12
+  bonus5AttackSpeed: 12
+  bonus5CooldownReduction: 8
+  bonus5Lifesteal: 2
+  bonus5ExpBonus: 3
+  bonus5Desc: "AGI+22, \uD06C\uB9AC+13%, \uCFE8\uAC10+8%, \uACBD\uD5D8\uCE58+3%"
+  setGrade: 4
+  requiredRace: 0

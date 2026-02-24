@@ -62,6 +62,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         // 컴포넌트 참조
         private PlayerStatsManager statsManager;
         private SkillManager skillManager;
+        private NewSkillLearningSystem newSkillSystem;
         
         // 이벤트
         public System.Action<bool> OnSkillUIToggled;
@@ -93,6 +94,13 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             {
                 statsManager = localPlayer.GetComponent<PlayerStatsManager>();
                 skillManager = localPlayer.GetComponent<SkillManager>();
+                newSkillSystem = localPlayer.GetComponent<NewSkillLearningSystem>();
+
+                // NPC 학습 시스템 이벤트 구독
+                if (newSkillSystem != null)
+                {
+                    newSkillSystem.OnSkillsUpdated += RefreshSkillDisplay;
+                }
             }
             
             // 카테고리 버튼 설정
@@ -243,20 +251,50 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         private void RefreshSkillDisplay()
         {
-            if (skillManager == null) return;
-            
-            var availableSkills = GetFilteredSkills();
-            var learnedSkills = skillManager.GetLearnedSkills();
-            
+            // 표시할 스킬 목록 수집
+            var displaySkills = new List<SkillData>();
+            var learnedSkillIds = new HashSet<string>();
+
+            // SkillManager에서 학습한 스킬 (영혼 스킬 등)
+            if (skillManager != null)
+            {
+                var smLearnedIds = skillManager.GetLearnedSkills();
+                foreach (var id in smLearnedIds)
+                {
+                    learnedSkillIds.Add(id);
+                }
+
+                if (currentTab == SkillTabType.SoulSkills)
+                {
+                    displaySkills = smLearnedIds
+                        .Where(skillId => skillId.StartsWith("monster_"))
+                        .Select(skillId => skillManager.GetSkillById(skillId))
+                        .Where(skill => skill != null)
+                        .ToList();
+                }
+            }
+
+            // NewSkillLearningSystem에서 NPC를 통해 학습한 직업 스킬
+            if (newSkillSystem != null && currentTab == SkillTabType.PlayerSkills)
+            {
+                var npcLearnedSkills = newSkillSystem.GetLearnedSkills();
+                foreach (var kvp in npcLearnedSkills)
+                {
+                    if (kvp.Value != null)
+                    {
+                        displaySkills.Add(kvp.Value);
+                        learnedSkillIds.Add(kvp.Value.skillId);
+                    }
+                }
+            }
+
             // 스킬 슬롯 업데이트
             for (int i = 0; i < skillSlotUIs.Count; i++)
             {
-                if (i < availableSkills.Count)
+                if (i < displaySkills.Count)
                 {
-                    var skill = availableSkills[i];
-                    var isLearned = learnedSkills.Contains(skill.skillId);
-                    
-                    skillSlotUIs[i].SetSkill(skill, isLearned, 1); // 레벨 시스템 없으므로 1로 고정
+                    var skill = displaySkills[i];
+                    skillSlotUIs[i].SetSkill(skill, true, 1);
                     skillSlotUIs[i].gameObject.SetActive(true);
                 }
                 else
@@ -265,38 +303,15 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                     skillSlotUIs[i].gameObject.SetActive(false);
                 }
             }
-            
+
             // 스킬 개수 표시
             if (skillCountText != null)
             {
-                skillCountText.text = $"Skills: {learnedSkills.Count}/{availableSkills.Count}";
+                skillCountText.text = $"스킬: {displaySkills.Count}개 학습됨";
             }
         }
         
-        /// <summary>
-        /// 필터링된 스킬 목록 가져오기
-        /// </summary>
-        private List<SkillData> GetFilteredSkills()
-        {
-            if (skillManager == null) return new List<SkillData>();
-            
-            List<SkillData> allSkills;
-            
-            if (currentTab == SkillTabType.PlayerSkills)
-            {
-                allSkills = skillManager.GetLearnableSkills();
-            }
-            else
-            {
-                allSkills = skillManager.GetLearnedSkills()
-                    .Where(skillId => skillId.StartsWith("monster_"))
-                    .Select(skillId => skillManager.GetSkillById(skillId))
-                    .Where(skill => skill != null)
-                    .ToList();
-            }
-            
-            return allSkills.Where(skill => skill.category == currentCategory).ToList();
-        }
+        // GetFilteredSkills 제거 - RefreshSkillDisplay에서 직접 처리
         
         /// <summary>
         /// 스킬 슬롯 클릭 처리
@@ -349,7 +364,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             if (skillManaCostText != null)
                 skillManaCostText.text = $"Mana Cost: {selectedSkill.GetManaCost(playerLevel):F0}";
                 
-            if (skillDamageText != null && selectedSkill.baseDamage > 0)
+            if (skillDamageText != null && selectedSkill.baseDamage > 0 && statsManager?.CurrentStats != null)
             {
                 var damage = selectedSkill.CalculateDamage(statsManager.CurrentStats);
                 skillDamageText.text = $"Damage: {damage:F0}";
@@ -364,17 +379,10 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         private void UpdateSkillButtons()
         {
-            if (selectedSkill == null || skillManager == null) return;
-            
-            bool isLearned = skillManager.GetLearnedSkills().Contains(selectedSkill.skillId);
-            bool canLearn = selectedSkill.CanLearn(statsManager.CurrentStats, skillManager.GetLearnedSkills());
-            bool isSoulSkill = selectedSkill.skillId.StartsWith("monster_");
-            
-            // 학습 버튼 - 영혼 스킬은 학습 불가 (이미 획득된 상태)
+            // 학습 버튼 숨기기 (스킬 학습은 NPC를 통해 진행)
             if (learnSkillButton != null)
             {
-                learnSkillButton.gameObject.SetActive(!isLearned && !isSoulSkill);
-                learnSkillButton.interactable = canLearn && !isSoulSkill;
+                learnSkillButton.gameObject.SetActive(false);
             }
         }
         
@@ -423,12 +431,9 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         private GameObject FindLocalPlayer()
         {
-            var players = FindObjectsOfType<PlayerController>();
-            foreach (var player in players)
-            {
-                if (player.IsLocalPlayer)
-                    return player.gameObject;
-            }
+            var netManager = Unity.Netcode.NetworkManager.Singleton;
+            if (netManager != null && netManager.LocalClient != null && netManager.LocalClient.PlayerObject != null)
+                return netManager.LocalClient.PlayerObject.gameObject;
             return null;
         }
         
@@ -524,10 +529,33 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         private void OnDestroy()
         {
+            OnSkillUIToggled = null;
+            OnSkillSelected = null;
+
             foreach (var slot in skillSlotUIs)
             {
                 if (slot != null)
                     slot.OnSkillClicked -= OnSkillSlotClicked;
+            }
+
+            // NPC 학습 시스템 이벤트 해제
+            if (newSkillSystem != null)
+            {
+                newSkillSystem.OnSkillsUpdated -= RefreshSkillDisplay;
+            }
+
+            // 버튼 리스너 정리
+            if (toggleSkillButton != null) toggleSkillButton.onClick.RemoveAllListeners();
+            if (closeButton != null) closeButton.onClick.RemoveAllListeners();
+            if (learnSkillButton != null) learnSkillButton.onClick.RemoveAllListeners();
+            if (playerSkillTabButton != null) playerSkillTabButton.onClick.RemoveAllListeners();
+            if (soulSkillTabButton != null) soulSkillTabButton.onClick.RemoveAllListeners();
+            if (categoryButtons != null)
+            {
+                foreach (var btn in categoryButtons)
+                {
+                    if (btn != null) btn.onClick.RemoveAllListeners();
+                }
             }
         }
     }

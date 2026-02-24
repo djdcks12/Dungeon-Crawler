@@ -42,10 +42,18 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         private float lastUltimateTime = 0f;
         private bool hasEnraged = false;
         private bool hasSummoned = false;
-        
+        private bool isTransitioning = false;
+        private float transitionEndTime = 0f;
+        private const float PHASE_TRANSITION_DURATION = 2f;
+
         // 스킬 패턴
         private List<BossSkill> availableSkills = new List<BossSkill>();
         private List<GameObject> summonedMinions = new List<GameObject>();
+
+        // GC 최적화: 재사용 버퍼
+        private static readonly Collider2D[] s_BossOverlapBuffer = new Collider2D[16];
+        private readonly List<BossSkill> cachedUsableSkills = new List<BossSkill>();
+        private readonly List<BossSkill> cachedUltimateSkills = new List<BossSkill>();
         
         // 네트워크 동기화
         private NetworkVariable<BossState> networkBossState = new NetworkVariable<BossState>(
@@ -252,9 +260,12 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         private void UpdateBossLogic()
         {
+            // 페이즈 전환 중에는 행동 중지
+            if (isTransitioning) return;
+
             // 체력 기반 페이즈 체크
             CheckPhaseTransition();
-            
+
             // 보스 스킬 사용
             UpdateBossSkills();
             
@@ -278,7 +289,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         private void CheckPhaseTransition()
         {
-            var healthPercent = (float)monsterEntity.CurrentHealth / monsterEntity.MaxHealth;
+            var healthPercent = monsterEntity.MaxHealth > 0 ? (float)monsterEntity.CurrentHealth / monsterEntity.MaxHealth : 1f;
             int expectedPhase = Mathf.FloorToInt((1f - healthPercent) * phaseCount) + 1;
             expectedPhase = Mathf.Clamp(expectedPhase, 1, phaseCount);
             
@@ -304,14 +315,41 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         private void TransitionToPhase(int newPhase)
         {
+            if (isTransitioning) return;
+
             int previousPhase = currentPhase;
             currentPhase = newPhase;
             networkPhase.Value = newPhase;
-            
-            // 페이즈별 특수 효과
-            OnPhaseEnter(newPhase, previousPhase);
-            
+
+            // 페이즈 전환 중 무적
+            isTransitioning = true;
+            transitionEndTime = Time.time + PHASE_TRANSITION_DURATION;
+            StartCoroutine(PhaseTransitionCoroutine(newPhase, previousPhase));
+
             Debug.Log($"🐉 Boss Phase Transition: {previousPhase} → {newPhase}");
+        }
+
+        /// <summary>
+        /// 페이즈 전환 코루틴 (무적 + 연출)
+        /// </summary>
+        private IEnumerator PhaseTransitionCoroutine(int newPhase, int previousPhase)
+        {
+            // 이동 정지
+            if (rb != null)
+                rb.linearVelocity = Vector2.zero;
+
+            // 클라이언트에 전환 연출 알림
+            if (IsSpawned)
+                ShowPhaseTransitionEffectClientRpc(newPhase);
+
+            // 무적 시간 대기
+            yield return new WaitForSeconds(PHASE_TRANSITION_DURATION);
+            if (!IsSpawned || gameObject == null) yield break;
+
+            isTransitioning = false;
+
+            // 페이즈별 특수 효과 적용
+            OnPhaseEnter(newPhase, previousPhase);
         }
         
         /// <summary>
@@ -411,13 +449,17 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         private void TryUseRandomSkill()
         {
-            var usableSkills = availableSkills.FindAll(skill => 
-                skill.skillType != BossSkillType.Ultimate && 
-                Vector3.Distance(transform.position, CurrentTarget.transform.position) <= skill.range);
-            
-            if (usableSkills.Count > 0)
+            cachedUsableSkills.Clear();
+            foreach (var skill in availableSkills)
             {
-                var selectedSkill = usableSkills[Random.Range(0, usableSkills.Count)];
+                if (skill.skillType != BossSkillType.Ultimate &&
+                    Vector3.Distance(transform.position, CurrentTarget.transform.position) <= skill.range)
+                    cachedUsableSkills.Add(skill);
+            }
+
+            if (cachedUsableSkills.Count > 0)
+            {
+                var selectedSkill = cachedUsableSkills[Random.Range(0, cachedUsableSkills.Count)];
                 ExecuteBossSkill(selectedSkill);
                 lastSkillTime = Time.time;
             }
@@ -428,11 +470,16 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         private void TryUseUltimateSkill()
         {
-            var ultimateSkills = availableSkills.FindAll(skill => skill.skillType == BossSkillType.Ultimate);
-            
-            if (ultimateSkills.Count > 0)
+            cachedUltimateSkills.Clear();
+            foreach (var skill in availableSkills)
             {
-                var selectedSkill = ultimateSkills[Random.Range(0, ultimateSkills.Count)];
+                if (skill.skillType == BossSkillType.Ultimate)
+                    cachedUltimateSkills.Add(skill);
+            }
+
+            if (cachedUltimateSkills.Count > 0)
+            {
+                var selectedSkill = cachedUltimateSkills[Random.Range(0, cachedUltimateSkills.Count)];
                 ExecuteBossSkill(selectedSkill);
                 lastUltimateTime = Time.time;
                 
@@ -481,11 +528,11 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         private void ExecuteAreaSlam(BossSkill skill)
         {
-            Collider2D[] nearbyTargets = Physics2D.OverlapCircleAll(transform.position, skill.range);
-            
-            foreach (var collider in nearbyTargets)
+            int slamCount = Physics2D.OverlapCircleNonAlloc(transform.position, skill.range, s_BossOverlapBuffer);
+
+            for (int i = 0; i < slamCount; i++)
             {
-                var player = collider.GetComponent<PlayerController>();
+                var player = s_BossOverlapBuffer[i].GetComponent<PlayerController>();
                 if (player != null && player.IsOwner)
                 {
                     var statsManager = player.GetComponent<PlayerStatsManager>();
@@ -537,10 +584,10 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             }
             
             // 도착 시 데미지
-            Collider2D[] hitTargets = Physics2D.OverlapCircleAll(transform.position, 2f);
-            foreach (var collider in hitTargets)
+            int chargeHitCount = Physics2D.OverlapCircleNonAlloc(transform.position, 2f, s_BossOverlapBuffer);
+            for (int i = 0; i < chargeHitCount; i++)
             {
-                var player = collider.GetComponent<PlayerController>();
+                var player = s_BossOverlapBuffer[i].GetComponent<PlayerController>();
                 if (player != null && player.IsOwner)
                 {
                     var statsManager = player.GetComponent<PlayerStatsManager>();
@@ -583,10 +630,10 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             yield return new WaitForSeconds(2f);
             
             // 데미지 적용
-            Collider2D[] hitTargets = Physics2D.OverlapCircleAll(targetPosition, range);
-            foreach (var collider in hitTargets)
+            int meteorHitCount = Physics2D.OverlapCircleNonAlloc(targetPosition, range, s_BossOverlapBuffer);
+            for (int i = 0; i < meteorHitCount; i++)
             {
-                var player = collider.GetComponent<PlayerController>();
+                var player = s_BossOverlapBuffer[i].GetComponent<PlayerController>();
                 if (player != null && player.IsOwner)
                 {
                     var statsManager = player.GetComponent<PlayerStatsManager>();
@@ -656,14 +703,15 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         private IEnumerator BossGlowEffect(SpriteRenderer spriteRenderer)
         {
+            if (spriteRenderer == null) yield break;
             Color originalColor = spriteRenderer.color;
-            
-            while (this != null && spriteRenderer != null)
+
+            while (IsSpawned && spriteRenderer != null && gameObject != null)
             {
                 float pulse = Mathf.Sin(Time.time * pulseSpeed) * 0.3f + 0.7f;
                 Color glowColor = Color.Lerp(originalColor, bossGlowColor, pulse * 0.5f);
                 spriteRenderer.color = glowColor;
-                
+
                 yield return null;
             }
         }
@@ -703,7 +751,67 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         private void ShowPhaseTransitionEffectClientRpc(int newPhase)
         {
             Debug.Log($"🌟 Boss Phase {newPhase} transition effect!");
-            // 실제 이펙트는 이펙트 시스템에서 구현
+
+            // 카메라 쉐이크
+            StartCoroutine(CameraShakeCoroutine(0.3f, 0.15f));
+
+            // 화면 플래시
+            StartCoroutine(ScreenFlashCoroutine());
+
+            // 보스 HP 바 업데이트
+            if (BossHealthBarUI.Instance != null)
+                BossHealthBarUI.Instance.OnPhaseChanged(newPhase, phaseCount);
+        }
+
+        /// <summary>
+        /// 카메라 쉐이크 코루틴
+        /// </summary>
+        private IEnumerator CameraShakeCoroutine(float duration, float magnitude)
+        {
+            var cam = Camera.main;
+            if (cam == null) yield break;
+
+            Vector3 originalPos = cam.transform.localPosition;
+            float elapsed = 0f;
+
+            while (elapsed < duration)
+            {
+                float x = Random.Range(-1f, 1f) * magnitude;
+                float y = Random.Range(-1f, 1f) * magnitude;
+                cam.transform.localPosition = originalPos + new Vector3(x, y, 0f);
+                elapsed += Time.deltaTime;
+                yield return null;
+            }
+
+            cam.transform.localPosition = originalPos;
+        }
+
+        /// <summary>
+        /// 화면 플래시 코루틴
+        /// </summary>
+        private IEnumerator ScreenFlashCoroutine()
+        {
+            // 캔버스에 플래시 오버레이 생성
+            var flashCanvas = new GameObject("PhaseFlash");
+            var canvas = flashCanvas.AddComponent<Canvas>();
+            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            canvas.sortingOrder = 999;
+
+            var img = flashCanvas.AddComponent<UnityEngine.UI.Image>();
+            img.color = new Color(1f, 1f, 1f, 0.8f);
+            img.raycastTarget = false;
+
+            float elapsed = 0f;
+            float duration = 0.5f;
+            while (elapsed < duration)
+            {
+                elapsed += Time.deltaTime;
+                float alpha = Mathf.Lerp(0.8f, 0f, elapsed / duration);
+                img.color = new Color(1f, 1f, 1f, alpha);
+                yield return null;
+            }
+
+            Destroy(flashCanvas);
         }
         
         [ClientRpc]
@@ -761,7 +869,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         {
             return currentBossState;
         }
-        
+
         /// <summary>
         /// 현재 페이즈 가져오기
         /// </summary>
@@ -769,7 +877,28 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         {
             return currentPhase;
         }
+
+        /// <summary>
+        /// 페이즈 전환 중 무적 여부
+        /// </summary>
+        public bool IsInvincible => isTransitioning;
+
+        /// <summary>
+        /// 보스 이름
+        /// </summary>
+        public string BossName => gameObject.name;
+
+        /// <summary>
+        /// 최대 페이즈 수
+        /// </summary>
+        public int PhaseCount => phaseCount;
         
+        public override void OnDestroy()
+        {
+            StopAllCoroutines();
+            base.OnDestroy();
+        }
+
         /// <summary>
         /// 디버그 기즈모 (MonsterAI 확장)
         /// </summary>

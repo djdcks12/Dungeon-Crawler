@@ -1,0 +1,54 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b2c84fe78a63cc841b6166c374fc46e3, type: 3}
+  m_Name: beast_ks_berserk
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.PassiveSkillTreeData
+  nodeId: beast_ks_berserk
+  nodeName: "\uAD11\uC804\uC0AC\uC758 \uD63C"
+  description: "HP \uB0AE\uC744\uC218\uB85D \uB370\uBBF8\uC9C0 \uC99D\uAC00(\uCD5C\uB300+50%).
+    DEF-30%."
+  nodeIcon: {fileID: 0}
+  requiredRace: 3
+  nodeType: 2
+  tier: 4
+  pointCost: 4
+  requiredLevel: 10
+  prerequisiteNodeIds:
+  - beast_alpha
+  statBonus:
+    strength: 8
+    agility: 0
+    vitality: 0
+    intelligence: 0
+    defense: 0
+    magicDefense: 0
+    luck: 0
+    stability: 0
+  hpBonus: 0
+  mpBonus: 0
+  hpPercentBonus: 0
+  mpPercentBonus: 0
+  critChanceBonus: 0
+  critDamageBonus: 20
+  moveSpeedBonus: 0
+  attackSpeedBonus: 0
+  cooldownReduction: 0
+  lifestealPercent: 0
+  manaRegenBonus: 0
+  isKeystone: 1
+  keystonePositiveDesc: "HP 50% \uC774\uD558 \uC2DC \uB370\uBBF8\uC9C0 \uCD5C\uB300
+    +50%"
+  keystoneNegativeDesc: DEF -30%
+  keystonePositiveValue: 50
+  keystoneNegativeValue: -30
+  keystoneType: 5
+  treePosition: {x: 0, y: 0}

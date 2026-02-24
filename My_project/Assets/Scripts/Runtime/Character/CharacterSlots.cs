@@ -211,13 +211,14 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         public int GetAvailableSlots()
         {
+            if (NetworkManager.Singleton == null) return maxSlotsPerAccount;
             var clientId = NetworkManager.Singleton.LocalClientId;
-            
+
             if (!accountSlots.ContainsKey(clientId))
             {
                 return maxSlotsPerAccount;
             }
-            
+
             return accountSlots[clientId].Count(slot => !slot.isOccupied);
         }
         

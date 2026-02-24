@@ -86,8 +86,9 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             animator.SetBool(IsAttackingHash, true);
             
             isCurrentlyAttacking = true;
-            
-            // 공격 애니메이션 지속 시간 후 상태 리셋
+
+            // 이전 대기 중인 리셋 취소 후 새로 예약 (중복 방지)
+            CancelInvoke(nameof(ResetAttackAnimation));
             Invoke(nameof(ResetAttackAnimation), 0.5f);
         }
         

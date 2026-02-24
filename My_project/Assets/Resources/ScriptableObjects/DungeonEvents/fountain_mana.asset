@@ -1,0 +1,52 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 69720ba5637a68e4ea25f77fe61a9920, type: 3}
+  m_Name: fountain_mana
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.DungeonEventData
+  eventId: fountain_mana
+  eventName: "\uB9C8\uB825\uC758 \uC0D8"
+  description: "\uD478\uB978\uBE5B\uC774 \uB3C4\uB294 \uB9C8\uBC95\uC758 \uC0D8.
+    MP\uB97C \uD68C\uBCF5\uD574\uC900\uB2E4."
+  eventIcon: {fileID: 0}
+  eventType: 1
+  rarity: 0
+  triggerType: 1
+  spawnChance: 0.08
+  minFloor: 1
+  maxFloor: 10
+  minDifficulty: 1
+  oncePerDungeon: 0
+  interactionText: "\uB9C8\uB825\uC744 \uD761\uC218\uD55C\uB2E4"
+  interactionTime: 1
+  requiresChoice: 0
+  bareHandOutcomes:
+  - description: "\uB9C8\uB825\uC774 \uCDA9\uC804\uB418\uC5C8\uB2E4!"
+    chance: 0.85
+    effectType: 1
+    effectValue: 100
+    duration: 0
+    statusEffect: 0
+    isNegative: 0
+  - description: "\uB9C8\uB825 \uACFC\uBD80\uD558! \uC7A0\uC2DC \uC5B4\uC9C0\uB7FD\uB2E4..."
+    chance: 0.15
+    effectType: 3
+    effectValue: 20
+    duration: 0
+    statusEffect: 0
+    isNegative: 1
+  itemInteractions: []
+  choices: []
+  combatWaves: []
+  combatTimeLimit: 0
+  shopItems: []
+  glowColor: {r: 0.3, g: 0.6, b: 1, a: 1}
+  activationSFX: 

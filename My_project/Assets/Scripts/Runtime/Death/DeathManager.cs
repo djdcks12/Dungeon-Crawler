@@ -42,7 +42,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             // Death 시스템 컴포넌트들
             characterDeletion = GetComponent<CharacterDeletion>();
             itemScatter = GetComponent<ItemScatter>();
-            soulInheritance = FindObjectOfType<SoulInheritance>();
+            soulInheritance = FindFirstObjectByType<SoulInheritance>();
             soulDropSystem = GetComponent<SoulDropSystem>();
             
             // 사망 이벤트 구독
@@ -116,42 +116,46 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         {
             // 1. 플레이어 컨트롤 즉시 비활성화
             DisablePlayerControl();
-            
+
             // 2. 사망 이펙트 재생
-            PlayDeathEffectClientRpc(transform.position);
-            
+            if (IsSpawned)
+                PlayDeathEffectClientRpc(transform.position);
+
             // 3. 잠시 대기 (사망 애니메이션 등)
             yield return new WaitForSeconds(deathProcessDelay);
-            
+            if (!IsSpawned || gameObject == null) yield break;
+
             // 4. 영혼 선택 처리 - 플레이어가 보유한 영혼 중 하나를 선택하여 보존
             if (soulInheritance != null && statsManager?.CurrentStats != null)
             {
                 ulong characterId = (ulong)statsManager.CurrentStats.CharacterName.GetHashCode();
                 soulInheritance.HandleDeathSoulSelection(characterId);
-                
+
                 // 영혼 선택이 완료될 때까지 잠시 대기
                 yield return new WaitForSeconds(1f);
+                if (!IsSpawned || gameObject == null) yield break;
             }
-            
+
             // 6. 아이템 드롭 처리
             if (itemScatter != null)
             {
                 itemScatter.ScatterAllItems(transform.position, itemScatterRadius);
             }
-            
+
             // 7. 사망 기록 저장
             SaveDeathRecord();
-            
+
             // 8. 캐릭터 삭제 처리
             if (characterDeletion != null)
             {
                 characterDeletion.DeleteCharacter();
             }
-            
+
             // 9. 클라이언트에 사망 완료 알림
-            NotifyDeathCompletedClientRpc();
-            
-            Debug.Log($"☠️ Death processing completed for {gameObject.name}");
+            if (IsSpawned)
+                NotifyDeathCompletedClientRpc();
+
+            Debug.Log($"Death processing completed for {gameObject.name}");
         }
         
         /// <summary>
@@ -287,6 +291,83 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         }
         
         /// <summary>
+        /// 플레이어 리스폰 처리
+        /// </summary>
+        public void RespawnPlayer()
+        {
+            if (!isDead) return;
+
+            if (IsServer)
+            {
+                RespawnPlayerServerRpc();
+            }
+            else if (IsOwner)
+            {
+                RequestRespawnServerRpc();
+            }
+        }
+
+        [ServerRpc(RequireOwnership = false)]
+        private void RequestRespawnServerRpc(ServerRpcParams rpcParams = default)
+        {
+            RespawnPlayerServerRpc();
+        }
+
+        [ServerRpc(RequireOwnership = false)]
+        private void RespawnPlayerServerRpc()
+        {
+            if (!IsServer) return;
+
+            // 상태 초기화
+            isDead = false;
+            isProcessingDeath = false;
+
+            // 플레이어 컨트롤 재활성화
+            if (playerController != null)
+            {
+                playerController.enabled = true;
+            }
+
+            var rb = GetComponent<Rigidbody2D>();
+            if (rb != null)
+            {
+                rb.bodyType = RigidbodyType2D.Dynamic;
+            }
+
+            var colliders = GetComponents<Collider2D>();
+            foreach (var collider in colliders)
+            {
+                collider.enabled = true;
+            }
+
+            // 스폰 위치로 이동
+            transform.position = Vector3.zero;
+
+            // HP/MP 복구 (NetworkVariable 기반으로 서버/클라이언트 동기화)
+            if (statsManager != null)
+            {
+                statsManager.RestoreFullHealth();
+                statsManager.RestoreFullMana();
+            }
+
+            // 클라이언트에 리스폰 알림
+            NotifyRespawnClientRpc();
+
+            Debug.Log($"Player {gameObject.name} respawned");
+        }
+
+        [ClientRpc]
+        private void NotifyRespawnClientRpc()
+        {
+            // DeathUI 숨기기
+            var deathUI = FindFirstObjectByType<DeathUI>();
+            if (deathUI != null)
+            {
+                deathUI.HideDeathUI();
+            }
+        }
+
+        /// <summary>
         /// 강제 사망 (디버그/관리자용)
         /// </summary>
         [ContextMenu("Force Death")]
@@ -298,11 +379,17 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             }
         }
         
+        public override void OnDestroy()
+        {
+            StopAllCoroutines();
+            base.OnDestroy();
+        }
+
         /// <summary>
         /// 사망 상태 확인
         /// </summary>
         public bool IsDead => isDead;
-        
+
         /// <summary>
         /// 사망 처리 중인지 확인
         /// </summary>

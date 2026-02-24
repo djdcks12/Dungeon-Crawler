@@ -213,6 +213,11 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 spriteRenderer.color = finalColor;
             }
         }
+
+        private void OnDestroy()
+        {
+            StopAllCoroutines();
+        }
     }
     
     /// <summary>

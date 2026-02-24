@@ -225,6 +225,12 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             return bonuses.Count > 0 ? string.Join("\n", bonuses) : "No stat bonuses";
         }
         
+        private void OnDestroy()
+        {
+            if (inheritButton != null) inheritButton.onClick.RemoveAllListeners();
+            if (declineButton != null) declineButton.onClick.RemoveAllListeners();
+        }
+
         /// <summary>
         /// 획득 시간 텍스트 반환
         /// </summary>

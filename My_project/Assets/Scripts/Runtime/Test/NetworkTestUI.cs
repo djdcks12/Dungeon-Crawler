@@ -269,12 +269,12 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         private IEnumerator UpdateStatusCoroutine()
         {
-            while (true)
+            while (gameObject != null && gameObject.activeInHierarchy)
             {
                 yield return new WaitForSeconds(0.5f);
-                
+
                 if (networkManager == null) continue;
-                
+
                 UpdateNetworkStatus();
                 UpdateConnectionInfo();
                 UpdatePlayersList();

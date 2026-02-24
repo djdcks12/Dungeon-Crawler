@@ -1,0 +1,60 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4759a9d92f8e8704ea8b349c78f693f8, type: 3}
+  m_Name: Ultimate
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.SkillData
+  skillName: "\uADF8\uB9BC\uC790 \uD3ED\uD48D"
+  skillId: Scout_Ultimate
+  description: "\uADF8\uB9BC\uC790\uC758 \uD798\uC744 \uACB0\uC9D1\uD558\uC5EC \uC8FC\uBCC0
+    \uC801\uB4E4\uC5D0\uAC8C \uC5F0\uC18D \uACF5\uACA9\uC744 \uAC00\uD55C\uB2E4."
+  skillIcon: {fileID: 0}
+  requiredLevel: 10
+  goldCost: 1000
+  requiredRace: 1
+  category: 26
+  skillTier: 5
+  prerequisiteSkills: []
+  skillType: 0
+  damageType: 0
+  cooldown: 25
+  manaCost: 55
+  castTime: 1.5
+  range: 6
+  baseDamage: 130
+  damageScaling: 1.8
+  minDamagePercent: 80
+  maxDamagePercent: 120
+  statBonus:
+    strength: 0
+    agility: 0
+    vitality: 0
+    intelligence: 0
+    defense: 0
+    magicDefense: 0
+    luck: 0
+    stability: 0
+  healthBonus: 0
+  manaBonus: 0
+  moveSpeedBonus: 0
+  attackSpeedBonus: 0
+  statusEffects:
+  - type: 15
+    value: 1
+    duration: 3
+    tickInterval: 0
+    stackable: 0
+  statusDuration: 3
+  statusChance: 100
+  behaviorType: 0
+  skillEffect: {fileID: 0}
+  castSound: {fileID: 0}
+  hitSound: {fileID: 0}

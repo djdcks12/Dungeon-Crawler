@@ -49,7 +49,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             {
                 if (instance == null)
                 {
-                    instance = FindObjectOfType<BossSpawner>();
+                    instance = FindFirstObjectByType<BossSpawner>();
                 }
                 return instance;
             }
@@ -66,7 +66,15 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 Destroy(gameObject);
             }
         }
-        
+
+        public override void OnDestroy()
+        {
+            StopAllCoroutines();
+            base.OnDestroy();
+            if (instance == this)
+                instance = null;
+        }
+
         public override void OnNetworkSpawn()
         {
             base.OnNetworkSpawn();

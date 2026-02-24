@@ -392,7 +392,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             float dodgeChance = finalStats.agility * 0.001f; // 0.1% per AGI
             if (Random.value < dodgeChance)
             {
-                Debug.Log($"{variantData.variantName} dodged the attack!");
+                Debug.Log($"{(variantData != null ? variantData.variantName : name)} dodged the attack!");
                 return;
             }
 
@@ -410,14 +410,22 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             TriggerHitAnimationClientRpc();
 
             // 공격자를 참여자로 추가 (데미지가 실제로 들어갔을 때만)
-            if (finalDamage > 0f)
+            if (finalDamage > 0f && NetworkManager.Singleton != null)
             {
-                foreach (var spawnedObject in NetworkManager.Singleton.SpawnManager.SpawnedObjects)
+                try
                 {
-                    if (spawnedObject.Value.IsPlayerObject && spawnedObject.Value.OwnerClientId == attackerClientId)
+                    foreach (var spawnedObject in NetworkManager.Singleton.SpawnManager.SpawnedObjects)
                     {
-                        participatingPlayers.Add(spawnedObject.Key);
+                        if (spawnedObject.Value != null && spawnedObject.Value.IsPlayerObject && spawnedObject.Value.OwnerClientId == attackerClientId)
+                        {
+                            participatingPlayers.Add(spawnedObject.Key);
+                            break; // 찾으면 즉시 중단
+                        }
                     }
+                }
+                catch (System.Exception ex)
+                {
+                    Debug.LogWarning($"🩸 Error tracking attacker: {ex.Message}");
                 }
 
                 // 데미지 기여도 추적
@@ -489,7 +497,10 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
 
             // 즉시 이벤트 발생
             OnDeath?.Invoke();
-            
+
+            // 모든 게임 시스템에 처치 알림
+            NotifySystemsOnDeath(killerClientId);
+
             // 보상 지급
             GiveRewardsToNearbyPlayers(killerClientId);
 
@@ -506,6 +517,77 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 }
             });
             
+        }
+
+        /// <summary>
+        /// 처치 시 관련 시스템들에게 알림 발송 (서버 전용)
+        /// </summary>
+        private void NotifySystemsOnDeath(ulong killerClientId)
+        {
+            string monsterRace = raceData != null ? raceData.raceName : "Unknown";
+            string monsterVariant = variantData != null ? variantData.variantName : "Unknown";
+            bool isBoss = monsterVariant.Contains("Boss");
+            bool isElite = monsterVariant.Contains("Elite") || monsterVariant.Contains("Leader");
+
+            // 공격에 참여한 모든 플레이어에게 알림
+            foreach (ulong playerId in participatingPlayers)
+            {
+                // 퀘스트 시스템
+                if (QuestManager.Instance != null)
+                    QuestManager.Instance.OnMonsterKilled(playerId, monsterRace, isBoss);
+
+                // 현상금 시스템
+                if (BountyHuntSystem.Instance != null)
+                    BountyHuntSystem.Instance.OnMonsterKilled(playerId, monsterRace, isElite, isBoss);
+
+                // 예언 시스템 (킬 타입)
+                if (ProphecySystem.Instance != null)
+                {
+                    ProphecySystem.Instance.ReportProgress(playerId, ProphecyType.Kill, monsterRace, 1);
+                    if (isBoss)
+                        ProphecySystem.Instance.ReportProgress(playerId, ProphecyType.Boss, monsterVariant, 1);
+                }
+
+                // 지식 서고 시스템
+                if (CodexSystem.Instance != null)
+                {
+                    CodexSystem.Instance.ReportProgress(playerId, CodexUnlockCondition.MonsterKillCount, monsterRace, 1);
+                    if (isBoss)
+                        CodexSystem.Instance.ReportProgress(playerId, CodexUnlockCondition.BossKill, monsterVariant, 1);
+                }
+
+                // 도감 시스템
+                if (CollectionSystem.Instance != null)
+                    CollectionSystem.Instance.RegisterMonsterKill(monsterVariant);
+
+                // 리더보드 시스템
+                if (LeaderboardSystem.Instance != null)
+                {
+                    float totalDmg = playerDamageContribution.ContainsKey(playerId) ? playerDamageContribution[playerId] : 0f;
+                    string playerName = GetPlayerName(playerId);
+                    LeaderboardSystem.Instance.OnMonsterKilled(playerId, playerName, (long)totalDmg, isBoss);
+                }
+            }
+
+            // 킬러에게만 보내는 알림 (던전 진행도 등)
+            if (DungeonManager.Instance != null)
+                DungeonManager.Instance.OnMonsterKilled(killerClientId);
+
+            // 무한 모드 시스템들
+            if (InfernalHordesSystem.Instance != null)
+                InfernalHordesSystem.Instance.OnMonsterKilledInHordes();
+
+            if (RiftChallengeSystem.Instance != null)
+                RiftChallengeSystem.Instance.OnMonsterKilled();
+        }
+
+        private string GetPlayerName(ulong clientId)
+        {
+            if (NetworkManager.Singleton == null) return $"Player_{clientId}";
+            if (!NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(clientId, out NetworkObject netObj))
+                return $"Player_{clientId}";
+            var statsManager = netObj.GetComponent<PlayerStatsManager>();
+            return statsManager?.CurrentStats?.CharacterName ?? $"Player_{clientId}";
         }
 
         /// 보상 지급 (공격에 참여한 플레이어들에게만)
@@ -620,12 +702,17 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             );
             Vector3 spawnPosition = position + randomOffset;
             
-            GameObject droppedItemObj = Instantiate<GameObject>(Resources.Load<GameObject>("DroppedItem"));
+            var droppedItemPrefab = Resources.Load<GameObject>("DroppedItem");
+            if (droppedItemPrefab == null) { Debug.LogError("DroppedItem prefab not found in Resources"); return; }
+            GameObject droppedItemObj = Instantiate(droppedItemPrefab);
             droppedItemObj.transform.position = spawnPosition;
 
-            droppedItemObj.GetComponent<NetworkObject>().Spawn(true); // 네트워크에 스폰
-            // ItemDrop 컴포넌트 추가
+            var netObj = droppedItemObj.GetComponent<NetworkObject>();
+            if (netObj == null) { Destroy(droppedItemObj); Debug.LogError("DroppedItem prefab missing NetworkObject"); return; }
+            netObj.Spawn(true);
+
             var itemDrop = droppedItemObj.GetComponent<DroppedItem>();
+            if (itemDrop == null) { Debug.LogError("DroppedItem prefab missing DroppedItem component"); return; }
             var itemInstance = new ItemInstance(itemData, 1);
             itemDrop.Initialize(itemInstance);
         }
@@ -746,6 +833,8 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         public void ResetEntity()
         {
+            if (!IsServer) return;
+
             // 상태 초기화
             networkIsDead.Value = false;
             networkCurrentHP.Value = 100f;
@@ -797,7 +886,15 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         {
             variantData = variant;
         }
-        
+
+        public override void OnDestroy()
+        {
+            OnDamageTaken = null;
+            OnDeath = null;
+            OnEntityGenerated = null;
+            base.OnDestroy();
+        }
+
     }
     
     /// <summary>

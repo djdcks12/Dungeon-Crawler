@@ -1,0 +1,59 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d70bb1618049f314c82decbdeb4530d2, type: 3}
+  m_Name: spec_berserker_b
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.JobSpecializationData
+  specId: spec_berserker_b
+  specName: "\uD3ED\uD48D\uC804\uC0AC"
+  description: "\uBE60\uB974\uACE0 \uC5F0\uC18D\uC801\uC778 \uACF5\uACA9\uC73C\uB85C
+    \uC801\uC744 \uC555\uB3C4\uD558\uB294 \uAD11\uC804\uC0AC."
+  specIcon: {fileID: 0}
+  parentJob: 7
+  specIndex: 1
+  requiredLevel: 10
+  resetGoldCost: 50000
+  statBonus:
+    strength: 4
+    agility: 4
+    vitality: 2
+    intelligence: 0
+    defense: 0
+    magicDefense: 0
+    luck: 2
+    stability: 0
+  hpBonusPercent: 0
+  mpBonusPercent: 0
+  critRateBonusPercent: 10
+  critDamageBonusPercent: 15
+  attackSpeedBonusPercent: 20
+  cooldownReductionPercent: 3
+  lifestealPercent: 2
+  passive1:
+    passiveName: "\uD3ED\uD48D \uC5F0\uD0C0"
+    passiveDescription: "\uD3ED\uD48D \uC5F0\uD0C0: 10%"
+    passiveType: 0
+    value: 10
+  passive2:
+    passiveName: "\uBE60\uB978 \uC190"
+    passiveDescription: "\uBE60\uB978 \uC190: 12%"
+    passiveType: 11
+    value: 12
+  passive3:
+    passiveName: "\uC5F0\uD0C0 \uB9C8\uC2A4\uD130"
+    passiveDescription: "\uC5F0\uD0C0 \uB9C8\uC2A4\uD130: 8%"
+    passiveType: 10
+    value: 8
+  specSkillName: "\uBB34\uD55C \uC5F0\uACA9"
+  specSkillDescription: "3\uCD08\uAC04 \uACF5\uACA9\uC18D\uB3C4 200% \uC99D\uAC00."
+  specSkillDamageMultiplier: 2
+  specSkillCooldown: 45
+  specSkillManaCost: 20

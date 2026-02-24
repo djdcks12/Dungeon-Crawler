@@ -32,7 +32,12 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         
         // 드롭된 아이템들 추적
         private List<GameObject> droppedItems = new List<GameObject>();
-        
+
+        private void OnDisable()
+        {
+            StopAllCoroutines();
+        }
+
         public override void OnNetworkSpawn()
         {
             base.OnNetworkSpawn();
@@ -91,7 +96,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             Debug.Log($"💰 Scattering {totalGold} gold");
             
             // 골드를 여러 뭉치로 나누어 드롭
-            int goldPiles = Mathf.Min(10, Mathf.CeilToInt(totalGold / 100f)); // 최대 10개 뭉치
+            int goldPiles = Mathf.Max(1, Mathf.Min(10, Mathf.CeilToInt(totalGold / 100f))); // 최소 1, 최대 10개 뭉치
             long goldPerPile = totalGold / goldPiles;
             long remainingGold = totalGold % goldPiles;
             

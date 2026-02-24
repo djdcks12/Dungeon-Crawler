@@ -1,0 +1,69 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4b0881b9cf4f0ee4ebd3a22aad14bb50, type: 3}
+  m_Name: we_ghost_encounter
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.WorldEventData
+  eventId: we_ghost_encounter
+  eventName: "\uC720\uB839 \uC870\uC6B0"
+  description: "\uC61B \uC804\uC0AC\uC758 \uC720\uB839\uC774 \uB098\uD0C0\uB0AC\uB2E4.
+    \uC6D0\uD55C\uC744 \uD480\uC5B4\uC8FC\uBA74 \uBCF4\uC0C1\uC744 \uC900\uB2E4."
+  eventIcon: {fileID: 0}
+  eventType: 13
+  rarity: 2
+  spawnChance: 0.04
+  checkInterval: 60
+  minPlayerLevel: 5
+  maxPlayerLevel: 99
+  requiresNight: 1
+  requiresDay: 0
+  requiredWeather: 0
+  duration: 120
+  isPermanentUntilCompleted: 1
+  eventMonsters: []
+  rewards: []
+  dialogues:
+  - speakerName: "\uC804\uC0AC\uC758 \uC720\uB839"
+    dialogue: "\uB098\uB294 \uC774\uACF3\uC5D0\uC11C \uC4F0\uB7EC\uC9C4 \uC804\uC0AC...
+      \uC6D0\uD55C\uC774 \uD480\uB9AC\uC9C0 \uC54A\uC544 \uB5A0\uB098\uC9C0 \uBABB\uD558\uACE0
+      \uC788\uB2E4."
+    order: 0
+  - speakerName: "\uC804\uC0AC\uC758 \uC720\uB839"
+    dialogue: "\uB0B4 \uC6D0\uC218\uB97C \uAC1A\uC544\uC8FC\uACA0\uB294\uAC00, \uC80A\uC740
+      \uC804\uC0AC\uC5EC?"
+    order: 1
+  - speakerName: "\uC804\uC0AC\uC758 \uC720\uB839"
+    dialogue: "\uACE0\uB9D9\uB2E4... \uC774\uC81C \uD3B8\uD788 \uC274 \uC218 \uC788\uACA0\uAD6C\uB098.
+      \uC774\uAC83\uC740 \uB0B4 \uC720\uBB3C\uC774\uB2C8 \uAC00\uC838\uAC00\uAC70\uB77C."
+    order: 2
+  choices:
+  - choiceText: "\uC6D0\uC218\uB97C \uAC1A\uC544\uC8FC\uACA0\uB2E4"
+    resultDescription: "\uC720\uB839\uC758 \uC6D0\uC218\uC778 \uC5B8\uB370\uB4DC\uB97C
+      \uCC98\uCE58\uD588\uB2E4!"
+    rewardType: 1
+    rewardAmount: 800
+    riskChance: 0.1
+    riskDamage: 80
+  - choiceText: "\uC9C4\uD63C\uC758 \uAE30\uB3C4\uB97C \uC62C\uB9B0\uB2E4"
+    resultDescription: "\uC720\uB839\uC774 \uD3C9\uD654\uB86D\uAC8C \uB5A0\uB0AC\uB2E4."
+    rewardType: 1
+    rewardAmount: 400
+    riskChance: 0
+    riskDamage: 0
+  - choiceText: "\uC720\uB839\uC744 \uACF5\uACA9\uD55C\uB2E4"
+    resultDescription: "\uC720\uB839\uC774 \uBD84\uB178\uD588\uB2E4!"
+    rewardType: 0
+    rewardAmount: 0
+    riskChance: 0.9
+    riskDamage: 150
+  spawnRadius: 8
+  announceToAll: 0
+  announceMessage: 

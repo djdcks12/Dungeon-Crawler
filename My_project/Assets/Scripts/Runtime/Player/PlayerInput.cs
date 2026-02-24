@@ -109,7 +109,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         private void ToggleStatsUI()
         {
-            var statsUI = FindObjectOfType<StatsUI>();
+            var statsUI = FindFirstObjectByType<StatsUI>();
             if (statsUI != null)
             {
                 statsUI.ToggleStatsPanel();

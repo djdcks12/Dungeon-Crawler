@@ -68,6 +68,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         
         private IEnumerator AnimationCoroutine(Texture2D[] frames, float frameRate, bool loop, bool destroyOnComplete)
         {
+            if (frameRate <= 0f) frameRate = 12f;
             float frameTime = 1f / frameRate;
             
             do
@@ -94,6 +95,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         
         private IEnumerator SpriteAnimationCoroutine(Sprite[] sprites, float frameRate, bool loop, bool destroyOnComplete)
         {
+            if (frameRate <= 0f) frameRate = 12f;
             float frameTime = 1f / frameRate;
             
             do
@@ -130,6 +132,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         
         private void OnDestroy()
         {
+            StopAllCoroutines();
             StopAnimation();
         }
     }

@@ -152,7 +152,9 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             {
                 if (!dungeonPlayer.isAlive) continue;
                 
-                var clientObject = NetworkManager.Singleton.ConnectedClients[dungeonPlayer.clientId].PlayerObject;
+                if (!NetworkManager.Singleton.ConnectedClients.TryGetValue(dungeonPlayer.clientId, out var client))
+                    continue;
+                var clientObject = client.PlayerObject;
                 if (clientObject != null)
                 {
                     float distance = Vector3.Distance(transform.position, clientObject.transform.position);

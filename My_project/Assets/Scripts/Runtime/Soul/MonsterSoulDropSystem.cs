@@ -383,6 +383,12 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             return (totalMonsterSoulsDropped, totalMonsterSoulsCollected);
         }
         
+        public override void OnDestroy()
+        {
+            StopAllCoroutines();
+            base.OnDestroy();
+        }
+
         /// <summary>
         /// 강제 몬스터 영혼 드롭 (테스트용)
         /// </summary>
@@ -392,7 +398,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             if (Application.isPlaying && IsServer)
             {
                 // 테스트용 몬스터 엔티티 찾기
-                var testMonster = FindObjectOfType<MonsterEntity>();
+                var testMonster = FindFirstObjectByType<MonsterEntity>();
                 if (testMonster != null)
                 {
                     CreateMonsterSoulDrop(testMonster);

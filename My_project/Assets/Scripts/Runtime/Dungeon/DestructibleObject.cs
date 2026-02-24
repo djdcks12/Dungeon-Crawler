@@ -141,9 +141,9 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         {
             yield return new WaitForSeconds(delay);
             
-            if (IsSpawned)
+            if (IsSpawned && NetworkObject != null)
             {
-                GetComponent<NetworkObject>().Despawn();
+                NetworkObject.Despawn();
             }
         }
         
@@ -193,13 +193,20 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         {
             if (destroyEffectPrefab != null)
             {
-                Instantiate(destroyEffectPrefab, transform.position, Quaternion.identity);
+                var effect = Instantiate(destroyEffectPrefab, transform.position, Quaternion.identity);
+                Destroy(effect, 3f);
             }
             
             if (destructibleAudioSource != null && destroySound != null)
             {
                 destructibleAudioSource.PlayOneShot(destroySound);
             }
+        }
+
+        public override void OnDestroy()
+        {
+            StopAllCoroutines();
+            base.OnDestroy();
         }
     }
 }

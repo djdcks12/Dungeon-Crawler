@@ -16,6 +16,9 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         public static float BlockRadius = 0.5f;        // 충돌 감지 반경
         public static float MinDistance = 0.7f;        // 최소 유지 거리
         public static float CheckDistance = 0.3f;      // 전방 체크 거리
+
+        // GC 최적화: 재사용 버퍼
+        private static readonly Collider2D[] s_Buffer = new Collider2D[16];
         
         /// <summary>
         /// 막힌 방향을 필터링해서 실제 이동 가능한 벡터 반환
@@ -58,39 +61,38 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         private static bool CanMoveInDirection(Vector3 position, Vector2 direction, Transform ignore)
         {
             // 현재 위치 근처의 모든 엔티티 확인
-            Collider2D[] nearbyHits = Physics2D.OverlapCircleAll(position, MinDistance, EntityMask);
-            
+            int nearbyCount = Physics2D.OverlapCircleNonAlloc(position, MinDistance, s_Buffer, EntityMask);
+
             // 자기 자신을 제외한 다른 엔티티들 체크
-            foreach (var hit in nearbyHits)
+            for (int i = 0; i < nearbyCount; i++)
             {
-                if (hit.transform == ignore) continue; // 자기 자신 제외
-                
-                Vector3 toOther = hit.transform.position - position;
-                float currentDistance = toOther.magnitude;
-                
+                if (s_Buffer[i].transform == ignore) continue; // 자기 자신 제외
+
+                float currentDistance = (s_Buffer[i].transform.position - position).magnitude;
+
                 // 이동 후 해당 엔티티와의 거리 계산
                 Vector3 afterMovePos = position + (Vector3)direction * CheckDistance;
-                float afterMoveDistance = Vector3.Distance(afterMovePos, hit.transform.position);
-                
+                float afterMoveDistance = Vector3.Distance(afterMovePos, s_Buffer[i].transform.position);
+
                 // 이동 후 더 가까워지면서 최소 거리보다 가까우면 차단
                 if (afterMoveDistance < currentDistance && afterMoveDistance < MinDistance)
                 {
                     return false;
                 }
             }
-            
+
             // 추가로 이동 방향 전방 체크
             Vector3 checkPosition = position + (Vector3)direction * CheckDistance;
-            Collider2D[] frontHits = Physics2D.OverlapCircleAll(checkPosition, BlockRadius, EntityMask);
-            
-            foreach (var hit in frontHits)
+            int frontCount = Physics2D.OverlapCircleNonAlloc(checkPosition, BlockRadius, s_Buffer, EntityMask);
+
+            for (int i = 0; i < frontCount; i++)
             {
-                if (hit.transform == ignore) continue;
-                
+                if (s_Buffer[i].transform == ignore) continue;
+
                 // 전방에 다른 엔티티가 있으면 차단
                 return false;
             }
-            
+
             return true;
         }
         
@@ -114,14 +116,14 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// <returns>가장 가까운 거리, 없으면 float.MaxValue</returns>
         public static float GetNearestEntityDistance(Vector3 position, Transform ignore = null)
         {
-            Collider2D[] hits = Physics2D.OverlapCircleAll(position, MinDistance * 2f, EntityMask);
+            int count = Physics2D.OverlapCircleNonAlloc(position, MinDistance * 2f, s_Buffer, EntityMask);
             float nearestDistance = float.MaxValue;
-            
-            foreach (var hit in hits)
+
+            for (int i = 0; i < count; i++)
             {
-                if (hit.transform == ignore) continue;
-                
-                float distance = Vector2.Distance(position, hit.transform.position);
+                if (s_Buffer[i].transform == ignore) continue;
+
+                float distance = Vector2.Distance(position, s_Buffer[i].transform.position);
                 if (distance < nearestDistance)
                 {
                     nearestDistance = distance;

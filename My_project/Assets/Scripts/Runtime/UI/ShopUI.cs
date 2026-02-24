@@ -445,6 +445,18 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             }
         }
         
+        private void OnDestroy()
+        {
+            if (closeButton != null) closeButton.onClick.RemoveAllListeners();
+            if (confirmPurchaseButton != null) confirmPurchaseButton.onClick.RemoveAllListeners();
+            if (cancelPurchaseButton != null) cancelPurchaseButton.onClick.RemoveAllListeners();
+            if (allCategoryButton != null) allCategoryButton.onClick.RemoveAllListeners();
+            if (weaponCategoryButton != null) weaponCategoryButton.onClick.RemoveAllListeners();
+            if (armorCategoryButton != null) armorCategoryButton.onClick.RemoveAllListeners();
+            if (consumableCategoryButton != null) consumableCategoryButton.onClick.RemoveAllListeners();
+            if (toolCategoryButton != null) toolCategoryButton.onClick.RemoveAllListeners();
+        }
+
         /// <summary>
         /// 디버그 정보
         /// </summary>

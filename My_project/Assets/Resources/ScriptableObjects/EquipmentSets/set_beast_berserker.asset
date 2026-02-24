@@ -1,0 +1,86 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ec1b857f93ff80c49888a44a0b9ed44e, type: 3}
+  m_Name: set_beast_berserker
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.EquipmentSetData
+  setId: set_beast_berserker
+  setName: "\uC57C\uC218\uC758 \uBCF8\uB2A5"
+  description: "\uC57C\uC218\uC871 \uAD11\uC804\uC0AC\uC758 \uC6D0\uC2DC\uC801 \uC138\uD2B8"
+  itemIds:
+  - Claws_Epic
+  - Helmet_Epic
+  - ChestArmor_Epic
+  - Greaves_Epic
+  - Boots_Epic
+  bonus2Piece:
+    strength: 6
+    agility: 4
+    vitality: 0
+    intelligence: 0
+    defense: 0
+    magicDefense: 0
+    luck: 0
+    stability: 0
+  bonus2HP: 25
+  bonus2MP: 0
+  bonus2Desc: STR+6, AGI+4, HP+25
+  bonus3Piece:
+    strength: 10
+    agility: 7
+    vitality: 0
+    intelligence: 0
+    defense: 0
+    magicDefense: 0
+    luck: 0
+    stability: 0
+  bonus3HP: 40
+  bonus3MP: 0
+  bonus3CritChance: 7
+  bonus3CritDamage: 15
+  bonus3Desc: "STR+10, AGI+7, \uD06C\uB9AC+7%"
+  bonus4Piece:
+    strength: 15
+    agility: 10
+    vitality: 5
+    intelligence: 0
+    defense: 0
+    magicDefense: 0
+    luck: 0
+    stability: 0
+  bonus4HP: 60
+  bonus4MP: 10
+  bonus4CritChance: 10
+  bonus4CritDamage: 25
+  bonus4MoveSpeed: 8
+  bonus4AttackSpeed: 10
+  bonus4Desc: "STR+15, AGI+10, \uD06C\uB9AC+10%, \uC774\uB3D9+8%"
+  bonus5Piece:
+    strength: 22
+    agility: 15
+    vitality: 8
+    intelligence: 0
+    defense: 0
+    magicDefense: 0
+    luck: 0
+    stability: 0
+  bonus5HP: 100
+  bonus5MP: 20
+  bonus5CritChance: 15
+  bonus5CritDamage: 40
+  bonus5MoveSpeed: 12
+  bonus5AttackSpeed: 15
+  bonus5CooldownReduction: 5
+  bonus5Lifesteal: 5
+  bonus5ExpBonus: 0
+  bonus5Desc: "STR+22, \uD06C\uB9AC+15%, \uD06C\uB380+40%, \uC0DD\uBA85\uD761\uC218+5%"
+  setGrade: 4
+  requiredRace: 3

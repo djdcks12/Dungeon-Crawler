@@ -1,0 +1,45 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 69720ba5637a68e4ea25f77fe61a9920, type: 3}
+  m_Name: portal_escape
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.DungeonEventData
+  eventId: portal_escape
+  eventName: "\uADC0\uD658 \uD3EC\uD0C8"
+  description: "\uB9C8\uC744\uB85C \uB3CC\uC544\uAC08 \uC218 \uC788\uB294 \uD3EC\uD0C8.
+    \uD55C \uBC88 \uC0AC\uC6A9\uD558\uBA74 \uC0AC\uB77C\uC9C4\uB2E4."
+  eventIcon: {fileID: 0}
+  eventType: 8
+  rarity: 2
+  triggerType: 3
+  spawnChance: 0.05
+  minFloor: 5
+  maxFloor: 10
+  minDifficulty: 1
+  oncePerDungeon: 0
+  interactionText: "\uD3EC\uD0C8\uC5D0 \uB4E4\uC5B4\uAC04\uB2E4"
+  interactionTime: 1
+  requiresChoice: 0
+  bareHandOutcomes:
+  - description: "\uB9C8\uC744\uB85C \uC548\uC804\uD558\uAC8C \uADC0\uD658!"
+    chance: 1
+    effectType: 13
+    effectValue: 0
+    duration: 0
+    statusEffect: 0
+    isNegative: 0
+  itemInteractions: []
+  choices: []
+  combatWaves: []
+  combatTimeLimit: 0
+  shopItems: []
+  glowColor: {r: 0.5, g: 0, b: 1, a: 1}
+  activationSFX: 

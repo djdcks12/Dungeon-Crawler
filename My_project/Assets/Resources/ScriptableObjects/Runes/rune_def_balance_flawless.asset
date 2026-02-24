@@ -1,0 +1,47 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 83bf213b717bc9344b16ba745c099e7d, type: 3}
+  m_Name: rune_def_balance_flawless
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.RuneData
+  runeId: rune_def_balance_flawless
+  runeName: "\uC644\uBCBD\uD55C \uADE0\uD615\uC758 \uB8EC"
+  description: "\uACF5\uBC29 \uADE0\uD615\uC744 \uC704\uD55C \uB8EC"
+  runeIcon: {fileID: 0}
+  runeType: 1
+  runeGrade: 4
+  socketColor: 1
+  buyPrice: 1500
+  sellPrice: 375
+  statBonus:
+    strength: 0
+    agility: 0
+    vitality: 3
+    intelligence: 0
+    defense: 6
+    magicDefense: 6
+    luck: 0
+    stability: 0
+  hpBonus: 30
+  mpBonus: 30
+  critChanceBonus: 0
+  critDamageBonus: 0
+  attackSpeedBonus: 0
+  moveSpeedBonus: 0
+  cooldownReduction: 0
+  lifestealPercent: 0
+  expBonusPercent: 0
+  goldBonusPercent: 0
+  elementalType: 0
+  elementalDamageBonus: 0
+  comboRuneId: 
+  comboEffectDesc: 
+  comboBonusMultiplier: 0

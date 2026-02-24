@@ -1,0 +1,67 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 69720ba5637a68e4ea25f77fe61a9920, type: 3}
+  m_Name: curio_skeleton
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.DungeonEventData
+  eventId: curio_skeleton
+  eventName: "\uBAA8\uD5D8\uAC00\uC758 \uC720\uD574"
+  description: "\uC774\uC804 \uBAA8\uD5D8\uAC00\uC758 \uBF08\uAC00 \uC7A5\uBE44\uC640
+    \uD568\uAED8 \uB193\uC5EC\uC788\uB2E4."
+  eventIcon: {fileID: 0}
+  eventType: 2
+  rarity: 0
+  triggerType: 1
+  spawnChance: 0.09
+  minFloor: 1
+  maxFloor: 10
+  minDifficulty: 1
+  oncePerDungeon: 0
+  interactionText: "\uC218\uC0C9\uD55C\uB2E4"
+  interactionTime: 1
+  requiresChoice: 0
+  bareHandOutcomes:
+  - description: "\uACE8\uB4DC \uC8FC\uBA38\uB2C8\uB97C \uBC1C\uACAC\uD588\uB2E4!"
+    chance: 0.4
+    effectType: 4
+    effectValue: 100
+    duration: 0
+    statusEffect: 0
+    isNegative: 0
+  - description: "\uC800\uC8FC\uBC1B\uC740 \uC7A5\uBE44\uC600\uB2E4!"
+    chance: 0.2
+    effectType: 8
+    effectValue: 2
+    duration: 60
+    statusEffect: 0
+    isNegative: 1
+  - description: "\uC77C\uAE30\uC7A5\uC744 \uBC1C\uACAC\uD588\uB2E4. \uC720\uC6A9\uD55C
+      \uC815\uBCF4\uAC00 \uC801\uD600\uC788\uB2E4."
+    chance: 0.2
+    effectType: 12
+    effectValue: 0
+    duration: 0
+    statusEffect: 0
+    isNegative: 0
+  - description: "\uC544\uBB34\uAC83\uB3C4 \uC4F8\uB9CC\uD55C \uAC8C \uC5C6\uB2E4."
+    chance: 0.2
+    effectType: 6
+    effectValue: 15
+    duration: 0
+    statusEffect: 0
+    isNegative: 0
+  itemInteractions: []
+  choices: []
+  combatWaves: []
+  combatTimeLimit: 0
+  shopItems: []
+  glowColor: {r: 0.8, g: 0.8, b: 0.8, a: 1}
+  activationSFX: 

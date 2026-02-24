@@ -54,7 +54,17 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         // 업데이트 주기
         private float updateInterval = 0.1f;
         private float lastUpdateTime;
-        
+
+        // 엔티티 스캔 캐시 (FindObjectsByType 호출 최소화)
+        private MonsterEntity[] cachedMonsters = System.Array.Empty<MonsterEntity>();
+        private DroppedItem[] cachedItems = System.Array.Empty<DroppedItem>();
+        private float entityScanInterval = 0.5f; // 엔티티 스캔은 0.5초 간격
+        private float lastEntityScanTime;
+
+        // GC 방지용 재사용 컬렉션
+        private readonly HashSet<int> tempIdSet = new HashSet<int>();
+        private readonly List<int> tempRemoveList = new List<int>();
+
         // 이벤트
         public System.Action<bool> OnMinimapToggled;
         
@@ -140,12 +150,20 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         {
             if (Time.time - lastUpdateTime < updateInterval) return;
             lastUpdateTime = Time.time;
-            
+
             if (!isVisible || playerTransform == null) return;
-            
+
+            // 엔티티 스캔 캐시 갱신 (0.5초 간격으로 무거운 탐색 제한)
+            if (Time.time - lastEntityScanTime >= entityScanInterval)
+            {
+                lastEntityScanTime = Time.time;
+                cachedMonsters = FindObjectsByType<MonsterEntity>(FindObjectsSortMode.None);
+                cachedItems = FindObjectsByType<DroppedItem>(FindObjectsSortMode.None);
+            }
+
             // 카메라 위치 업데이트
             UpdateCameraPosition();
-            
+
             // 아이콘들 업데이트
             UpdatePlayerIcons();
             UpdateMonsterIcons();
@@ -169,67 +187,63 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         }
         
         /// <summary>
-        /// 플레이어 아이콘 업데이트
+        /// 플레이어 아이콘 업데이트 (NetworkManager 기반, 0 GC)
         /// </summary>
         private void UpdatePlayerIcons()
         {
-            var players = FindObjectsOfType<PlayerController>();
-            
-            // 현재 플레이어들 추적
-            var currentPlayerIds = new HashSet<int>();
-            
-            foreach (var player in players)
+            tempIdSet.Clear();
+            tempRemoveList.Clear();
+
+            var netManager = NetworkManager.Singleton;
+            if (netManager == null || !netManager.IsListening) return;
+
+            foreach (var kvp in netManager.ConnectedClientsList)
             {
-                if (player.NetworkObject == null) continue;
-                
-                int playerId = (int)player.NetworkObject.NetworkObjectId;
-                currentPlayerIds.Add(playerId);
-                
+                var playerObj = kvp.PlayerObject;
+                if (playerObj == null) continue;
+
+                var player = playerObj.GetComponent<PlayerController>();
+                if (player == null) continue;
+
+                int playerId = (int)playerObj.NetworkObjectId;
+                tempIdSet.Add(playerId);
+
                 if (!playerIcons.ContainsKey(playerId))
                 {
-                    // 새 플레이어 아이콘 생성
                     CreatePlayerIcon(player, playerId);
                 }
                 else
                 {
-                    // 기존 아이콘 위치 업데이트
                     UpdateIconPosition(playerIcons[playerId], player.transform);
                 }
             }
-            
+
             // 제거된 플레이어 아이콘 정리
-            var toRemove = new List<int>();
             foreach (var kvp in playerIcons)
             {
-                if (!currentPlayerIds.Contains(kvp.Key))
-                {
-                    toRemove.Add(kvp.Key);
-                }
+                if (!tempIdSet.Contains(kvp.Key))
+                    tempRemoveList.Add(kvp.Key);
             }
-            
-            foreach (var id in toRemove)
-            {
-                RemovePlayerIcon(id);
-            }
+
+            for (int i = 0; i < tempRemoveList.Count; i++)
+                RemovePlayerIcon(tempRemoveList[i]);
         }
         
         /// <summary>
-        /// 몬스터 아이콘 업데이트
+        /// 몬스터 아이콘 업데이트 (재사용 컬렉션으로 0 GC)
         /// </summary>
         private void UpdateMonsterIcons()
         {
-            var monsters = FindObjectsOfType<MonsterEntity>();
-            
-            var currentMonsterIds = new HashSet<int>();
-            
-            foreach (var monster in monsters)
+            tempIdSet.Clear();
+            tempRemoveList.Clear();
+
+            foreach (var monster in cachedMonsters)
             {
-                var networkObject = monster.GetComponent<NetworkObject>();
-                if (networkObject == null || monster.CurrentHP <= 0) continue;
-                
-                int monsterId = (int)networkObject.NetworkObjectId;
-                currentMonsterIds.Add(monsterId);
-                
+                if (monster == null || monster.NetworkObject == null || monster.CurrentHP <= 0) continue;
+
+                int monsterId = (int)monster.NetworkObject.NetworkObjectId;
+                tempIdSet.Add(monsterId);
+
                 if (!monsterIcons.ContainsKey(monsterId))
                 {
                     CreateMonsterIcon(monster, monsterId);
@@ -239,39 +253,33 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                     UpdateIconPosition(monsterIcons[monsterId], monster.transform);
                 }
             }
-            
+
             // 제거된 몬스터 아이콘 정리
-            var toRemove = new List<int>();
             foreach (var kvp in monsterIcons)
             {
-                if (!currentMonsterIds.Contains(kvp.Key))
-                {
-                    toRemove.Add(kvp.Key);
-                }
+                if (!tempIdSet.Contains(kvp.Key))
+                    tempRemoveList.Add(kvp.Key);
             }
-            
-            foreach (var id in toRemove)
-            {
-                RemoveMonsterIcon(id);
-            }
+
+            for (int i = 0; i < tempRemoveList.Count; i++)
+                RemoveMonsterIcon(tempRemoveList[i]);
         }
         
         /// <summary>
-        /// 아이템 아이콘 업데이트
+        /// 아이템 아이콘 업데이트 (재사용 컬렉션으로 0 GC)
         /// </summary>
         private void UpdateItemIcons()
         {
-            var items = FindObjectsOfType<DroppedItem>();
-            
-            var currentItemIds = new HashSet<int>();
-            
-            foreach (var item in items)
+            tempIdSet.Clear();
+            tempRemoveList.Clear();
+
+            foreach (var item in cachedItems)
             {
-                if (item.NetworkObject == null) continue;
-                
+                if (item == null || item.NetworkObject == null) continue;
+
                 int itemId = (int)item.NetworkObject.NetworkObjectId;
-                currentItemIds.Add(itemId);
-                
+                tempIdSet.Add(itemId);
+
                 if (!itemIcons.ContainsKey(itemId))
                 {
                     CreateItemIcon(item, itemId);
@@ -281,21 +289,16 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                     UpdateIconPosition(itemIcons[itemId], item.transform);
                 }
             }
-            
+
             // 제거된 아이템 아이콘 정리
-            var toRemove = new List<int>();
             foreach (var kvp in itemIcons)
             {
-                if (!currentItemIds.Contains(kvp.Key))
-                {
-                    toRemove.Add(kvp.Key);
-                }
+                if (!tempIdSet.Contains(kvp.Key))
+                    tempRemoveList.Add(kvp.Key);
             }
-            
-            foreach (var id in toRemove)
-            {
-                RemoveItemIcon(id);
-            }
+
+            for (int i = 0; i < tempRemoveList.Count; i++)
+                RemoveItemIcon(tempRemoveList[i]);
         }
         
         /// <summary>
@@ -445,7 +448,19 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         private void FindLocalPlayer()
         {
-            var players = FindObjectsOfType<PlayerController>();
+            var netManager = NetworkManager.Singleton;
+            if (netManager != null && netManager.LocalClient != null)
+            {
+                var localPlayerObj = netManager.LocalClient.PlayerObject;
+                if (localPlayerObj != null)
+                {
+                    playerTransform = localPlayerObj.transform;
+                    return;
+                }
+            }
+
+            // 폴백: NetworkManager 아직 준비 안 됨
+            var players = FindObjectsByType<PlayerController>(FindObjectsSortMode.None);
             foreach (var player in players)
             {
                 if (player.IsLocalPlayer)
@@ -500,6 +515,11 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         private void OnDestroy()
         {
+            OnMinimapToggled = null;
+
+            if (toggleButton != null) toggleButton.onClick.RemoveAllListeners();
+            if (zoomSlider != null) zoomSlider.onValueChanged.RemoveAllListeners();
+
             if (minimapTexture != null)
             {
                 minimapTexture.Release();

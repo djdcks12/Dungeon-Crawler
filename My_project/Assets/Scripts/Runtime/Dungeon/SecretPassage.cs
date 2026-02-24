@@ -35,6 +35,9 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         // 비밀 통로 데이터
         private int floorLevel = 1;
         private Vector3 teleportDestination;
+
+        // GC 최적화: 재사용 버퍼
+        private static readonly Collider2D[] s_OverlapBuffer = new Collider2D[8];
         
         // 프로퍼티
         public SecretType SecretType => secretType;
@@ -214,12 +217,12 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             if (!IsServer || isRevealed.Value) return;
             
             // 주변 플레이어 수 체크
-            Collider2D[] nearbyColliders = Physics2D.OverlapCircleAll(transform.position, discoveryRadius);
+            int nearbyCount = Physics2D.OverlapCircleNonAlloc(transform.position, discoveryRadius, s_OverlapBuffer);
             int playerCount = 0;
-            
-            foreach (var collider in nearbyColliders)
+
+            for (int i = 0; i < nearbyCount; i++)
             {
-                if (collider.GetComponent<PlayerController>() != null)
+                if (s_OverlapBuffer[i].GetComponent<PlayerController>() != null)
                 {
                     playerCount++;
                 }
@@ -255,12 +258,13 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         {
             if (!IsServer || !isRevealed.Value) return;
             
-            var playerObject = NetworkManager.Singleton.ConnectedClients[playerId].PlayerObject;
+            if (!NetworkManager.Singleton.ConnectedClients.TryGetValue(playerId, out var secretClient)) return;
+            var playerObject = secretClient.PlayerObject;
             if (playerObject == null) return;
-            
+
             var playerController = playerObject.GetComponent<PlayerController>();
             if (playerController == null) return;
-            
+
             ActivateSecret(playerController);
         }
         

@@ -1,0 +1,57 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4b0881b9cf4f0ee4ebd3a22aad14bb50, type: 3}
+  m_Name: we_weather_blizzard
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.WorldEventData
+  eventId: we_weather_blizzard
+  eventName: "\uAE30\uC0C1 \uC774\uBCC0: \uB208\uBCF4\uB77C"
+  description: "\uB9E4\uC11C\uC6B4 \uB208\uBCF4\uB77C\uAC00 \uBAB0\uC544\uCE5C\uB2E4!
+    \uC5BC\uC74C \uC6D0\uC18C\uAC00 \uAE68\uC5B4\uB0AC\uB2E4!"
+  eventIcon: {fileID: 0}
+  eventType: 5
+  rarity: 1
+  spawnChance: 0.1
+  checkInterval: 40
+  minPlayerLevel: 3
+  maxPlayerLevel: 99
+  requiresNight: 0
+  requiresDay: 0
+  requiredWeather: 4
+  duration: 90
+  isPermanentUntilCompleted: 0
+  eventMonsters:
+  - monsterVariantId: elemental_normal
+    count: 4
+    gradeMin: 103
+    gradeMax: 109
+    isBoss: 0
+    spawnDelay: 0
+  - monsterVariantId: elemental_shaman
+    count: 1
+    gradeMin: 108
+    gradeMax: 114
+    isBoss: 0
+    spawnDelay: 4
+  rewards:
+  - rewardType: 0
+    amount: 350
+    itemId: 
+    dropChance: 1
+  - rewardType: 1
+    amount: 300
+    itemId: 
+    dropChance: 1
+  dialogues: []
+  choices: []
+  spawnRadius: 18
+  announceToAll: 0
+  announceMessage: 

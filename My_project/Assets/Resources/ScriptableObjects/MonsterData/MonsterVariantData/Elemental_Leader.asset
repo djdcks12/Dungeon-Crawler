@@ -1,0 +1,65 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 685b515bd1b6f5e44aca2f5b06aa4829, type: 3}
+  m_Name: Elemental_Leader
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.MonsterVariantData
+  variantId: Elemental_Leader
+  variantName: "\uC815\uB839 \uB300\uC7A5"
+  description: "\uC815\uB839\uC871\uC758 \uB300\uC7A5 \uAC1C\uCCB4"
+  variantIcon: {fileID: 0}
+  prefab: {fileID: 0}
+  baseRace: {fileID: 11400000, guid: 29e6b67c608b47542abaf737f7502c3f, type: 2}
+  statMinVariance:
+    strength: 1
+    agility: 1
+    vitality: 1
+    intelligence: 1
+    defense: 1
+    magicDefense: 1
+    luck: 1
+    stability: 1
+  statMaxVariance:
+    strength: 3
+    agility: 3
+    vitality: 3
+    intelligence: 3
+    defense: 3
+    magicDefense: 3
+    luck: 3
+    stability: 3
+  variantMandatorySkills: []
+  variantAvailableSkills: []
+  spawnWeight: 6
+  minFloor: 5
+  maxFloor: 10
+  preferredAIType: 3
+  aggressionMultiplier: 1.2
+  variantDrops: []
+  idleSprites:
+  - {fileID: 4723107735738678597, guid: 565e9a8fccbf5534b9de45e845096f10, type: 3}
+  moveSprites:
+  - {fileID: 4944230376442633554, guid: 033eece1f5051d544a25fd6794e2e970, type: 3}
+  attackSprites:
+  - {fileID: -7008412969330441016, guid: ecf51cc8677f0bc4f837796ccb0dd57e, type: 3}
+  attackDamageFrame: 2
+  hitSprites:
+  - {fileID: -7500690451134026123, guid: f7efe7de27135b748b451f4371500d7f, type: 3}
+  castingSprites: []
+  deathSprites:
+  - {fileID: 6991849013916550155, guid: 82661e13e512daf42a29f442a0ea57e2, type: 3}
+  idleFrameRate: 6
+  moveFrameRate: 8
+  attackFrameRate: 12
+  castingFrameRate: 10
+  hitFrameRate: 10
+  deathFrameRate: 6
+  attackEffect: {fileID: 0}

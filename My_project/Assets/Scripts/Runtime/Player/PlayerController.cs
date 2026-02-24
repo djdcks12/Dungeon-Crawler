@@ -34,6 +34,9 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         
         private float lastAttackTime;
         private Camera playerCamera;
+
+        // GC 최적화: 재사용 버퍼
+        private static readonly Collider2D[] s_OverlapBuffer = new Collider2D[8];
         
         public override void OnNetworkSpawn()
         {
@@ -72,7 +75,19 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 playerCamera = Camera.main;
                 if (playerCamera == null)
                 {
-                    playerCamera = FindObjectOfType<Camera>();
+                    playerCamera = FindFirstObjectByType<Camera>();
+                }
+
+                // 카메라 팔로우 설정
+                if (playerCamera != null)
+                {
+                    var cameraFollow = playerCamera.GetComponent<CameraFollow>();
+                    if (cameraFollow == null)
+                    {
+                        cameraFollow = playerCamera.gameObject.AddComponent<CameraFollow>();
+                    }
+                    cameraFollow.SetTarget(transform);
+                    Debug.Log("Camera follow target set to local player");
                 }
             }
             
@@ -119,7 +134,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 rb.linearVelocity = Vector2.zero;
                 return;
             }
-            if(spriteAnimator.IsAttackAnimationPlaying())
+            if(spriteAnimator != null && spriteAnimator.IsAttackAnimationPlaying())
             {
                 // 공격 애니메이션 중에는 이동 불가
                 rb.linearVelocity = Vector2.zero;
@@ -292,41 +307,55 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         private void HandleSkill()
         {
             if (playerInput == null) return;
-            
+
+            // 우클릭: 슬롯 0 스킬 (기존 호환)
             if (playerInput.GetSkillInput())
             {
                 ActivateSkill();
             }
+
+            // 숫자키 1~5: 스킬 바 슬롯
+            if (Input.GetKeyDown(KeyCode.Alpha1)) ActivateSkillBySlot(0);
+            else if (Input.GetKeyDown(KeyCode.Alpha2)) ActivateSkillBySlot(1);
+            else if (Input.GetKeyDown(KeyCode.Alpha3)) ActivateSkillBySlot(2);
+            else if (Input.GetKeyDown(KeyCode.Alpha4)) ActivateSkillBySlot(3);
+            else if (Input.GetKeyDown(KeyCode.Alpha5)) ActivateSkillBySlot(4);
         }
         
         private void ActivateSkill()
         {
-            if (skillManager != null && playerCamera != null)
+            ActivateSkillBySlot(0);
+        }
+
+        /// <summary>
+        /// 스킬 슬롯 인덱스로 스킬 발동 (스킬 바 지원)
+        /// </summary>
+        public void ActivateSkillBySlot(int slotIndex)
+        {
+            if (combatSystem == null || skillManager == null || playerCamera == null) return;
+
+            // 스프라이트 애니메이션 캐스팅 재생
+            if (spriteAnimator != null)
             {
-                // 스프라이트 애니메이션 캐스팅 재생
-                if (spriteAnimator != null)
-                {
-                    spriteAnimator.PlayCastingAnimation();
-                }
-                
-                // 마우스 위치를 월드 좌표로 변환하여 스킬 대상 위치로 사용
-                Vector2 mousePosition = playerInput.GetMousePosition();
-                Vector3 worldMousePosition = playerCamera.ScreenToWorldPoint(new Vector3(mousePosition.x, mousePosition.y, playerCamera.nearClipPlane));
-                worldMousePosition.z = 0f;
-                
-                // 기본 스킬 사용 (첫 번째 학습한 스킬 사용)
-                var learnedSkills = skillManager.GetLearnedSkills();
-                if (learnedSkills.Count > 0)
-                {
-                    skillManager.UseSkill(learnedSkills[0], worldMousePosition);
-                }
-                else
-                {
-                    Debug.Log("No skills learned yet!");
-                }
+                spriteAnimator.PlayCastingAnimation();
             }
-            
-            Debug.Log("Skill activated");
+
+            // 마우스 위치를 월드 좌표로 변환
+            Vector2 mousePosition = playerInput.GetMousePosition();
+            Vector3 worldMousePosition = playerCamera.ScreenToWorldPoint(new Vector3(mousePosition.x, mousePosition.y, playerCamera.nearClipPlane));
+            worldMousePosition.z = 0f;
+
+            // 학습한 스킬 목록에서 슬롯에 해당하는 스킬 사용
+            var learnedSkills = skillManager.GetLearnedSkills();
+            if (slotIndex >= 0 && slotIndex < learnedSkills.Count)
+            {
+                // CombatSystem을 통한 통합 스킬 공격 (검증+자원소모+데미지+이펙트)
+                combatSystem.PerformSkillAttack(learnedSkills[slotIndex], worldMousePosition);
+            }
+            else
+            {
+                Debug.Log("No skill in this slot!");
+            }
         }
         
         /// <summary>
@@ -454,7 +483,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             currentMoveSpeed = stats.MoveSpeed;
             
             // AGI에 따른 공격속도 적용 (공격 쿨다운 감소)
-            currentAttackCooldown = baseAttackCooldown / stats.AttackSpeed;
+            currentAttackCooldown = baseAttackCooldown / Mathf.Max(0.1f, stats.AttackSpeed);
             
             Debug.Log($"Stats Applied - Race: {stats.CharacterRace}, Level: {stats.CurrentLevel}");
             Debug.Log($"  MoveSpeed: {currentMoveSpeed:F2}, AttackCooldown: {currentAttackCooldown:F2}");
@@ -597,7 +626,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         {
             if (IsOwner) // 플레이어 소유자만 던전 매니저에 알림
             {
-                var dungeonManager = FindObjectOfType<DungeonManager>();
+                var dungeonManager = FindFirstObjectByType<DungeonManager>();
                 if (dungeonManager != null && dungeonManager.IsActive)
                 {
                     dungeonManager.OnPlayerDied(OwnerClientId);
@@ -612,12 +641,12 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         private void TryPickupNearbyItems()
         {
             // 근처 드롭된 아이템 찾기
-            Collider2D[] nearbyColliders = Physics2D.OverlapCircleAll(transform.position, 2f); // 2미터 반경
-            
-            foreach (var collider in nearbyColliders)
+            int pickupCount = Physics2D.OverlapCircleNonAlloc(transform.position, 2f, s_OverlapBuffer); // 2미터 반경
+
+            for (int i = 0; i < pickupCount; i++)
             {
                 // DroppedItem 체크
-                var droppedItem = collider.GetComponent<DroppedItem>();
+                var droppedItem = s_OverlapBuffer[i].GetComponent<DroppedItem>();
                 if (droppedItem != null)
                 {
                     Debug.Log($"📦 Found DroppedItem: {droppedItem.ItemInstance?.ItemData?.ItemName}");
@@ -626,7 +655,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 }
                 
                 // ItemDrop 체크 (레거시)
-                var itemDrop = collider.GetComponent<ItemDrop>();
+                var itemDrop = s_OverlapBuffer[i].GetComponent<ItemDrop>();
                 if (itemDrop != null)
                 {
                     Debug.Log($"📦 Found ItemDrop: {itemDrop.ItemInstance?.ItemData?.ItemName}");

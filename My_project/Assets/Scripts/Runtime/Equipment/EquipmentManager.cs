@@ -48,7 +48,9 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         {
             // 이벤트 구독 해제
             OnEquipmentChanged -= OnEquipmentChangedHandler;
-            
+            OnEquipmentChanged = null;
+            OnEquipmentStatsChanged = null;
+
             base.OnNetworkDespawn();
         }
         
@@ -194,16 +196,16 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         private void PerformEquipChange(EquipmentSlot targetSlot, ItemInstance newItem, ItemInstance oldItem, bool fromInventory)
         {
+            // 새 아이템을 인벤토리에서 먼저 제거 (슬롯 확보)
+            if (fromInventory && inventoryManager != null)
+            {
+                inventoryManager.RemoveItemFromInventory(newItem);
+            }
+
             // 기존 아이템을 인벤토리로 이동
             if (oldItem != null && fromInventory && inventoryManager != null)
             {
                 inventoryManager.AddItemToInventory(oldItem);
-            }
-            
-            // 새 아이템을 인벤토리에서 제거
-            if (fromInventory && inventoryManager != null)
-            {
-                inventoryManager.RemoveItemFromInventory(newItem);
             }
             
             // 장비 착용

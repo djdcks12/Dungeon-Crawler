@@ -1,0 +1,45 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 83d2f19ed21e61f469acd8e16a311cb7, type: 3}
+  m_Name: beast_elder
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.DialogueData
+  dialogueId: beast_elder
+  npcName: "\uC57C\uC218 \uC871\uC7A5 \uADF8\uB85C\uD06C"
+  npcPortrait: {fileID: 0}
+  nodes:
+  - nodeId: n1
+    speakerName: "\uADF8\uB85C\uD06C"
+    text: "\uD06C\uD558\uD558! \uC57C\uC218\uC871 \uC804\uC0AC\uAC00 \uC654\uAD6C\uB098!"
+    choices: []
+    nextNodeId: n2
+    effect:
+      effectType: 0
+      intValue: 0
+      stringValue: 
+  - nodeId: n2
+    speakerName: "\uADF8\uB85C\uD06C"
+    text: "\uC6B0\uB9AC\uC758 \uD798\uC740 \uB9E8\uC8FC\uBA39\uC5D0\uC11C \uB098\uC628\uB2E4!
+      \uD558\uC9C0\uB9CC \uC591\uC190 \uB3C4\uB07C\uB098 \uB300\uAC80\uB3C4 \uC6B0\uB9AC
+      \uD798\uC744 \uC798 \uC0B4\uB824\uC8FC\uC9C0."
+    choices: []
+    nextNodeId: 
+    effect:
+      effectType: 0
+      intValue: 0
+      stringValue: 
+  condition:
+    conditionType: 5
+    requiredValue: 0
+    requiredStringValue: 
+    requiredRace: 3
+    requiredJob: 0
+  priority: 0

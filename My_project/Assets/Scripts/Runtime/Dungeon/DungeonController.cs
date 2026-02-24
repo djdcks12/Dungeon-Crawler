@@ -42,13 +42,13 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             // 던전 매니저가 없으면 자동으로 찾기
             if (dungeonManager == null)
             {
-                dungeonManager = FindObjectOfType<DungeonManager>();
+                dungeonManager = FindFirstObjectByType<DungeonManager>();
             }
             
             // 던전 UI가 없으면 자동으로 찾기
             if (dungeonUI == null)
             {
-                dungeonUI = FindObjectOfType<DungeonUI>();
+                dungeonUI = FindFirstObjectByType<DungeonUI>();
             }
             
             Debug.Log($"DungeonController initialized (IsOwner: {IsOwner})");
@@ -76,6 +76,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         private void FindLocalPlayer()
         {
+            if (NetworkManager.Singleton == null) return;
             var playerObject = NetworkManager.Singleton.SpawnManager.GetLocalPlayerObject();
             if (playerObject != null)
             {

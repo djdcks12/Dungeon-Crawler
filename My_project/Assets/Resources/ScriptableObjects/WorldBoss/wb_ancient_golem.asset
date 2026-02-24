@@ -1,0 +1,44 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: adb69304fa1e5bc48a55fe73e19415cf, type: 3}
+  m_Name: wb_ancient_golem
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.WorldBossData
+  bossId: wb_ancient_golem
+  bossName: "\uACE0\uB300 \uACE8\uB818"
+  description: "\uACE0\uB300 \uC720\uC801\uC5D0\uC11C \uAE68\uC5B4\uB09C \uAC70\uB300\uD55C
+    \uB3CC \uACE8\uB818. \uB290\uB9AC\uC9C0\uB9CC \uAC15\uB825\uD55C \uACF5\uACA9\uC744
+    \uD55C\uB2E4."
+  bossIcon: {fileID: 0}
+  maxHP: 500000
+  level: 10
+  attackDamage: 100
+  defense: 30
+  magicDefense: 30
+  phase2Threshold: 0.7
+  phase3Threshold: 0.45
+  enrageThreshold: 0.2
+  spawnInterval: 1800
+  despawnTimeout: 600
+  announceBefore: 60
+  baseExpReward: 5000
+  baseGoldReward: 2000
+  guaranteedDrops:
+  - weapon_warhammer_rare
+  - armor_chest_rare
+  rareDrops:
+  - weapon_greatsword_epic
+  rareDropChance: 0.05
+  aoeRadius: 6
+  aoeDamageMultiplier: 2
+  enrageDamageMultiplier: 1.5
+  summonInterval: 45
+  summonMonsterId: 

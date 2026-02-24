@@ -377,6 +377,78 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         }
         
         /// <summary>
+        /// PartyUI 프리팹 생성 (Resources/UI/PartyUI)
+        /// </summary>
+        [MenuItem("Tools/UI/Generate PartyUI Prefab")]
+        public static void GeneratePartyUIPrefab()
+        {
+            try
+            {
+                Debug.Log("🔧 Starting PartyUI prefab generation...");
+
+                // 루트 오브젝트
+                var rootObj = new GameObject("PartyUI");
+                var partyUI = rootObj.AddComponent<PartyUI>();
+
+                // 메인 파티 패널
+                var partyPanel = CreateSimplePanel("PartyPanel", rootObj.transform);
+                partyPanel.SetActive(false);
+
+                // 파티 생성 패널
+                var createPartyPanel = CreateSimplePanel("CreatePartyPanel", partyPanel.transform);
+
+                // 파티 리스트 패널
+                var partyListPanel = CreateSimplePanel("PartyListPanel", partyPanel.transform);
+
+                // 파티 멤버 패널
+                var partyMembersPanel = CreateSimplePanel("PartyMembersPanel", partyPanel.transform);
+
+                // 초대 팝업
+                var invitationPopup = CreateSimplePanel("InvitationPopup", rootObj.transform);
+                invitationPopup.SetActive(false);
+
+                // SerializedObject로 필드 연결
+                var so = new SerializedObject(partyUI);
+                so.FindProperty("partyPanel").objectReferenceValue = partyPanel;
+                so.FindProperty("createPartyPanel").objectReferenceValue = createPartyPanel;
+                so.FindProperty("partyListPanel").objectReferenceValue = partyListPanel;
+                so.FindProperty("partyMembersPanel").objectReferenceValue = partyMembersPanel;
+                so.FindProperty("invitationPopup").objectReferenceValue = invitationPopup;
+                so.ApplyModifiedProperties();
+
+                // Resources/UI/ 경로에 저장
+                string resourcesUIPath = "Assets/Resources/UI/";
+                if (!Directory.Exists(resourcesUIPath))
+                    Directory.CreateDirectory(resourcesUIPath);
+
+                string fullPath = resourcesUIPath + "PartyUI.prefab";
+                PrefabUtility.SaveAsPrefabAsset(rootObj, fullPath);
+                DestroyImmediate(rootObj);
+                AssetDatabase.Refresh();
+
+                Debug.Log($"✅ PartyUI prefab saved: {fullPath}");
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"❌ Error generating PartyUI: {ex.Message}");
+            }
+        }
+
+        private static GameObject CreateSimplePanel(string name, Transform parent)
+        {
+            var panel = new GameObject(name);
+            panel.transform.SetParent(parent, false);
+            var rect = panel.AddComponent<RectTransform>();
+            rect.anchorMin = Vector2.zero;
+            rect.anchorMax = Vector2.one;
+            rect.offsetMin = Vector2.zero;
+            rect.offsetMax = Vector2.zero;
+            var img = panel.AddComponent<Image>();
+            img.color = new Color(0.15f, 0.15f, 0.15f, 0.8f);
+            return panel;
+        }
+
+        /// <summary>
         /// 고급 스킬 UI 프리팹 생성
         /// </summary>
         private void GenerateAdvancedSkillUIPrefab()
@@ -770,7 +842,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             canvasScaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
             canvasScaler.matchWidthOrHeight = 0.5f;
             
-            if (addEventSystem && FindObjectOfType<UnityEngine.EventSystems.EventSystem>() == null)
+            if (addEventSystem && FindFirstObjectByType<UnityEngine.EventSystems.EventSystem>() == null)
             {
                 var eventSystemObj = new GameObject("EventSystem");
                 eventSystemObj.AddComponent<UnityEngine.EventSystems.EventSystem>();
@@ -1410,7 +1482,722 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             return slot;
         }
         
-        private void ConnectPlayerHUDComponents(PlayerHUD hudComponent, GameObject mainPanel, 
+        // ========== Phase C: 누락 UI 프리팹 생성 메서드 ==========
+
+        /// <summary>
+        /// DungeonEntryUI 프리팹 생성
+        /// </summary>
+        [MenuItem("Tools/UI/Generate DungeonEntryUI Prefab")]
+        public static void GenerateDungeonEntryUIPrefab()
+        {
+            try
+            {
+                Debug.Log("Starting DungeonEntryUI prefab generation...");
+
+                var rootObj = new GameObject("DungeonEntryUI");
+                var entryUI = rootObj.AddComponent<DungeonEntryUI>();
+
+                // 메인 패널
+                var panel = CreateSimplePanel("Panel", rootObj.transform);
+                panel.SetActive(false);
+
+                // 좌측: 던전 리스트
+                var listPanel = CreateSimplePanel("DungeonListPanel", panel.transform);
+                var listRect = listPanel.GetComponent<RectTransform>();
+                listRect.anchorMin = new Vector2(0, 0);
+                listRect.anchorMax = new Vector2(0.4f, 1);
+                listRect.offsetMin = new Vector2(10, 10);
+                listRect.offsetMax = new Vector2(-5, -10);
+
+                // 스크롤뷰
+                var scrollObj = new GameObject("DungeonListScroll");
+                scrollObj.transform.SetParent(listPanel.transform, false);
+                var scrollRect = scrollObj.AddComponent<RectTransform>();
+                scrollRect.anchorMin = Vector2.zero;
+                scrollRect.anchorMax = Vector2.one;
+                scrollRect.offsetMin = Vector2.zero;
+                scrollRect.offsetMax = Vector2.zero;
+                scrollObj.AddComponent<Image>().color = new Color(0.1f, 0.1f, 0.1f, 0.5f);
+                var scroll = scrollObj.AddComponent<ScrollRect>();
+                scroll.horizontal = false;
+                scroll.vertical = true;
+
+                var dungeonListContent = new GameObject("DungeonListContent");
+                dungeonListContent.transform.SetParent(scrollObj.transform, false);
+                var contentRect = dungeonListContent.AddComponent<RectTransform>();
+                contentRect.anchorMin = new Vector2(0, 1);
+                contentRect.anchorMax = new Vector2(1, 1);
+                contentRect.pivot = new Vector2(0.5f, 1);
+                contentRect.sizeDelta = new Vector2(0, 300);
+                var vlg = dungeonListContent.AddComponent<VerticalLayoutGroup>();
+                vlg.spacing = 5;
+                vlg.padding = new RectOffset(5, 5, 5, 5);
+                vlg.childControlHeight = false;
+                vlg.childForceExpandHeight = false;
+                var csf = dungeonListContent.AddComponent<ContentSizeFitter>();
+                csf.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+                scroll.content = contentRect;
+
+                // 우측: 상세 정보 패널
+                var detailPanel = CreateSimplePanel("DetailPanel", panel.transform);
+                var detailRect = detailPanel.GetComponent<RectTransform>();
+                detailRect.anchorMin = new Vector2(0.4f, 0);
+                detailRect.anchorMax = new Vector2(1, 1);
+                detailRect.offsetMin = new Vector2(5, 10);
+                detailRect.offsetMax = new Vector2(-10, -10);
+                var detailLayout = detailPanel.AddComponent<VerticalLayoutGroup>();
+                detailLayout.spacing = 8;
+                detailLayout.padding = new RectOffset(10, 10, 10, 10);
+                detailLayout.childControlHeight = false;
+                detailLayout.childForceExpandHeight = false;
+
+                var dungeonNameText = CreateSimpleText("DungeonNameText", detailPanel.transform, "Select a Dungeon", 20);
+                var dungeonDescText = CreateSimpleText("DungeonDescText", detailPanel.transform, "", 14);
+                var difficultyText = CreateSimpleText("DifficultyText", detailPanel.transform, "Difficulty: -", 14);
+                var recommendedLevelText = CreateSimpleText("RecommendedLevelText", detailPanel.transform, "Recommended Level: -", 14);
+                var rewardText = CreateSimpleText("RewardText", detailPanel.transform, "Rewards: -", 14);
+                var floorCountText = CreateSimpleText("FloorCountText", detailPanel.transform, "Floors: -", 14);
+                var timeLimitText = CreateSimpleText("TimeLimitText", detailPanel.transform, "Time Limit: -", 14);
+
+                // 입장 버튼
+                var enterButton = CreateSimpleButton("EnterButton", detailPanel.transform, "Enter Dungeon");
+                var enterButtonText = enterButton.GetComponentInChildren<Text>();
+
+                // SerializedObject 연결
+                var so = new SerializedObject(entryUI);
+                so.FindProperty("panel").objectReferenceValue = panel;
+                so.FindProperty("dungeonListContent").objectReferenceValue = dungeonListContent.transform;
+                so.FindProperty("dungeonNameText").objectReferenceValue = dungeonNameText;
+                so.FindProperty("dungeonDescText").objectReferenceValue = dungeonDescText;
+                so.FindProperty("difficultyText").objectReferenceValue = difficultyText;
+                so.FindProperty("recommendedLevelText").objectReferenceValue = recommendedLevelText;
+                so.FindProperty("rewardText").objectReferenceValue = rewardText;
+                so.FindProperty("floorCountText").objectReferenceValue = floorCountText;
+                so.FindProperty("timeLimitText").objectReferenceValue = timeLimitText;
+                so.FindProperty("enterButton").objectReferenceValue = enterButton.GetComponent<Button>();
+                so.FindProperty("enterButtonText").objectReferenceValue = enterButtonText;
+                so.ApplyModifiedProperties();
+
+                SaveStaticPrefab(rootObj, "DungeonEntryUI");
+                Debug.Log("DungeonEntryUI prefab generated!");
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"Error generating DungeonEntryUI: {ex.Message}\n{ex.StackTrace}");
+            }
+        }
+
+        /// <summary>
+        /// DeathUI 프리팹 생성
+        /// </summary>
+        [MenuItem("Tools/UI/Generate DeathUI Prefab")]
+        public static void GenerateDeathUIPrefab()
+        {
+            try
+            {
+                Debug.Log("Starting DeathUI prefab generation...");
+
+                var rootObj = new GameObject("DeathUI");
+                var deathUI = rootObj.AddComponent<DeathUI>();
+
+                // 사망 패널 (전체화면 어두운 오버레이)
+                var deathPanel = CreateSimplePanel("DeathPanel", rootObj.transform);
+                deathPanel.GetComponent<Image>().color = new Color(0, 0, 0, 0.85f);
+                deathPanel.SetActive(false);
+
+                var layout = deathPanel.AddComponent<VerticalLayoutGroup>();
+                layout.spacing = 15;
+                layout.padding = new RectOffset(50, 50, 100, 50);
+                layout.childAlignment = TextAnchor.MiddleCenter;
+                layout.childControlHeight = false;
+                layout.childForceExpandHeight = false;
+                layout.childControlWidth = false;
+                layout.childForceExpandWidth = false;
+
+                // 사망 메시지
+                var deathMessageText = CreateSimpleText("DeathMessageText", deathPanel.transform, "You have died...", 32);
+                deathMessageText.color = Color.red;
+                deathMessageText.GetComponent<RectTransform>().sizeDelta = new Vector2(400, 50);
+
+                // 페널티 정보
+                var penaltyInfoText = CreateSimpleText("PenaltyInfoText", deathPanel.transform, "", 16);
+                penaltyInfoText.GetComponent<RectTransform>().sizeDelta = new Vector2(400, 80);
+
+                // 부활 버튼
+                var respawnButton = CreateSimpleButton("RespawnButton", deathPanel.transform, "Respawn");
+                respawnButton.GetComponent<RectTransform>().sizeDelta = new Vector2(200, 40);
+                respawnButton.GetComponent<Image>().color = new Color(0.2f, 0.5f, 0.2f);
+
+                // 종료 버튼
+                var quitButton = CreateSimpleButton("QuitButton", deathPanel.transform, "Quit");
+                quitButton.GetComponent<RectTransform>().sizeDelta = new Vector2(200, 40);
+                quitButton.GetComponent<Image>().color = new Color(0.5f, 0.2f, 0.2f);
+
+                // SerializedObject 연결
+                var so = new SerializedObject(deathUI);
+                so.FindProperty("deathPanel").objectReferenceValue = deathPanel;
+                so.FindProperty("deathMessageText").objectReferenceValue = deathMessageText;
+                so.FindProperty("respawnButton").objectReferenceValue = respawnButton.GetComponent<Button>();
+                so.FindProperty("quitButton").objectReferenceValue = quitButton.GetComponent<Button>();
+                so.FindProperty("penaltyInfoText").objectReferenceValue = penaltyInfoText;
+                so.ApplyModifiedProperties();
+
+                SaveStaticPrefab(rootObj, "DeathUI");
+                Debug.Log("DeathUI prefab generated!");
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"Error generating DeathUI: {ex.Message}\n{ex.StackTrace}");
+            }
+        }
+
+        /// <summary>
+        /// ShopUI 프리팹 생성
+        /// </summary>
+        [MenuItem("Tools/UI/Generate ShopUI Prefab")]
+        public static void GenerateShopUIPrefab()
+        {
+            try
+            {
+                Debug.Log("Starting ShopUI prefab generation...");
+
+                var rootObj = new GameObject("ShopUI");
+                var shopUI = rootObj.AddComponent<ShopUI>();
+
+                // 상점 패널
+                var shopPanel = CreateSimplePanel("ShopPanel", rootObj.transform);
+                shopPanel.SetActive(false);
+
+                // 상단: 상점 이름 + 골드 + 닫기
+                var headerPanel = CreateSimplePanel("HeaderPanel", shopPanel.transform);
+                var headerRect = headerPanel.GetComponent<RectTransform>();
+                headerRect.anchorMin = new Vector2(0, 0.9f);
+                headerRect.anchorMax = Vector2.one;
+                headerRect.offsetMin = Vector2.zero;
+                headerRect.offsetMax = Vector2.zero;
+                headerPanel.GetComponent<Image>().color = new Color(0.2f, 0.2f, 0.2f, 1f);
+
+                var shopNameText = CreateSimpleText("ShopNameText", headerPanel.transform, "Shop", 20);
+                var playerGoldText = CreateSimpleText("PlayerGoldText", headerPanel.transform, "Gold: 0", 16);
+                var closeButton = CreateSimpleButton("CloseButton", headerPanel.transform, "X");
+
+                // 카테고리 필터 영역
+                var categoryPanel = CreateSimplePanel("CategoryPanel", shopPanel.transform);
+                var categoryRect = categoryPanel.GetComponent<RectTransform>();
+                categoryRect.anchorMin = new Vector2(0, 0.82f);
+                categoryRect.anchorMax = new Vector2(1, 0.9f);
+                categoryRect.offsetMin = Vector2.zero;
+                categoryRect.offsetMax = Vector2.zero;
+                var catLayout = categoryPanel.AddComponent<HorizontalLayoutGroup>();
+                catLayout.spacing = 5;
+                catLayout.padding = new RectOffset(5, 5, 2, 2);
+
+                var allCategoryButton = CreateSimpleButton("AllCategoryButton", categoryPanel.transform, "All");
+                var weaponCategoryButton = CreateSimpleButton("WeaponCategoryButton", categoryPanel.transform, "Weapon");
+                var armorCategoryButton = CreateSimpleButton("ArmorCategoryButton", categoryPanel.transform, "Armor");
+                var consumableCategoryButton = CreateSimpleButton("ConsumableCategoryButton", categoryPanel.transform, "Consumable");
+                var toolCategoryButton = CreateSimpleButton("ToolCategoryButton", categoryPanel.transform, "Tool");
+
+                // 좌측: 상점 아이템 리스트
+                var shopItemListPanel = CreateSimplePanel("ShopItemListPanel", shopPanel.transform);
+                var shopListRect = shopItemListPanel.GetComponent<RectTransform>();
+                shopListRect.anchorMin = new Vector2(0, 0);
+                shopListRect.anchorMax = new Vector2(0.5f, 0.82f);
+                shopListRect.offsetMin = new Vector2(5, 5);
+                shopListRect.offsetMax = new Vector2(-3, 0);
+
+                // 상점 스크롤뷰
+                var shopScrollObj = new GameObject("ShopScrollRect");
+                shopScrollObj.transform.SetParent(shopItemListPanel.transform, false);
+                var shopScrollRectComp = shopScrollObj.AddComponent<RectTransform>();
+                shopScrollRectComp.anchorMin = Vector2.zero;
+                shopScrollRectComp.anchorMax = Vector2.one;
+                shopScrollRectComp.offsetMin = Vector2.zero;
+                shopScrollRectComp.offsetMax = Vector2.zero;
+                shopScrollObj.AddComponent<Image>().color = new Color(0.1f, 0.1f, 0.1f, 0.5f);
+                var shopScroll = shopScrollObj.AddComponent<ScrollRect>();
+                shopScroll.horizontal = false;
+
+                var shopItemsContent = new GameObject("ShopItemsContent");
+                shopItemsContent.transform.SetParent(shopScrollObj.transform, false);
+                var shopContentRect = shopItemsContent.AddComponent<RectTransform>();
+                shopContentRect.anchorMin = new Vector2(0, 1);
+                shopContentRect.anchorMax = new Vector2(1, 1);
+                shopContentRect.pivot = new Vector2(0.5f, 1);
+                shopContentRect.sizeDelta = new Vector2(0, 300);
+                var shopVlg = shopItemsContent.AddComponent<VerticalLayoutGroup>();
+                shopVlg.spacing = 3;
+                shopVlg.padding = new RectOffset(5, 5, 5, 5);
+                shopVlg.childControlHeight = false;
+                shopVlg.childForceExpandHeight = false;
+                var shopCsf = shopItemsContent.AddComponent<ContentSizeFitter>();
+                shopCsf.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+                shopScroll.content = shopContentRect;
+
+                // 우측: 플레이어 인벤토리
+                var playerInventoryPanel = CreateSimplePanel("PlayerInventoryPanel", shopPanel.transform);
+                var invRect = playerInventoryPanel.GetComponent<RectTransform>();
+                invRect.anchorMin = new Vector2(0.5f, 0);
+                invRect.anchorMax = new Vector2(1, 0.82f);
+                invRect.offsetMin = new Vector2(3, 5);
+                invRect.offsetMax = new Vector2(-5, 0);
+
+                // 구매 확인 패널
+                var purchaseConfirmPanel = CreateSimplePanel("PurchaseConfirmPanel", rootObj.transform);
+                purchaseConfirmPanel.GetComponent<Image>().color = new Color(0, 0, 0, 0.9f);
+                purchaseConfirmPanel.SetActive(false);
+                var confirmLayout = purchaseConfirmPanel.AddComponent<VerticalLayoutGroup>();
+                confirmLayout.spacing = 10;
+                confirmLayout.padding = new RectOffset(20, 20, 20, 20);
+                confirmLayout.childAlignment = TextAnchor.MiddleCenter;
+                confirmLayout.childControlHeight = false;
+                confirmLayout.childForceExpandHeight = false;
+                confirmLayout.childControlWidth = false;
+                confirmLayout.childForceExpandWidth = false;
+
+                var purchaseItemNameText = CreateSimpleText("PurchaseItemNameText", purchaseConfirmPanel.transform, "Item Name", 18);
+                purchaseItemNameText.GetComponent<RectTransform>().sizeDelta = new Vector2(300, 30);
+                var purchaseItemPriceText = CreateSimpleText("PurchaseItemPriceText", purchaseConfirmPanel.transform, "Price: 0", 14);
+                purchaseItemPriceText.GetComponent<RectTransform>().sizeDelta = new Vector2(300, 25);
+                var purchaseItemDescriptionText = CreateSimpleText("PurchaseItemDescriptionText", purchaseConfirmPanel.transform, "", 12);
+                purchaseItemDescriptionText.GetComponent<RectTransform>().sizeDelta = new Vector2(300, 60);
+                var confirmPurchaseButton = CreateSimpleButton("ConfirmPurchaseButton", purchaseConfirmPanel.transform, "Confirm");
+                confirmPurchaseButton.GetComponent<RectTransform>().sizeDelta = new Vector2(150, 35);
+                var cancelPurchaseButton = CreateSimpleButton("CancelPurchaseButton", purchaseConfirmPanel.transform, "Cancel");
+                cancelPurchaseButton.GetComponent<RectTransform>().sizeDelta = new Vector2(150, 35);
+
+                // SerializedObject 연결
+                var so = new SerializedObject(shopUI);
+                so.FindProperty("shopPanel").objectReferenceValue = shopPanel;
+                so.FindProperty("shopItemListPanel").objectReferenceValue = shopItemListPanel;
+                so.FindProperty("playerInventoryPanel").objectReferenceValue = playerInventoryPanel;
+                so.FindProperty("shopNameText").objectReferenceValue = shopNameText;
+                so.FindProperty("playerGoldText").objectReferenceValue = playerGoldText;
+                so.FindProperty("closeButton").objectReferenceValue = closeButton.GetComponent<Button>();
+                so.FindProperty("shopItemsContent").objectReferenceValue = shopItemsContent.transform;
+                so.FindProperty("shopScrollRect").objectReferenceValue = shopScroll;
+                so.FindProperty("purchaseConfirmPanel").objectReferenceValue = purchaseConfirmPanel;
+                so.FindProperty("purchaseItemNameText").objectReferenceValue = purchaseItemNameText;
+                so.FindProperty("purchaseItemPriceText").objectReferenceValue = purchaseItemPriceText;
+                so.FindProperty("purchaseItemDescriptionText").objectReferenceValue = purchaseItemDescriptionText;
+                so.FindProperty("confirmPurchaseButton").objectReferenceValue = confirmPurchaseButton.GetComponent<Button>();
+                so.FindProperty("cancelPurchaseButton").objectReferenceValue = cancelPurchaseButton.GetComponent<Button>();
+                so.FindProperty("allCategoryButton").objectReferenceValue = allCategoryButton.GetComponent<Button>();
+                so.FindProperty("weaponCategoryButton").objectReferenceValue = weaponCategoryButton.GetComponent<Button>();
+                so.FindProperty("armorCategoryButton").objectReferenceValue = armorCategoryButton.GetComponent<Button>();
+                so.FindProperty("consumableCategoryButton").objectReferenceValue = consumableCategoryButton.GetComponent<Button>();
+                so.FindProperty("toolCategoryButton").objectReferenceValue = toolCategoryButton.GetComponent<Button>();
+                so.ApplyModifiedProperties();
+
+                SaveStaticPrefab(rootObj, "ShopUI");
+                Debug.Log("ShopUI prefab generated!");
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"Error generating ShopUI: {ex.Message}\n{ex.StackTrace}");
+            }
+        }
+
+        /// <summary>
+        /// DungeonUI 프리팹 생성
+        /// </summary>
+        [MenuItem("Tools/UI/Generate DungeonUI Prefab")]
+        public static void GenerateDungeonUIPrefab()
+        {
+            try
+            {
+                Debug.Log("Starting DungeonUI prefab generation...");
+
+                var rootObj = new GameObject("DungeonUI");
+                var dungeonUI = rootObj.AddComponent<DungeonUI>();
+
+                // 던전 패널
+                var dungeonPanel = CreateSimplePanel("DungeonPanel", rootObj.transform);
+                dungeonPanel.SetActive(false);
+
+                // 상단: 던전 상태 패널
+                var dungeonStatusPanel = CreateSimplePanel("DungeonStatusPanel", dungeonPanel.transform);
+                var statusRect = dungeonStatusPanel.GetComponent<RectTransform>();
+                statusRect.anchorMin = new Vector2(0, 0.85f);
+                statusRect.anchorMax = Vector2.one;
+                statusRect.offsetMin = Vector2.zero;
+                statusRect.offsetMax = Vector2.zero;
+                dungeonStatusPanel.GetComponent<Image>().color = new Color(0.1f, 0.1f, 0.15f, 0.9f);
+                var statusLayout = dungeonStatusPanel.AddComponent<HorizontalLayoutGroup>();
+                statusLayout.spacing = 15;
+                statusLayout.padding = new RectOffset(10, 10, 5, 5);
+                statusLayout.childControlHeight = false;
+                statusLayout.childForceExpandHeight = false;
+                statusLayout.childControlWidth = false;
+                statusLayout.childForceExpandWidth = false;
+
+                var dungeonNameText = CreateSimpleText("DungeonNameText", dungeonStatusPanel.transform, "Dungeon", 16);
+                dungeonNameText.GetComponent<RectTransform>().sizeDelta = new Vector2(150, 30);
+                var currentFloorText = CreateSimpleText("CurrentFloorText", dungeonStatusPanel.transform, "Floor: 1", 14);
+                currentFloorText.GetComponent<RectTransform>().sizeDelta = new Vector2(80, 30);
+                var remainingTimeText = CreateSimpleText("RemainingTimeText", dungeonStatusPanel.transform, "Time: --:--", 14);
+                remainingTimeText.GetComponent<RectTransform>().sizeDelta = new Vector2(100, 30);
+                var dungeonStateText = CreateSimpleText("DungeonStateText", dungeonStatusPanel.transform, "Exploring", 14);
+                dungeonStateText.GetComponent<RectTransform>().sizeDelta = new Vector2(100, 30);
+
+                // 타이머 슬라이더
+                var timeSliderObj = CreateSimpleSlider("TimeProgressSlider", dungeonPanel.transform);
+                var timeSliderRect = timeSliderObj.GetComponent<RectTransform>();
+                timeSliderRect.anchorMin = new Vector2(0, 0.82f);
+                timeSliderRect.anchorMax = new Vector2(1, 0.85f);
+                timeSliderRect.offsetMin = Vector2.zero;
+                timeSliderRect.offsetMax = Vector2.zero;
+
+                // 좌측: 플레이어 리스트
+                var playerListPanel = CreateSimplePanel("PlayerListPanel", dungeonPanel.transform);
+                var plRect = playerListPanel.GetComponent<RectTransform>();
+                plRect.anchorMin = new Vector2(0, 0.4f);
+                plRect.anchorMax = new Vector2(0.2f, 0.82f);
+                plRect.offsetMin = Vector2.zero;
+                plRect.offsetMax = Vector2.zero;
+                playerListPanel.GetComponent<Image>().color = new Color(0.1f, 0.1f, 0.15f, 0.7f);
+                var plLayout = playerListPanel.AddComponent<VerticalLayoutGroup>();
+                plLayout.spacing = 3;
+                plLayout.padding = new RectOffset(5, 5, 5, 5);
+                plLayout.childControlHeight = false;
+                plLayout.childForceExpandHeight = false;
+
+                var alivePlayersText = CreateSimpleText("AlivePlayersText", playerListPanel.transform, "Players: 1/1", 12);
+                alivePlayersText.GetComponent<RectTransform>().sizeDelta = new Vector2(100, 20);
+                var playerListContent = new GameObject("PlayerListContent");
+                playerListContent.transform.SetParent(playerListPanel.transform, false);
+                playerListContent.AddComponent<RectTransform>();
+
+                // 하단: 진행 상황
+                var progressPanel = CreateSimplePanel("ProgressPanel", dungeonPanel.transform);
+                var progRect = progressPanel.GetComponent<RectTransform>();
+                progRect.anchorMin = new Vector2(0.3f, 0);
+                progRect.anchorMax = new Vector2(0.7f, 0.08f);
+                progRect.offsetMin = Vector2.zero;
+                progRect.offsetMax = Vector2.zero;
+                progressPanel.GetComponent<Image>().color = new Color(0.1f, 0.1f, 0.15f, 0.8f);
+                var progLayout = progressPanel.AddComponent<HorizontalLayoutGroup>();
+                progLayout.spacing = 10;
+                progLayout.padding = new RectOffset(10, 10, 5, 5);
+
+                var monstersRemainingText = CreateSimpleText("MonstersRemainingText", progressPanel.transform, "Monsters: 0", 12);
+                monstersRemainingText.GetComponent<RectTransform>().sizeDelta = new Vector2(120, 25);
+                var objectiveText = CreateSimpleText("ObjectiveText", progressPanel.transform, "Clear the floor", 12);
+                objectiveText.GetComponent<RectTransform>().sizeDelta = new Vector2(150, 25);
+
+                var floorSliderObj = CreateSimpleSlider("FloorProgressSlider", progressPanel.transform);
+                floorSliderObj.GetComponent<RectTransform>().sizeDelta = new Vector2(100, 20);
+
+                // 보상 패널 (기본 숨김)
+                var rewardPanel = CreateSimplePanel("RewardPanel", rootObj.transform);
+                rewardPanel.GetComponent<Image>().color = new Color(0, 0, 0, 0.9f);
+                rewardPanel.SetActive(false);
+                var rewardLayout = rewardPanel.AddComponent<VerticalLayoutGroup>();
+                rewardLayout.spacing = 10;
+                rewardLayout.padding = new RectOffset(20, 20, 20, 20);
+                rewardLayout.childAlignment = TextAnchor.MiddleCenter;
+                rewardLayout.childControlHeight = false;
+                rewardLayout.childForceExpandHeight = false;
+                rewardLayout.childControlWidth = false;
+                rewardLayout.childForceExpandWidth = false;
+
+                var rewardTitle = CreateSimpleText("RewardTitle", rewardPanel.transform, "Dungeon Cleared!", 24);
+                rewardTitle.GetComponent<RectTransform>().sizeDelta = new Vector2(300, 40);
+                rewardTitle.color = Color.yellow;
+                var expRewardText = CreateSimpleText("ExpRewardText", rewardPanel.transform, "EXP: +0", 16);
+                expRewardText.GetComponent<RectTransform>().sizeDelta = new Vector2(300, 25);
+                var goldRewardText = CreateSimpleText("GoldRewardText", rewardPanel.transform, "Gold: +0", 16);
+                goldRewardText.GetComponent<RectTransform>().sizeDelta = new Vector2(300, 25);
+                var itemRewardContent = new GameObject("ItemRewardContent");
+                itemRewardContent.transform.SetParent(rewardPanel.transform, false);
+                var itemRewardRect = itemRewardContent.AddComponent<RectTransform>();
+                itemRewardRect.sizeDelta = new Vector2(300, 100);
+
+                // SerializedObject 연결
+                var so = new SerializedObject(dungeonUI);
+                so.FindProperty("dungeonPanel").objectReferenceValue = dungeonPanel;
+                so.FindProperty("dungeonStatusPanel").objectReferenceValue = dungeonStatusPanel;
+                so.FindProperty("playerListPanel").objectReferenceValue = playerListPanel;
+                so.FindProperty("rewardPanel").objectReferenceValue = rewardPanel;
+                so.FindProperty("dungeonNameText").objectReferenceValue = dungeonNameText;
+                so.FindProperty("currentFloorText").objectReferenceValue = currentFloorText;
+                so.FindProperty("remainingTimeText").objectReferenceValue = remainingTimeText;
+                so.FindProperty("dungeonStateText").objectReferenceValue = dungeonStateText;
+                so.FindProperty("timeProgressSlider").objectReferenceValue = timeSliderObj.GetComponent<Slider>();
+                so.FindProperty("alivePlayersText").objectReferenceValue = alivePlayersText;
+                so.FindProperty("playerListContent").objectReferenceValue = playerListContent.transform;
+                so.FindProperty("monstersRemainingText").objectReferenceValue = monstersRemainingText;
+                so.FindProperty("objectiveText").objectReferenceValue = objectiveText;
+                so.FindProperty("floorProgressSlider").objectReferenceValue = floorSliderObj.GetComponent<Slider>();
+                so.FindProperty("expRewardText").objectReferenceValue = expRewardText;
+                so.FindProperty("goldRewardText").objectReferenceValue = goldRewardText;
+                so.FindProperty("itemRewardContent").objectReferenceValue = itemRewardContent.transform;
+                so.ApplyModifiedProperties();
+
+                SaveStaticPrefab(rootObj, "DungeonUI");
+                Debug.Log("DungeonUI prefab generated!");
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"Error generating DungeonUI: {ex.Message}\n{ex.StackTrace}");
+            }
+        }
+
+        /// <summary>
+        /// SkillLearningUI 프리팹 생성
+        /// </summary>
+        [MenuItem("Tools/UI/Generate SkillLearningUI Prefab")]
+        public static void GenerateSkillLearningUIPrefab()
+        {
+            try
+            {
+                Debug.Log("Starting SkillLearningUI prefab generation...");
+
+                var rootObj = new GameObject("SkillLearningUI");
+                var skillUI = rootObj.AddComponent<SkillLearningUI>();
+
+                // 메인 패널 (중앙 팝업)
+                var skillLearningPanel = CreateSimplePanel("SkillLearningPanel", rootObj.transform);
+                skillLearningPanel.SetActive(false);
+                var panelRect = skillLearningPanel.GetComponent<RectTransform>();
+                panelRect.anchorMin = new Vector2(0.15f, 0.1f);
+                panelRect.anchorMax = new Vector2(0.85f, 0.9f);
+                panelRect.offsetMin = Vector2.zero;
+                panelRect.offsetMax = Vector2.zero;
+
+                var mainLayout = skillLearningPanel.AddComponent<VerticalLayoutGroup>();
+                mainLayout.spacing = 10;
+                mainLayout.padding = new RectOffset(15, 15, 15, 15);
+                mainLayout.childControlHeight = false;
+                mainLayout.childForceExpandHeight = false;
+
+                // NPC 이름 텍스트
+                var npcNameText = CreateSimpleText("NpcNameText", skillLearningPanel.transform, "Skill Master", 22);
+
+                // 레벨 텍스트
+                var levelText = CreateSimpleText("LevelText", skillLearningPanel.transform, "Level: 1", 16);
+
+                // 레벨 네비게이션 (prev / next)
+                var navPanel = new GameObject("LevelNavPanel");
+                navPanel.transform.SetParent(skillLearningPanel.transform, false);
+                navPanel.AddComponent<RectTransform>().sizeDelta = new Vector2(0, 40);
+                var navLayout = navPanel.AddComponent<HorizontalLayoutGroup>();
+                navLayout.spacing = 10;
+                navLayout.childControlWidth = true;
+                navLayout.childForceExpandWidth = true;
+
+                var prevLevelButton = CreateSimpleButton("PrevLevelButton", navPanel.transform, "< Prev Level");
+                var nextLevelButton = CreateSimpleButton("NextLevelButton", navPanel.transform, "Next Level >");
+
+                // 스킬 선택지 3개
+                var skillChoiceButtons = new GameObject[3];
+                var skillNameTexts = new Text[3];
+                var skillDescriptionTexts = new Text[3];
+                var skillCostTexts = new Text[3];
+                var skillIconImages = new Image[3];
+
+                for (int i = 0; i < 3; i++)
+                {
+                    var choicePanel = CreateSimplePanel($"SkillChoice_{i}", skillLearningPanel.transform);
+                    var choiceRect = choicePanel.GetComponent<RectTransform>();
+                    choiceRect.sizeDelta = new Vector2(0, 120);
+                    choicePanel.GetComponent<Image>().color = new Color(0.15f, 0.15f, 0.25f, 0.9f);
+
+                    var choiceLayout = choicePanel.AddComponent<HorizontalLayoutGroup>();
+                    choiceLayout.spacing = 10;
+                    choiceLayout.padding = new RectOffset(10, 10, 10, 10);
+                    choiceLayout.childControlWidth = false;
+                    choiceLayout.childForceExpandWidth = false;
+
+                    // 스킬 아이콘
+                    var iconObj = new GameObject($"SkillIcon_{i}");
+                    iconObj.transform.SetParent(choicePanel.transform, false);
+                    var iconRect = iconObj.AddComponent<RectTransform>();
+                    iconRect.sizeDelta = new Vector2(64, 64);
+                    skillIconImages[i] = iconObj.AddComponent<Image>();
+                    skillIconImages[i].color = new Color(0.3f, 0.3f, 0.5f, 1f);
+
+                    // 텍스트 영역
+                    var textArea = new GameObject($"TextArea_{i}");
+                    textArea.transform.SetParent(choicePanel.transform, false);
+                    var textAreaRect = textArea.AddComponent<RectTransform>();
+                    textAreaRect.sizeDelta = new Vector2(300, 100);
+                    var textLayout = textArea.AddComponent<VerticalLayoutGroup>();
+                    textLayout.spacing = 3;
+                    textLayout.childControlHeight = false;
+                    textLayout.childForceExpandHeight = false;
+
+                    skillNameTexts[i] = CreateSimpleText($"SkillName_{i}", textArea.transform, $"Skill {i + 1}", 16);
+                    skillDescriptionTexts[i] = CreateSimpleText($"SkillDesc_{i}", textArea.transform, "Description", 12);
+                    skillCostTexts[i] = CreateSimpleText($"SkillCost_{i}", textArea.transform, "Cost: 0 Gold", 14);
+
+                    // 선택 버튼 (패널 자체를 버튼으로)
+                    var btn = choicePanel.AddComponent<Button>();
+                    skillChoiceButtons[i] = choicePanel;
+                }
+
+                // 에러 메시지 텍스트
+                var errorMessageText = CreateSimpleText("ErrorMessageText", skillLearningPanel.transform, "", 14);
+                errorMessageText.color = new Color(1f, 0.3f, 0.3f, 1f);
+
+                // 닫기 버튼
+                var closeButton = CreateSimpleButton("CloseButton", skillLearningPanel.transform, "Close");
+
+                // SerializedObject 연결
+                var so = new SerializedObject(skillUI);
+                so.FindProperty("skillLearningPanel").objectReferenceValue = skillLearningPanel;
+                so.FindProperty("npcNameText").objectReferenceValue = npcNameText;
+                so.FindProperty("levelText").objectReferenceValue = levelText;
+                so.FindProperty("closeButton").objectReferenceValue = closeButton.GetComponent<Button>();
+                so.FindProperty("prevLevelButton").objectReferenceValue = prevLevelButton.GetComponent<Button>();
+                so.FindProperty("nextLevelButton").objectReferenceValue = nextLevelButton.GetComponent<Button>();
+                so.FindProperty("errorMessageText").objectReferenceValue = errorMessageText;
+
+                // 배열 연결
+                var choiceBtnsProp = so.FindProperty("skillChoiceButtons");
+                choiceBtnsProp.arraySize = 3;
+                for (int i = 0; i < 3; i++)
+                    choiceBtnsProp.GetArrayElementAtIndex(i).objectReferenceValue = skillChoiceButtons[i].GetComponent<Button>();
+
+                var namesProp = so.FindProperty("skillNameTexts");
+                namesProp.arraySize = 3;
+                for (int i = 0; i < 3; i++)
+                    namesProp.GetArrayElementAtIndex(i).objectReferenceValue = skillNameTexts[i];
+
+                var descsProp = so.FindProperty("skillDescriptionTexts");
+                descsProp.arraySize = 3;
+                for (int i = 0; i < 3; i++)
+                    descsProp.GetArrayElementAtIndex(i).objectReferenceValue = skillDescriptionTexts[i];
+
+                var costsProp = so.FindProperty("skillCostTexts");
+                costsProp.arraySize = 3;
+                for (int i = 0; i < 3; i++)
+                    costsProp.GetArrayElementAtIndex(i).objectReferenceValue = skillCostTexts[i];
+
+                var iconsProp = so.FindProperty("skillIconImages");
+                iconsProp.arraySize = 3;
+                for (int i = 0; i < 3; i++)
+                    iconsProp.GetArrayElementAtIndex(i).objectReferenceValue = skillIconImages[i];
+
+                so.ApplyModifiedProperties();
+
+                SaveStaticPrefab(rootObj, "SkillLearningUI");
+                Debug.Log("SkillLearningUI prefab generated!");
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"Error generating SkillLearningUI: {ex.Message}\n{ex.StackTrace}");
+            }
+        }
+
+        /// <summary>
+        /// 5개 누락 UI 프리팹 일괄 생성
+        /// </summary>
+        [MenuItem("Tools/UI/Generate All Missing UI Prefabs")]
+        public static void GenerateAllMissingUIPrefabs()
+        {
+            GenerateDungeonEntryUIPrefab();
+            GenerateDeathUIPrefab();
+            GenerateShopUIPrefab();
+            GenerateDungeonUIPrefab();
+            GenerateSkillLearningUIPrefab();
+            AssetDatabase.Refresh();
+            Debug.Log("All 5 missing UI prefabs generated!");
+        }
+
+        // === Static 헬퍼 메서드 (MenuItem에서 사용) ===
+
+        private static Text CreateSimpleText(string name, Transform parent, string text, int fontSize)
+        {
+            var textObj = new GameObject(name);
+            textObj.transform.SetParent(parent, false);
+            textObj.AddComponent<RectTransform>().sizeDelta = new Vector2(200, 30);
+            var t = textObj.AddComponent<Text>();
+            t.text = text;
+            t.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            t.fontSize = fontSize;
+            t.color = Color.white;
+            t.alignment = TextAnchor.MiddleLeft;
+            return t;
+        }
+
+        private static GameObject CreateSimpleButton(string name, Transform parent, string text)
+        {
+            var btnObj = new GameObject(name);
+            btnObj.transform.SetParent(parent, false);
+            btnObj.AddComponent<RectTransform>().sizeDelta = new Vector2(120, 30);
+            btnObj.AddComponent<Image>().color = new Color(0.2f, 0.3f, 0.5f, 1f);
+            btnObj.AddComponent<Button>();
+
+            var textObj = new GameObject("Text");
+            textObj.transform.SetParent(btnObj.transform, false);
+            var r = textObj.AddComponent<RectTransform>();
+            r.anchorMin = Vector2.zero;
+            r.anchorMax = Vector2.one;
+            r.offsetMin = Vector2.zero;
+            r.offsetMax = Vector2.zero;
+            var t = textObj.AddComponent<Text>();
+            t.text = text;
+            t.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            t.fontSize = 14;
+            t.color = Color.white;
+            t.alignment = TextAnchor.MiddleCenter;
+
+            return btnObj;
+        }
+
+        private static GameObject CreateSimpleSlider(string name, Transform parent)
+        {
+            var sliderObj = new GameObject(name);
+            sliderObj.transform.SetParent(parent, false);
+            sliderObj.AddComponent<RectTransform>().sizeDelta = new Vector2(150, 20);
+            var slider = sliderObj.AddComponent<Slider>();
+
+            var bg = new GameObject("Background");
+            bg.transform.SetParent(sliderObj.transform, false);
+            var bgRect = bg.AddComponent<RectTransform>();
+            bgRect.anchorMin = Vector2.zero;
+            bgRect.anchorMax = Vector2.one;
+            bgRect.offsetMin = Vector2.zero;
+            bgRect.offsetMax = Vector2.zero;
+            bg.AddComponent<Image>().color = new Color(0.3f, 0.3f, 0.3f, 0.8f);
+
+            var fillArea = new GameObject("Fill Area");
+            fillArea.transform.SetParent(sliderObj.transform, false);
+            var faRect = fillArea.AddComponent<RectTransform>();
+            faRect.anchorMin = Vector2.zero;
+            faRect.anchorMax = Vector2.one;
+            faRect.offsetMin = Vector2.zero;
+            faRect.offsetMax = Vector2.zero;
+
+            var fill = new GameObject("Fill");
+            fill.transform.SetParent(fillArea.transform, false);
+            var fillRect = fill.AddComponent<RectTransform>();
+            fillRect.anchorMin = Vector2.zero;
+            fillRect.anchorMax = Vector2.one;
+            fillRect.offsetMin = Vector2.zero;
+            fillRect.offsetMax = Vector2.zero;
+            var fillImg = fill.AddComponent<Image>();
+            fillImg.color = new Color(0.3f, 0.7f, 0.3f, 1f);
+
+            slider.fillRect = fillRect;
+
+            return sliderObj;
+        }
+
+        private static void SaveStaticPrefab(GameObject obj, string name)
+        {
+            string resourcesUIPath = "Assets/Resources/UI/";
+            if (!Directory.Exists(resourcesUIPath))
+                Directory.CreateDirectory(resourcesUIPath);
+
+            string fullPath = $"{resourcesUIPath}{name}.prefab";
+            PrefabUtility.SaveAsPrefabAsset(obj, fullPath);
+            DestroyImmediate(obj);
+            Debug.Log($"Prefab saved: {fullPath}");
+        }
+
+        private void ConnectPlayerHUDComponents(PlayerHUD hudComponent, GameObject mainPanel,
             GameObject healthPanel, GameObject resourcePanel, GameObject healthSlider, 
             GameObject manaSlider, GameObject healthText, GameObject manaText, 
             GameObject expSlider, GameObject levelText, GameObject expText, 

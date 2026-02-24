@@ -56,12 +56,25 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 Destroy(gameObject);
             }
         }
-        
+
+        private void OnDestroy()
+        {
+            if (Instance == this)
+                Instance = null;
+        }
+
         private async void Start()
         {
-            if (autoStartFlow)
+            try
             {
-                await StartGameFlow();
+                if (autoStartFlow)
+                {
+                    await StartGameFlow();
+                }
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"[GameFlowManager] Start failed: {e.Message}");
             }
         }
         
@@ -127,6 +140,16 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         {
             ChangeState(GameFlowState.CharacterCreation);
             
+            // 기존 세이브 데이터 확인
+            var savedCharacter = LoadCharacterData();
+            if (savedCharacter.HasValue)
+            {
+                currentCharacter = savedCharacter;
+                OnCharacterCreated(currentCharacter.Value);
+                Debug.Log($"Loaded saved character: {currentCharacter.Value.characterName}");
+                return;
+            }
+
             if (skipCharacterCreation)
             {
                 // 테스트용 캐릭터 자동 생성
@@ -141,15 +164,15 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 var tcs = new System.Threading.Tasks.TaskCompletionSource<bool>();
                 
                 CharacterCreationUI.StartCharacterCreation(
-                    onCreated: (character) =>
+                    onCreated: (creationData) =>
                     {
-                        currentCharacter = character;
-                        OnCharacterCreated(character);
+                        currentCharacter = ConvertToCharacterData(creationData);
+                        OnCharacterCreated(currentCharacter.Value);
                         tcs.SetResult(true);
                     },
                     onCancelled: () =>
                     {
-                        Debug.Log("❌ Character creation cancelled");
+                        Debug.Log("Character creation cancelled");
                         tcs.SetResult(false);
                     }
                 );
@@ -199,6 +222,23 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             SaveCharacterData(character);
         }
         
+        /// <summary>
+        /// CharacterCreationData → CharacterData 변환
+        /// </summary>
+        private CharacterData ConvertToCharacterData(CharacterCreationData creationData)
+        {
+            return new CharacterData
+            {
+                characterName = creationData.characterName ?? "Unnamed",
+                race = creationData.race,
+                level = creationData.startingLevel,
+                experience = 0,
+                gold = (int)creationData.startingGold,
+                soulBonusStats = new StatBlock(),
+                creationTime = System.DateTime.Now.ToBinary()
+            };
+        }
+
         /// <summary>
         /// 테스트용 캐릭터 생성
         /// </summary>
@@ -262,14 +302,27 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         private void OnNetworkStarted()
         {
             ChangeState(GameFlowState.GameReady);
-            
+
             // 플레이어 스폰 시 캐릭터 데이터 적용
             if (NetworkManager.Singleton.IsServer)
             {
                 NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnected;
             }
-            
+
             OnGameReady?.Invoke();
+
+            // 게임 준비 완료 후 InGame 상태로 전환
+            TransitionToInGame();
+        }
+
+        /// <summary>
+        /// InGame 상태로 전환 - 타운 UI 활성화
+        /// </summary>
+        private void TransitionToInGame()
+        {
+            ChangeState(GameFlowState.InGame);
+
+            Debug.Log("Game is now InGame state - Town hub active");
         }
         
         /// <summary>
@@ -288,18 +341,46 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         }
         
         /// <summary>
-        /// 플레이어에게 캐릭터 데이터 적용
+        /// 플레이어에게 캐릭터 데이터 적용 (서버측 검증 포함)
         /// </summary>
         private void ApplyCharacterDataToPlayer(GameObject playerObject, CharacterData characterData)
         {
             if (playerObject == null) return;
-            
+
+            // 서버측 기본 검증
+            if (!ValidateCharacterDataOnServer(characterData))
+            {
+                Debug.LogWarning($"Invalid character data rejected: {characterData.characterName}");
+                // 기본값으로 대체
+                characterData = CreateTestCharacter();
+            }
+
             var statsManager = playerObject.GetComponent<PlayerStatsManager>();
             if (statsManager != null)
             {
                 statsManager.InitializeFromCharacterData(characterData);
-                Debug.Log($"📊 Applied character data to player: {characterData.characterName}");
+                Debug.Log($"Applied character data to player: {characterData.characterName}");
             }
+        }
+
+        /// <summary>
+        /// 서버측 캐릭터 데이터 검증
+        /// </summary>
+        private bool ValidateCharacterDataOnServer(CharacterData characterData)
+        {
+            // 이름 검증
+            if (string.IsNullOrEmpty(characterData.characterName) || characterData.characterName.Length > 20)
+                return false;
+
+            // 종족 검증
+            if (characterData.race == Race.None)
+                return false;
+
+            // 레벨 범위 검증
+            if (characterData.level < 1 || characterData.level > 100)
+                return false;
+
+            return true;
         }
         
         /// <summary>
@@ -407,13 +488,20 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         [ContextMenu("Reset Game Flow")]
         public async void ResetGameFlow()
         {
-            if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening)
+            try
             {
-                NetworkManager.Singleton.Shutdown();
+                if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening)
+                {
+                    NetworkManager.Singleton.Shutdown();
+                }
+
+                currentCharacter = null;
+                await StartGameFlow();
             }
-            
-            currentCharacter = null;
-            await StartGameFlow();
+            catch (System.Exception e)
+            {
+                Debug.LogError($"[GameFlowManager] ResetGameFlow failed: {e.Message}");
+            }
         }
     }
 }

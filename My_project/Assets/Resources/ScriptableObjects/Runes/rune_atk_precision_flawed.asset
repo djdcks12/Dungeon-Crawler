@@ -1,0 +1,47 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 83bf213b717bc9344b16ba745c099e7d, type: 3}
+  m_Name: rune_atk_precision_flawed
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.RuneData
+  runeId: rune_atk_precision_flawed
+  runeName: "\uACB0\uD568\uC788\uB294 \uC815\uBC00\uC758 \uB8EC"
+  description: "\uC815\uD655\uD55C \uD0C0\uACA9\uC744 \uC704\uD55C \uB8EC"
+  runeIcon: {fileID: 0}
+  runeType: 0
+  runeGrade: 2
+  socketColor: 0
+  buyPrice: 250
+  sellPrice: 62
+  statBonus:
+    strength: 0
+    agility: 3
+    vitality: 0
+    intelligence: 0
+    defense: 0
+    magicDefense: 0
+    luck: 0
+    stability: 0
+  hpBonus: 0
+  mpBonus: 0
+  critChanceBonus: 6
+  critDamageBonus: 0
+  attackSpeedBonus: 0
+  moveSpeedBonus: 0
+  cooldownReduction: 0
+  lifestealPercent: 0
+  expBonusPercent: 0
+  goldBonusPercent: 0
+  elementalType: 0
+  elementalDamageBonus: 0
+  comboRuneId: rune_atk_deadly_flawed
+  comboEffectDesc: "\uC870\uD569 \uC2DC \uD6A8\uACFC 1.2\uBC30 \uC99D\uD3ED"
+  comboBonusMultiplier: 0.2

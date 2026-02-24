@@ -1,0 +1,57 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4b0881b9cf4f0ee4ebd3a22aad14bb50, type: 3}
+  m_Name: we_mage_library
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.WorldEventData
+  eventId: we_mage_library
+  eventName: "\uB9C8\uBC95\uC0AC\uC758 \uC11C\uC7AC"
+  description: "\uD3D0\uD5C8 \uC18D\uC5D0\uC11C \uACE0\uB300 \uB9C8\uBC95\uC0AC\uC758
+    \uC11C\uC7AC\uB97C \uBC1C\uACAC\uD588\uB2E4! \uB9C8\uBC95\uC11C\uAC00 \uAC00\uB4DD\uD558\uB2E4!"
+  eventIcon: {fileID: 0}
+  eventType: 4
+  rarity: 2
+  spawnChance: 0.03
+  checkInterval: 70
+  minPlayerLevel: 5
+  maxPlayerLevel: 99
+  requiresNight: 0
+  requiresDay: 0
+  requiredWeather: 0
+  duration: 60
+  isPermanentUntilCompleted: 0
+  eventMonsters: []
+  rewards:
+  - rewardType: 1
+    amount: 1000
+    itemId: 
+    dropChance: 1
+  - rewardType: 4
+    amount: 1
+    itemId: 
+    dropChance: 0.2
+  dialogues: []
+  choices:
+  - choiceText: "\uB9C8\uBC95\uC11C\uB97C \uC77D\uB294\uB2E4"
+    resultDescription: "\uAC15\uB825\uD55C \uB9C8\uBC95 \uC9C0\uC2DD\uC744 \uC5BB\uC5C8\uB2E4!"
+    rewardType: 1
+    rewardAmount: 1000
+    riskChance: 0.15
+    riskDamage: 80
+  - choiceText: "\uB9C8\uBC95\uC11C\uB97C \uAC00\uC838\uAC04\uB2E4"
+    resultDescription: "\uADC0\uC911\uD55C \uB9C8\uBC95\uC11C\uB97C \uD655\uBCF4\uD588\uB2E4!"
+    rewardType: 0
+    rewardAmount: 800
+    riskChance: 0.1
+    riskDamage: 60
+  spawnRadius: 6
+  announceToAll: 0
+  announceMessage: 

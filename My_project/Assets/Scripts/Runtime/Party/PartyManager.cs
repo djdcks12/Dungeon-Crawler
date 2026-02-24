@@ -18,9 +18,9 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         [SerializeField] private float inviteExpireTime = 30f; // 초대 만료 시간
         
         // 네트워크 변수들
-        private NetworkList<PartyInfo> allParties;
-        private NetworkList<PartyMember> allPartyMembers;
-        private NetworkList<PartyInvitation> pendingInvitations;
+        private NetworkList<PartyInfo> allParties = new NetworkList<PartyInfo>();
+        private NetworkList<PartyMember> allPartyMembers = new NetworkList<PartyMember>();
+        private NetworkList<PartyInvitation> pendingInvitations = new NetworkList<PartyInvitation>();
         
         // 로컬 캐시 (성능 최적화용)
         private Dictionary<int, List<PartyMember>> partyMemberCache = new Dictionary<int, List<PartyMember>>();
@@ -45,18 +45,10 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         {
             base.OnNetworkSpawn();
             
-            // NetworkList 초기화
-            allParties = new NetworkList<PartyInfo>();
-            allPartyMembers = new NetworkList<PartyMember>();
-            pendingInvitations = new NetworkList<PartyInvitation>();
-            
-            // 서버에서만 이벤트 구독
-            if (IsServer)
-            {
-                allParties.OnListChanged += OnPartiesListChanged;
-                allPartyMembers.OnListChanged += OnMembersListChanged;
-                pendingInvitations.OnListChanged += OnInvitationsListChanged;
-            }
+            // 서버/클라이언트 모두 이벤트 구독 (UI 업데이트를 위해 필수)
+            allParties.OnListChanged += OnPartiesListChanged;
+            allPartyMembers.OnListChanged += OnMembersListChanged;
+            pendingInvitations.OnListChanged += OnInvitationsListChanged;
             
             Debug.Log($"PartyManager spawned (IsServer: {IsServer})");
         }

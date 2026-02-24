@@ -15,7 +15,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime.Editor
             Debug.Log("=== 네트워크 설정 진단 시작 ===");
             
             // 1. NetworkManager 존재 확인
-            var networkManager = Object.FindObjectOfType<NetworkManager>();
+            var networkManager = Object.FindFirstObjectByType<NetworkManager>();
             if (networkManager == null)
             {
                 Debug.LogError("❌ NetworkManager를 찾을 수 없습니다!");
@@ -101,7 +101,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime.Editor
         {
             Debug.Log("=== 일반적인 네트워크 문제 자동 수정 ===");
             
-            var networkManager = Object.FindObjectOfType<NetworkManager>();
+            var networkManager = Object.FindFirstObjectByType<NetworkManager>();
             if (networkManager == null)
             {
                 Debug.LogError("NetworkManager를 찾을 수 없어 자동 수정할 수 없습니다.");
@@ -202,7 +202,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime.Editor
         public static void CreateDebugNetworkManager()
         {
             // 기존 NetworkManager 제거
-            var existingNetworkManager = Object.FindObjectOfType<NetworkManager>();
+            var existingNetworkManager = Object.FindFirstObjectByType<NetworkManager>();
             if (existingNetworkManager != null)
             {
                 Object.DestroyImmediate(existingNetworkManager.gameObject);

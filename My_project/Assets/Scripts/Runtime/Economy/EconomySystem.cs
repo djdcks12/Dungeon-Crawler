@@ -43,7 +43,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             {
                 if (instance == null)
                 {
-                    instance = FindObjectOfType<EconomySystem>();
+                    instance = FindFirstObjectByType<EconomySystem>();
                     if (instance == null)
                     {
                         GameObject go = new GameObject("EconomySystem");
@@ -67,7 +67,14 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 Destroy(gameObject);
             }
         }
-        
+
+        public override void OnDestroy()
+        {
+            base.OnDestroy();
+            if (instance == this)
+                instance = null;
+        }
+
         public override void OnNetworkSpawn()
         {
             base.OnNetworkSpawn();
@@ -200,9 +207,10 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             ulong clientId = rpcParams.Receive.SenderClientId;
             
             // 플레이어 스탯 매니저 찾기
-            var playerObject = NetworkManager.Singleton.ConnectedClients[clientId].PlayerObject;
+            if (!NetworkManager.Singleton.ConnectedClients.TryGetValue(clientId, out var client)) return;
+            var playerObject = client.PlayerObject;
             if (playerObject == null) return;
-            
+
             var statsManager = playerObject.GetComponent<PlayerStatsManager>();
             if (statsManager == null) return;
             
@@ -237,17 +245,18 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         {
             ulong clientId = rpcParams.Receive.SenderClientId;
             
-            var playerObject = NetworkManager.Singleton.ConnectedClients[clientId].PlayerObject;
+            if (!NetworkManager.Singleton.ConnectedClients.TryGetValue(clientId, out var client)) return;
+            var playerObject = client.PlayerObject;
             if (playerObject == null) return;
-            
+
             var statsManager = playerObject.GetComponent<PlayerStatsManager>();
             var inventoryManager = playerObject.GetComponent<InventoryManager>();
-            
+
             if (statsManager == null || inventoryManager == null) return;
-            
+
             // 상점 아이템 찾기
             var shopItem = shopItems.Find(item => item.itemId == itemId);
-            if (shopItem.itemId == null)
+            if (string.IsNullOrEmpty(shopItem.itemId))
             {
                 Debug.LogError($"Shop item not found: {itemId}");
                 return;
@@ -290,14 +299,15 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             
             ulong clientId = rpcParams.Receive.SenderClientId;
             
-            var playerObject = NetworkManager.Singleton.ConnectedClients[clientId].PlayerObject;
+            if (!NetworkManager.Singleton.ConnectedClients.TryGetValue(clientId, out var client)) return;
+            var playerObject = client.PlayerObject;
             if (playerObject == null) return;
-            
+
             var statsManager = playerObject.GetComponent<PlayerStatsManager>();
             var inventoryManager = playerObject.GetComponent<InventoryManager>();
-            
+
             if (statsManager == null || inventoryManager == null) return;
-            
+
             // 아이템 가져오기 (실제로는 InventoryManager에서 아이템 정보 가져와야 함)
             // 임시로 수리 비용 계산
             int durabilityToRepair = 10; // 수리할 내구도
@@ -382,6 +392,16 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         public List<ShopItem> GetShopItems()
         {
             return new List<ShopItem>(shopItems);
+        }
+
+        /// <summary>
+        /// 상점 아이템 목록 설정 (MerchantNPC에서 호출)
+        /// </summary>
+        public void SetShopItems(List<ShopItem> items)
+        {
+            shopItems.Clear();
+            shopItems.AddRange(items);
+            Debug.Log($"🏪 Shop items updated: {shopItems.Count} items");
         }
         
         // ClientRpc 메서드들

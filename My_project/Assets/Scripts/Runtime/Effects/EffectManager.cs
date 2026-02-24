@@ -24,7 +24,15 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 Destroy(gameObject);
             }
         }
-        
+
+        public override void OnDestroy()
+        {
+            StopAllCoroutines();
+            base.OnDestroy();
+            if (Instance == this)
+                Instance = null;
+        }
+
         /// <summary>
         /// 타격 이펙트 재생 (타겟 위치에)
         /// </summary>
@@ -36,7 +44,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             
             GameObject effectObject = null;
             // Texture2D 배열이 있으면 풀에서 오브젝트 가져와서 재생
-            if (effectData.HitEffectFrames != null && effectData.HitEffectFrames.Length > 0)
+            if (effectData.HitEffectFrames != null && effectData.HitEffectFrames.Length > 0 && EffectObjectPool.Instance != null)
             {
                 effectObject = EffectObjectPool.Instance.PlayTextureEffect(position, Quaternion.identity, effectData.HitEffectFrames, effectData.HitFrameRate, false, effectData.HitDuration, target);
             }
@@ -67,7 +75,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             }
             
             // 투사체 날아가는 동안 Repeatable 이펙트
-            float journeyTime = Vector3.Distance(startPos, finalPos) / effectData.ProjectileSpeed;
+            float journeyTime = Vector3.Distance(startPos, finalPos) / Mathf.Max(0.1f, effectData.ProjectileSpeed);
             float elapsedTime = 0f;
             Vector3 currentPos = startPos;
             
@@ -141,7 +149,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             };
             
             // Texture2D 배열이 있으면 풀에서 오브젝트 가져와서 재생
-            if (frames != null && frames.Length > 0)
+            if (frames != null && frames.Length > 0 && EffectObjectPool.Instance != null)
             {
                 bool loop = phase == ProjectilePhase.Repeatable;
                 effectObject = EffectObjectPool.Instance.PlayTextureEffect(position, rotation, frames, frameRate, loop, duration);
@@ -235,7 +243,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             };
             
             // Texture2D 배열이 있으면 풀에서 오브젝트 가져와서 재생
-            if (frames != null && frames.Length > 0)
+            if (frames != null && frames.Length > 0 && EffectObjectPool.Instance != null)
             {
                 bool loop = phase == SummonPhase.Repeatable;
                 effectObject = EffectObjectPool.Instance.PlayTextureEffect(position, Quaternion.identity, frames, frameRate, loop, duration);

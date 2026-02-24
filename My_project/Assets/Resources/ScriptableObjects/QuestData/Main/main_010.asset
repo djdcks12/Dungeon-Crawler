@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 90005bb3089040640aedb90ac658bc76, type: 3}
+  m_Name: main_010
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.QuestData
+  questId: main_010
+  questName: "\uC9C0\uD558\uBB18\uC9C0\uC758 \uC655"
+  description: "\uC5B8\uB370\uB4DC \uC9C0\uD558\uBB18\uC9C0 \uBCF4\uC2A4\uB97C \uCC98\uCE58\uD558\uC138\uC694."
+  difficulty: 2
+  requiredLevel: 9
+  isRepeatable: 0
+  isDaily: 0
+  objectives:
+  - objectiveType: 3
+    targetId: Undead
+    targetName: "\uC9C0\uD558\uBB18\uC9C0 \uBCF4\uC2A4 \uCC98\uCE58"
+    requiredCount: 1
+  reward:
+    experienceReward: 5000
+    goldReward: 2500
+    itemRewardId: 
+    itemRewardCount: 0
+  prerequisiteQuestId: main_009

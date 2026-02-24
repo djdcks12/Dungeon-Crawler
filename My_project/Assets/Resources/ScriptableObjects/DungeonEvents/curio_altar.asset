@@ -1,0 +1,71 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 69720ba5637a68e4ea25f77fe61a9920, type: 3}
+  m_Name: curio_altar
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.DungeonEventData
+  eventId: curio_altar
+  eventName: "\uACE0\uB300 \uC81C\uBB3C\uB300"
+  description: "\uBA3C\uC9C0 \uC313\uC778 \uC81C\uBB3C\uB300. \uBB34\uC5B8\uAC00\uB97C
+    \uBC14\uCE60 \uC218 \uC788\uC744 \uAC83 \uAC19\uB2E4."
+  eventIcon: {fileID: 0}
+  eventType: 2
+  rarity: 0
+  triggerType: 1
+  spawnChance: 0.07
+  minFloor: 1
+  maxFloor: 10
+  minDifficulty: 1
+  oncePerDungeon: 0
+  interactionText: "\uC870\uC0AC\uD55C\uB2E4"
+  interactionTime: 1
+  requiresChoice: 0
+  bareHandOutcomes:
+  - description: "\uC81C\uBB3C\uB300\uC5D0\uC11C \uACE8\uB4DC\uB97C \uBC1C\uACAC\uD588\uB2E4!"
+    chance: 0.4
+    effectType: 4
+    effectValue: 150
+    duration: 0
+    statusEffect: 0
+    isNegative: 0
+  - description: "\uD568\uC815\uC774\uC5C8\uB2E4! \uB3C5\uAC00\uC2A4\uAC00 \uBD84\uCD9C\uB41C\uB2E4!"
+    chance: 0.3
+    effectType: 10
+    effectValue: 0
+    duration: 10
+    statusEffect: 0
+    isNegative: 1
+  - description: "\uC544\uBB34\uAC83\uB3C4 \uC5C6\uC5C8\uB2E4."
+    chance: 0.3
+    effectType: 6
+    effectValue: 10
+    duration: 0
+    statusEffect: 0
+    isNegative: 0
+  itemInteractions:
+  - requiredItemName: ResurrectionScroll
+    resultDescription: "\uBD80\uD65C \uB450\uB8E8\uB9C8\uB9AC\uB97C \uC81C\uBB3C\uB85C
+      \uBC14\uCCE4\uB2E4. \uD070 \uBCF4\uC0C1\uC744 \uBC1B\uC558\uB2E4!"
+    guaranteedOutcome:
+      description: "\uC2E0\uC758 \uCD95\uBCF5! \uB300\uB7C9\uC758 \uACE8\uB4DC\uC640
+        \uACBD\uD5D8\uCE58!"
+      chance: 1
+      effectType: 4
+      effectValue: 500
+      duration: 0
+      statusEffect: 0
+      isNegative: 0
+  choices: []
+  combatWaves: []
+  combatTimeLimit: 0
+  shopItems: []
+  glowColor: {r: 0.8, g: 0.8, b: 0.8, a: 1}
+  activationSFX: 

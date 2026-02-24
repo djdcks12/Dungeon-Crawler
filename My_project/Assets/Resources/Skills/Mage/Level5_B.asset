@@ -1,0 +1,60 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4759a9d92f8e8704ea8b349c78f693f8, type: 3}
+  m_Name: Level5_B
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.SkillData
+  skillName: "\uBE14\uB9AC\uC790\uB4DC"
+  skillId: Mage_Level5_B
+  description: "\uC5BC\uC74C \uD3ED\uD48D\uC744 \uC77C\uC73C\uCF1C \uBC94\uC704 \uD53C\uD574\uC640
+    \uAC10\uC18D\uC744 \uC900\uB2E4."
+  skillIcon: {fileID: 0}
+  requiredLevel: 5
+  goldCost: 300
+  requiredRace: 1
+  category: 4
+  skillTier: 3
+  prerequisiteSkills: []
+  skillType: 0
+  damageType: 3
+  cooldown: 8
+  manaCost: 25
+  castTime: 1.2
+  range: 8
+  baseDamage: 42
+  damageScaling: 1.1
+  minDamagePercent: 80
+  maxDamagePercent: 120
+  statBonus:
+    strength: 0
+    agility: 0
+    vitality: 0
+    intelligence: 0
+    defense: 0
+    magicDefense: 0
+    luck: 0
+    stability: 0
+  healthBonus: 0
+  manaBonus: 0
+  moveSpeedBonus: 0
+  attackSpeedBonus: 0
+  statusEffects:
+  - type: 5
+    value: 40
+    duration: 5
+    tickInterval: 0
+    stackable: 0
+  statusDuration: 5
+  statusChance: 80
+  behaviorType: 2
+  skillEffect: {fileID: 0}
+  castSound: {fileID: 0}
+  hitSound: {fileID: 0}

@@ -492,6 +492,10 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         {
             return currentCombinationData != null;
         }
-        
+
+        private void OnDestroy()
+        {
+            StopAllCoroutines();
+        }
     }
 }

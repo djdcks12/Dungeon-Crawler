@@ -44,8 +44,9 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 NetworkClient firstClientStillConnected = NetworkManager.Singleton.ConnectedClients.Where(cc => cc.Key != evt.ClientId)
                                                                                                    .Select(v => v.Value)
                                                                                                    .FirstOrDefault();
-                Player winner = firstClientStillConnected == null ? null
-                                                                  : firstClientStillConnected.PlayerObject.GetComponent<Player>();
+                Player winner = firstClientStillConnected?.PlayerObject != null
+                    ? firstClientStillConnected.PlayerObject.GetComponent<Player>()
+                    : null;
                 Broadcast(new EndMatchEvent(winner));
             }
         }

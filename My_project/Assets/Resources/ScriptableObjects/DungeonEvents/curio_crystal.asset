@@ -1,0 +1,60 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 69720ba5637a68e4ea25f77fe61a9920, type: 3}
+  m_Name: curio_crystal
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.DungeonEventData
+  eventId: curio_crystal
+  eventName: "\uC218\uC815 \uAD70\uB77D"
+  description: "\uBE5B\uB098\uB294 \uC218\uC815\uC774 \uBCBD\uC5D0\uC11C \uC790\uB77C\uACE0
+    \uC788\uB2E4."
+  eventIcon: {fileID: 0}
+  eventType: 2
+  rarity: 1
+  triggerType: 1
+  spawnChance: 0.05
+  minFloor: 3
+  maxFloor: 10
+  minDifficulty: 1
+  oncePerDungeon: 0
+  interactionText: "\uC218\uC815\uC744 \uCE94\uB2E4"
+  interactionTime: 1
+  requiresChoice: 0
+  bareHandOutcomes:
+  - description: "\uADC0\uD55C \uC218\uC815\uC744 \uC5BB\uC5C8\uB2E4! \uACE8\uB4DC
+      \uD68D\uB4DD!"
+    chance: 0.5
+    effectType: 4
+    effectValue: 250
+    duration: 0
+    statusEffect: 0
+    isNegative: 0
+  - description: "\uC218\uC815\uC774 \uD3ED\uBC1C\uD588\uB2E4!"
+    chance: 0.3
+    effectType: 3
+    effectValue: 50
+    duration: 0
+    statusEffect: 0
+    isNegative: 1
+  - description: "\uAC00\uCE58 \uC5C6\uB294 \uB3CC\uBA69\uC774\uBFD0..."
+    chance: 0.2
+    effectType: 6
+    effectValue: 20
+    duration: 0
+    statusEffect: 0
+    isNegative: 0
+  itemInteractions: []
+  choices: []
+  combatWaves: []
+  combatTimeLimit: 0
+  shopItems: []
+  glowColor: {r: 0.8, g: 0.8, b: 0.8, a: 1}
+  activationSFX: 

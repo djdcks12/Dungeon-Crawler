@@ -1,0 +1,45 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 69720ba5637a68e4ea25f77fe61a9920, type: 3}
+  m_Name: rest_sanctuary
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.DungeonEventData
+  eventId: rest_sanctuary
+  eventName: "\uC131\uC5ED"
+  description: "\uC548\uC804\uD55C \uAE30\uB3C4\uC2E4. \uC644\uC804\uD55C \uD68C\uBCF5\uC774
+    \uAC00\uB2A5\uD558\uB2E4."
+  eventIcon: {fileID: 0}
+  eventType: 9
+  rarity: 1
+  triggerType: 1
+  spawnChance: 0.03
+  minFloor: 5
+  maxFloor: 10
+  minDifficulty: 1
+  oncePerDungeon: 0
+  interactionText: "\uAE30\uB3C4\uD55C\uB2E4"
+  interactionTime: 1
+  requiresChoice: 0
+  bareHandOutcomes:
+  - description: "\uC131\uC5ED\uC758 \uD798\uC73C\uB85C \uC644\uC804\uD788 \uD68C\uBCF5!"
+    chance: 1
+    effectType: 20
+    effectValue: 0
+    duration: 0
+    statusEffect: 0
+    isNegative: 0
+  itemInteractions: []
+  choices: []
+  combatWaves: []
+  combatTimeLimit: 0
+  shopItems: []
+  glowColor: {r: 0.3, g: 0.8, b: 0.3, a: 1}
+  activationSFX: 

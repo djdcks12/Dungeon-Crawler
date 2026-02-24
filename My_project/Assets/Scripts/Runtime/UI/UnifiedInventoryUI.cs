@@ -94,12 +94,12 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         private void Initialize()
         {
             // 매니저들 찾기
-            inventoryManager = FindObjectOfType<InventoryManager>();
-            equipmentManager = FindObjectOfType<EquipmentManager>();
+            inventoryManager = FindFirstObjectByType<InventoryManager>();
+            equipmentManager = FindFirstObjectByType<EquipmentManager>();
             
             if (tooltipManager == null)
             {
-                tooltipManager = FindObjectOfType<ItemTooltipManager>();
+                tooltipManager = FindFirstObjectByType<ItemTooltipManager>();
             }
             
             InitializeEquipmentSlots();
@@ -308,7 +308,13 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         
         private void OnDestroy()
         {
+            OnUIToggled = null;
             UnsubscribeFromEvents();
+
+            if (closeButton != null)
+            {
+                closeButton.onClick.RemoveAllListeners();
+            }
         }
         
         /// <summary>
@@ -985,9 +991,12 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             if (item != null)
             {
                 Debug.Log($"🖱️ Left-clicked on {item.ItemData.ItemName} in slot {slotIndex} - showing info only");
-                
-                // 아이템 정보만 표시 (자동 장착 안함)
-                // TODO: 아이템 정보 창 표시 로직 추가
+
+                // 아이템 정보 툴팁 표시
+                if (tooltipManager != null)
+                {
+                    tooltipManager.ShowTooltip(item, Input.mousePosition);
+                }
             }
         }
         

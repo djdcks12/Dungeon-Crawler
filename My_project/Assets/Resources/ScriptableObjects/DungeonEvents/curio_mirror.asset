@@ -1,0 +1,60 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 69720ba5637a68e4ea25f77fe61a9920, type: 3}
+  m_Name: curio_mirror
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.DungeonEventData
+  eventId: curio_mirror
+  eventName: "\uAE68\uC9C4 \uAC70\uC6B8"
+  description: "\uAE08\uC774 \uAC04 \uB9C8\uBC95 \uAC70\uC6B8. \uBBF8\uB798\uB97C
+    \uBCF4\uC5EC\uC900\uB2E4\uACE0 \uD55C\uB2E4."
+  eventIcon: {fileID: 0}
+  eventType: 2
+  rarity: 2
+  triggerType: 1
+  spawnChance: 0.03
+  minFloor: 3
+  maxFloor: 10
+  minDifficulty: 1
+  oncePerDungeon: 0
+  interactionText: "\uAC70\uC6B8\uC744 \uB4E4\uC5EC\uB2E4\uBCF8\uB2E4"
+  interactionTime: 1
+  requiresChoice: 0
+  bareHandOutcomes:
+  - description: "\uBBF8\uB798\uB97C \uBCF4\uC558\uB2E4! \uC9C0\uB3C4\uAC00 \uACF5\uAC1C\uB41C\uB2E4!"
+    chance: 0.4
+    effectType: 12
+    effectValue: 0
+    duration: 0
+    statusEffect: 0
+    isNegative: 0
+  - description: "\uAC70\uC6B8 \uC18D \uC790\uC2E0\uC5D0\uAC8C \uACF5\uACA9\uB2F9\uD588\uB2E4!"
+    chance: 0.3
+    effectType: 3
+    effectValue: 50
+    duration: 0
+    statusEffect: 0
+    isNegative: 1
+  - description: "\uAC70\uC6B8\uC774 \uC0B0\uC0B0\uC870\uAC01\uB0AC\uB2E4. \uC720\uB9AC
+      \uC870\uAC01\uC5D0\uC11C \uACBD\uD5D8\uCE58\uB97C \uD761\uC218."
+    chance: 0.3
+    effectType: 6
+    effectValue: 200
+    duration: 0
+    statusEffect: 0
+    isNegative: 0
+  itemInteractions: []
+  choices: []
+  combatWaves: []
+  combatTimeLimit: 0
+  shopItems: []
+  glowColor: {r: 0.8, g: 0.8, b: 0.8, a: 1}
+  activationSFX: 

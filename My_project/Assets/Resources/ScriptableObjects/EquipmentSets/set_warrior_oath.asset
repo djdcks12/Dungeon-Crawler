@@ -1,0 +1,87 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ec1b857f93ff80c49888a44a0b9ed44e, type: 3}
+  m_Name: set_warrior_oath
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.EquipmentSetData
+  setId: set_warrior_oath
+  setName: "\uC804\uC0AC\uC758 \uB9F9\uC138"
+  description: "\uCE7C\uACFC \uBC29\uD328\uB85C \uC2F8\uC6B0\uB294 \uC804\uC0AC\uB97C
+    \uC704\uD55C \uC138\uD2B8"
+  itemIds:
+  - Longsword_Common
+  - ChestArmor_Common
+  - Helmet_Common
+  - Greaves_Common
+  - Boots_Common
+  bonus2Piece:
+    strength: 3
+    agility: 0
+    vitality: 0
+    intelligence: 0
+    defense: 2
+    magicDefense: 0
+    luck: 0
+    stability: 0
+  bonus2HP: 20
+  bonus2MP: 0
+  bonus2Desc: STR+3, DEF+2, HP+20
+  bonus3Piece:
+    strength: 5
+    agility: 0
+    vitality: 3
+    intelligence: 0
+    defense: 0
+    magicDefense: 0
+    luck: 0
+    stability: 0
+  bonus3HP: 30
+  bonus3MP: 0
+  bonus3CritChance: 2
+  bonus3CritDamage: 0
+  bonus3Desc: "STR+5, VIT+3, HP+30, \uD06C\uB9AC+2%"
+  bonus4Piece:
+    strength: 8
+    agility: 0
+    vitality: 4
+    intelligence: 0
+    defense: 5
+    magicDefense: 0
+    luck: 0
+    stability: 0
+  bonus4HP: 50
+  bonus4MP: 10
+  bonus4CritChance: 3
+  bonus4CritDamage: 5
+  bonus4MoveSpeed: 3
+  bonus4AttackSpeed: 0
+  bonus4Desc: "STR+8, DEF+5, VIT+4, HP+50, \uD06C\uB9AC+3%"
+  bonus5Piece:
+    strength: 12
+    agility: 0
+    vitality: 6
+    intelligence: 0
+    defense: 8
+    magicDefense: 0
+    luck: 0
+    stability: 3
+  bonus5HP: 80
+  bonus5MP: 20
+  bonus5CritChance: 5
+  bonus5CritDamage: 10
+  bonus5MoveSpeed: 5
+  bonus5AttackSpeed: 0
+  bonus5CooldownReduction: 5
+  bonus5Lifesteal: 2
+  bonus5ExpBonus: 0
+  bonus5Desc: "\uC804\uC2A4\uD0EF \uB300\uD3ED \uC99D\uAC00, \uC0DD\uBA85\uD761\uC218+2%"
+  setGrade: 1
+  requiredRace: 0

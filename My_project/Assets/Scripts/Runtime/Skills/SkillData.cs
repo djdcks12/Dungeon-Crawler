@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Linq;
 
 namespace Unity.Template.Multiplayer.NGO.Runtime
 {
@@ -62,7 +63,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// <summary>
         /// 스킬 학습 가능 여부 확인
         /// </summary>
-        public bool CanLearn(PlayerStatsData playerStats, System.Collections.Generic.List<string> learnedSkills)
+        public bool CanLearn(PlayerStatsData playerStats, System.Collections.Generic.IReadOnlyList<string> learnedSkills)
         {
             // 레벨 요구사항 확인
             if (playerStats.CurrentLevel < requiredLevel)
@@ -251,7 +252,15 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         // 기타
         Archery,       // 궁술
         Stealth,       // 은신
-        Spirit         // 정령술
+        Spirit,        // 정령술
+
+        // 공통 (직업 무관)
+        CommonElemental,  // 공통 원소
+        CommonSurvival,   // 공통 생존
+        CommonMovement,   // 공통 이동
+        CommonSummon,     // 공통 소환
+        CommonBuff,       // 공통 버프/오라
+        CommonDebuff      // 공통 디버프
     }
     
     /// <summary>

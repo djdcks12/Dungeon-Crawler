@@ -1,0 +1,65 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 685b515bd1b6f5e44aca2f5b06aa4829, type: 3}
+  m_Name: Undead_Elite
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.MonsterVariantData
+  variantId: Undead_Elite
+  variantName: "\uC5B8\uB370\uB4DC \uC815\uC608"
+  description: "\uC5B8\uB370\uB4DC\uC871\uC758 \uC815\uC608 \uAC1C\uCCB4"
+  variantIcon: {fileID: 0}
+  prefab: {fileID: 0}
+  baseRace: {fileID: 11400000, guid: e0f0aa8170a144d4b940dde99edb5c98, type: 2}
+  statMinVariance:
+    strength: 0
+    agility: 0
+    vitality: 0
+    intelligence: 0
+    defense: 0
+    magicDefense: 0
+    luck: 0
+    stability: 0
+  statMaxVariance:
+    strength: 4
+    agility: 3
+    vitality: 4
+    intelligence: 3
+    defense: 3
+    magicDefense: 3
+    luck: 2
+    stability: 3
+  variantMandatorySkills: []
+  variantAvailableSkills: []
+  spawnWeight: 15
+  minFloor: 3
+  maxFloor: 10
+  preferredAIType: 2
+  aggressionMultiplier: 1.3
+  variantDrops: []
+  idleSprites:
+  - {fileID: 4723107735738678597, guid: e20a5da0716757d44b24a230d30f1bae, type: 3}
+  moveSprites:
+  - {fileID: 4944230376442633554, guid: 07228b929b22e264e992bcce9df0e55d, type: 3}
+  attackSprites:
+  - {fileID: -7008412969330441016, guid: 85eac00860a1ca54081c5b946bfe3316, type: 3}
+  attackDamageFrame: 2
+  hitSprites:
+  - {fileID: -7500690451134026123, guid: 4cde85f0b6f429f40ab3c48cf45ff929, type: 3}
+  castingSprites: []
+  deathSprites:
+  - {fileID: 6991849013916550155, guid: 7d84616c5d623e94d9980dc620b4e8f2, type: 3}
+  idleFrameRate: 6
+  moveFrameRate: 8
+  attackFrameRate: 12
+  castingFrameRate: 10
+  hitFrameRate: 10
+  deathFrameRate: 6
+  attackEffect: {fileID: 0}

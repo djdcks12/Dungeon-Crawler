@@ -35,6 +35,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         
         // 쿨다운 관리
         private float cooldownEndTime;
+        private float cooldownTotalDuration;
         private bool isOnCooldown = false;
         
         // 이벤트
@@ -178,9 +179,10 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         public void StartCooldown(float duration)
         {
+            cooldownTotalDuration = duration;
             cooldownEndTime = Time.time + duration;
             isOnCooldown = true;
-            
+
             if (cooldownOverlay != null)
                 cooldownOverlay.gameObject.SetActive(true);
         }
@@ -210,10 +212,10 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 // 쿨다운 진행 중
                 if (cooldownOverlay != null)
                 {
-                    float progress = remainingTime / (cooldownEndTime - (Time.time - remainingTime));
+                    float progress = cooldownTotalDuration > 0 ? remainingTime / cooldownTotalDuration : 0f;
                     cooldownOverlay.fillAmount = progress;
                 }
-                
+
                 if (cooldownText != null)
                 {
                     cooldownText.text = remainingTime.ToString("F1");
@@ -245,12 +247,9 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         private GameObject FindLocalPlayer()
         {
-            var players = FindObjectsOfType<PlayerController>();
-            foreach (var player in players)
-            {
-                if (player.IsLocalPlayer)
-                    return player.gameObject;
-            }
+            var netManager = Unity.Netcode.NetworkManager.Singleton;
+            if (netManager != null && netManager.LocalClient != null && netManager.LocalClient.PlayerObject != null)
+                return netManager.LocalClient.PlayerObject.gameObject;
             return null;
         }
         
@@ -322,6 +321,12 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         public int GetSkillLevel()
         {
             return skillLevel;
+        }
+
+        private void OnDestroy()
+        {
+            OnSkillClicked = null;
+            OnSkillHover = null;
         }
     }
 }

@@ -23,6 +23,17 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             }
         }
 
+        public override void OnNetworkDespawn()
+        {
+            if (IsClient)
+            {
+                MatchCountdown.OnValueChanged -= OnClientMatchCountdownChanged;
+                MatchEnded.OnValueChanged -= OnClientMatchEndedChanged;
+                MatchStarted.OnValueChanged -= OnClientMatchStartedChanged;
+            }
+            base.OnNetworkDespawn();
+        }
+
         void OnClientMatchCountdownChanged(uint previousValue, uint newValue)
         {
             GameApplication.Instance.Broadcast(new CountdownChangedEvent(newValue));

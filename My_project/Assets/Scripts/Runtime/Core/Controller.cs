@@ -25,12 +25,14 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// <param name="evt">Callback for an AppEvent</param>
         internal void AddListener<E>(Action<E> evt) where E : AppEvent
         {
-            App.EventManager.AddListener(evt);
+            if (App != null)
+                App.EventManager.AddListener(evt);
         }
 
         internal void RemoveListener<E>(Action<E> evt) where E : AppEvent
         {
-            App.EventManager.RemoveListener(evt);
+            if (App != null)
+                App.EventManager.RemoveListener(evt);
         }
 
         internal abstract void RemoveListeners();

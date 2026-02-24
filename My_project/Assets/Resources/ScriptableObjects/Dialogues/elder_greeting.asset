@@ -1,0 +1,56 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 83d2f19ed21e61f469acd8e16a311cb7, type: 3}
+  m_Name: elder_greeting
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.DialogueData
+  dialogueId: elder_greeting
+  npcName: "\uCD0C\uC7A5 \uC54C\uB3C4\uB974"
+  npcPortrait: {fileID: 0}
+  nodes:
+  - nodeId: n1
+    speakerName: "\uCD0C\uC7A5 \uC54C\uB3C4\uB974"
+    text: "\uC5B4\uC11C \uC624\uAC8C, \uBAA8\uD5D8\uAC00\uC5EC. \uC774 \uB9C8\uC744\uC5D0
+      \uC628 \uAC83\uC744 \uD658\uC601\uD558\uB124."
+    choices: []
+    nextNodeId: n2
+    effect:
+      effectType: 0
+      intValue: 0
+      stringValue: 
+  - nodeId: n1
+    speakerName: "\uCD0C\uC7A5 \uC54C\uB3C4\uB974"
+    text: "\uC774 \uB358\uC804 \uD06C\uB864\uB7EC\uC758 \uC138\uACC4\uB294 \uC704\uD5D8\uC73C\uB85C
+      \uAC00\uB4DD\uD558\uC9C0\uB9CC, \uC6A9\uAC10\uD55C \uC790\uC5D0\uAC8C\uB294
+      \uBCF4\uC0C1\uC774 \uAE30\uB2E4\uB9AC\uACE0 \uC788\uB2E4\uB124."
+    choices: []
+    nextNodeId: n3
+    effect:
+      effectType: 0
+      intValue: 0
+      stringValue: 
+  - nodeId: n3
+    speakerName: "\uCD0C\uC7A5 \uC54C\uB3C4\uB974"
+    text: "\uB9C8\uC744\uC758 \uC0C1\uC778\uB4E4\uACFC \uB300\uD654\uD558\uACE0,
+      \uC7A5\uBE44\uB97C \uAC16\uCD94\uC5B4 \uB358\uC804\uC5D0 \uB3C4\uC804\uD574\uBCF4\uAC8C!"
+    choices: []
+    nextNodeId: 
+    effect:
+      effectType: 1
+      intValue: 100
+      stringValue: 
+  condition:
+    conditionType: 0
+    requiredValue: 0
+    requiredStringValue: 
+    requiredRace: 0
+    requiredJob: 0
+  priority: 0

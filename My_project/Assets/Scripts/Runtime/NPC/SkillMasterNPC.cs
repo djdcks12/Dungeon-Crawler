@@ -43,7 +43,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         private void Awake()
         {
             SetupVisuals();
-            skillLearningUI = FindObjectOfType<SkillLearningUI>();
+            skillLearningUI = FindFirstObjectByType<SkillLearningUI>();
         }
         
         private void SetupVisuals()
@@ -174,6 +174,18 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         {
             if (skillLearningUI == null)
             {
+                skillLearningUI = FindFirstObjectByType<SkillLearningUI>();
+            }
+            if (skillLearningUI == null)
+            {
+                var uiManager = UIManager.Instance;
+                if (uiManager != null)
+                {
+                    skillLearningUI = uiManager.GetUI<SkillLearningUI>();
+                }
+            }
+            if (skillLearningUI == null)
+            {
                 Debug.LogError("SkillLearningUI를 찾을 수 없습니다.");
                 return;
             }
@@ -201,7 +213,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         private void ShowNPCMessage(string message)
         {
             // 채팅 시스템이나 대화 UI를 통해 메시지 표시
-            var chatUI = FindObjectOfType<ChatUI>();
+            var chatUI = FindFirstObjectByType<ChatUI>();
             if (chatUI != null)
             {
                 chatUI.AddSystemMessage($"[{npcName}] {message}");
@@ -270,7 +282,13 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 StartSkillLearningInteraction();
             }
         }
-        
+
+        public override void OnDestroy()
+        {
+            OnPlayerEnterRange = null;
+            OnPlayerExitRange = null;
+            base.OnDestroy();
+        }
     }
     
     /// <summary>

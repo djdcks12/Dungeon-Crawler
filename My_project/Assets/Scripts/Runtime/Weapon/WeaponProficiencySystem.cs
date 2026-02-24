@@ -20,7 +20,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         
         // 네트워크 동기화용 (WeaponType은 enum이므로 int로 변환해서 동기화)
         private NetworkVariable<ProficiencyData> networkProficiencies = new NetworkVariable<ProficiencyData>(
-            new ProficiencyData(), NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
+            new ProficiencyData(), NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
         
         // 컴포넌트 참조
         private PlayerStatsManager statsManager;
@@ -39,11 +39,17 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             
             // 네트워크 변수 이벤트 구독
             networkProficiencies.OnValueChanged += OnNetworkProficiencyChanged;
-            
+
             // 모든 무기군 초기화
             InitializeProficiencies();
         }
-        
+
+        public override void OnNetworkDespawn()
+        {
+            networkProficiencies.OnValueChanged -= OnNetworkProficiencyChanged;
+            base.OnNetworkDespawn();
+        }
+
         private void InitializeProficiencies()
         {
             foreach (WeaponType weaponType in System.Enum.GetValues(typeof(WeaponType)))
@@ -149,7 +155,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         
         private void SyncProficiencyToNetwork()
         {
-            if (!IsOwner) return;
+            if (!IsServer) return;
             
             ProficiencyData data = new ProficiencyData();
             data.UpdateFromDictionary(proficiencies);
@@ -169,6 +175,20 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             }
         }
         
+        /// <summary>
+        /// 숙련도 직접 설정 (세이브 로드용)
+        /// </summary>
+        public void SetProficiency(WeaponType weaponType, float value)
+        {
+            proficiencies[weaponType] = Mathf.Clamp(value, 0f, 100f);
+            OnProficiencyChanged?.Invoke(weaponType, proficiencies[weaponType]);
+
+            if (IsServer)
+            {
+                SyncProficiencyToNetwork();
+            }
+        }
+
         /// <summary>
         /// 디버그용 - 모든 숙련도 출력
         /// </summary>

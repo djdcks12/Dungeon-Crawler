@@ -54,5 +54,10 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 returnCoroutine = null;
             }
         }
+
+        private void OnDestroy()
+        {
+            StopAllCoroutines();
+        }
     }
 }

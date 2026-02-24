@@ -1,0 +1,134 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 83d2f19ed21e61f469acd8e16a311cb7, type: 3}
+  m_Name: quest_hunter
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.DialogueData
+  dialogueId: quest_hunter
+  npcName: "\uC0AC\uB0E5\uAFBC \uB808\uB098"
+  npcPortrait: {fileID: 0}
+  nodes:
+  - nodeId: n1
+    speakerName: "\uB808\uB098"
+    text: "\uC232\uC5D0\uC11C \uAC15\uB825\uD55C \uC57C\uC218\uAC00 \uBC1C\uACAC\uB410\uC5B4\uC694.
+      \uD568\uAED8 \uC0AC\uB0E5\uD558\uC2E4\uB798\uC694?"
+    choices: []
+    nextNodeId: n2
+    effect:
+      effectType: 0
+      intValue: 0
+      stringValue: 
+  - nodeId: n2
+    speakerName: "\uB808\uB098"
+    text: "\uC57C\uC218 \uC0AC\uB0E5 \uD018\uC2A4\uD2B8\uB97C \uC218\uB77D\uD558\uC2DC\uACA0\uC5B4\uC694?"
+    choices:
+    - choiceText: "\uB124!"
+      nextNodeId: n3
+      condition:
+        conditionType: 0
+        requiredValue: 0
+        requiredStringValue: 
+        requiredRace: 0
+        requiredJob: 0
+      effect:
+        effectType: 4
+        intValue: 0
+        stringValue: quest_beast_hunt
+    - choiceText: "\uC544\uB2C8\uC694"
+      nextNodeId: n4
+      condition:
+        conditionType: 0
+        requiredValue: 0
+        requiredStringValue: 
+        requiredRace: 0
+        requiredJob: 0
+      effect:
+        effectType: 4
+        intValue: 0
+        stringValue: quest_beast_hunt
+    nextNodeId: 
+    effect:
+      effectType: 0
+      intValue: 0
+      stringValue: 
+  - nodeId: n3
+    speakerName: "\uB808\uB098"
+    text: "\uC88B\uC544\uC694! \uC5B4\uB460\uC758 \uC232 2\uCE35\uC5D0\uC11C \uB9CC\uB098\uC694!"
+    choices:
+    - choiceText: "\uB124!"
+      nextNodeId: n3
+      condition:
+        conditionType: 0
+        requiredValue: 0
+        requiredStringValue: 
+        requiredRace: 0
+        requiredJob: 0
+      effect:
+        effectType: 4
+        intValue: 0
+        stringValue: quest_beast_hunt
+    - choiceText: "\uC544\uB2C8\uC694"
+      nextNodeId: n4
+      condition:
+        conditionType: 0
+        requiredValue: 0
+        requiredStringValue: 
+        requiredRace: 0
+        requiredJob: 0
+      effect:
+        effectType: 4
+        intValue: 0
+        stringValue: quest_beast_hunt
+    nextNodeId: 
+    effect:
+      effectType: 0
+      intValue: 0
+      stringValue: 
+  - nodeId: n4
+    speakerName: "\uB808\uB098"
+    text: "\uC870\uC2EC\uD558\uC138\uC694. \uC232\uC740 \uC704\uD5D8\uD574\uC694."
+    choices:
+    - choiceText: "\uB124!"
+      nextNodeId: n3
+      condition:
+        conditionType: 0
+        requiredValue: 0
+        requiredStringValue: 
+        requiredRace: 0
+        requiredJob: 0
+      effect:
+        effectType: 4
+        intValue: 0
+        stringValue: quest_beast_hunt
+    - choiceText: "\uC544\uB2C8\uC694"
+      nextNodeId: n4
+      condition:
+        conditionType: 0
+        requiredValue: 0
+        requiredStringValue: 
+        requiredRace: 0
+        requiredJob: 0
+      effect:
+        effectType: 4
+        intValue: 0
+        stringValue: quest_beast_hunt
+    nextNodeId: 
+    effect:
+      effectType: 0
+      intValue: 0
+      stringValue: 
+  condition:
+    conditionType: 0
+    requiredValue: 0
+    requiredStringValue: 
+    requiredRace: 0
+    requiredJob: 0
+  priority: 0

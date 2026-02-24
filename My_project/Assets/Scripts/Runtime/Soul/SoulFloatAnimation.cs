@@ -31,6 +31,11 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         // 드리프트 중심점
         private Vector3 driftCenter;
         
+        private void OnDisable()
+        {
+            StopAllCoroutines();
+        }
+
         private void Start()
         {
             InitializeAnimation();

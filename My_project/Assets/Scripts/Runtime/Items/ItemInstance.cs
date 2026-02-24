@@ -17,11 +17,14 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         [SerializeField] private int quantity = 1;
         [SerializeField] private long acquisitionTime = 0;
         
+        // 강화 시스템
+        [SerializeField] private int enhanceLevel = 0;
+
         // 인챈트 시스템용 (추후 구현)
         [SerializeField] private string[] enchantments = new string[0];
         
         // 커스텀 데이터 (인챈트 북 등에 사용)
-        [SerializeField] private Dictionary<string, string> customData = new Dictionary<string, string>();
+        [SerializeField] private SerializableDictionary<string, string> customData = new SerializableDictionary<string, string>();
         
         // 캐시된 ItemData (네트워크 직렬화하지 않음)
         private ItemData cachedItemData;
@@ -31,6 +34,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         public string InstanceId => instanceId;
         public int Quantity => quantity;
         public long AcquisitionTime => acquisitionTime;
+        public int EnhanceLevel { get => enhanceLevel; set => enhanceLevel = value; }
         public string[] Enchantments => enchantments;
         public Dictionary<string, string> CustomData => customData;
         
@@ -56,7 +60,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         {
             instanceId = System.Guid.NewGuid().ToString();
             acquisitionTime = System.DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-            customData = new Dictionary<string, string>();
+            customData = new SerializableDictionary<string, string>();
         }
 
         /// <summary>
@@ -66,7 +70,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         {
             this.itemId = itemData.ItemId;
             this.instanceId = System.Guid.NewGuid().ToString();
-            this.customData = new Dictionary<string, string>();
+            this.customData = new SerializableDictionary<string, string>();
             this.quantity = Mathf.Max(1, quantity);
             this.acquisitionTime = System.DateTimeOffset.UtcNow.ToUnixTimeSeconds();
             this.cachedItemData = itemData;
@@ -81,6 +85,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             this.instanceId = System.Guid.NewGuid().ToString(); // 새로운 ID 생성
             this.quantity = other.quantity;
             this.acquisitionTime = System.DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            this.enhanceLevel = other.enhanceLevel;
             this.enchantments = (string[])other.enchantments.Clone();
             this.cachedItemData = other.cachedItemData;
         }
@@ -200,9 +205,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             
             // ItemData 로드
             cachedItemData = ItemDatabase.GetItem(itemId);
-            if (cachedItemData != null)
-            {
-            }
         }
         
         /// <summary>
@@ -226,7 +228,8 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         public void AddQuantity(int amount)
         {
-            quantity = Mathf.Max(0, quantity + amount);
+            int maxStack = ItemData != null ? ItemData.StackSize : 99;
+            quantity = Mathf.Clamp(quantity + amount, 0, maxStack);
         }
         
         /// <summary>
@@ -239,6 +242,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             clone.instanceId = System.Guid.NewGuid().ToString();
             clone.quantity = this.quantity;
             clone.acquisitionTime = this.acquisitionTime;
+            clone.enhanceLevel = this.enhanceLevel;
             clone.enchantments = (string[])this.enchantments.Clone();
             clone.cachedItemData = this.cachedItemData;
             return clone;
@@ -280,14 +284,33 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         {
             if (!ItemData.IsWeapon)
                 return new DamageRange(0, 0, 0);
-                
+
             // 기본 무기 데미지 계산
             DamageRange baseDamage = ItemData.CalculateWeaponDamage(strength, stability);
-            
-            // 인챈트 보너스 (추후 구현)
-            // TODO: 인챈트 시스템에서 데미지 보너스 적용
-            
-            return baseDamage;
+
+            // 인챈트 데미지 보너스 적용
+            float damageMultiplier = 1f;
+            if (enchantments != null)
+            {
+                foreach (string enchantJson in enchantments)
+                {
+                    try
+                    {
+                        var enchant = JsonUtility.FromJson<EnchantData>(enchantJson);
+                        if (enchant.enchantType == EnchantType.Sharpness)
+                        {
+                            damageMultiplier += enchant.power * 0.01f;
+                        }
+                    }
+                    catch { }
+                }
+            }
+
+            return new DamageRange(
+                baseDamage.minDamage * damageMultiplier,
+                baseDamage.maxDamage * damageMultiplier,
+                baseDamage.stability
+            );
         }
         
         /// <summary>
@@ -297,12 +320,40 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         {
             if (!ItemData.IsEquippable)
                 return new StatBlock();
-                
+
             StatBlock bonuses = ItemData.StatBonuses;
-            
-            // 인챈트 보너스 (추후 구현)
-            // TODO: 인챈트 시스템에서 스탯 보너스 적용
-            
+
+            // 인챈트 스탯 보너스 적용
+            if (enchantments != null)
+            {
+                foreach (string enchantJson in enchantments)
+                {
+                    try
+                    {
+                        var enchant = JsonUtility.FromJson<EnchantData>(enchantJson);
+                        switch (enchant.enchantType)
+                        {
+                            case EnchantType.Sharpness:
+                                bonuses.strength += enchant.power * 0.5f;
+                                break;
+                            case EnchantType.Protection:
+                                bonuses.defense += enchant.power * 0.25f;
+                                break;
+                            case EnchantType.Speed:
+                                bonuses.agility += enchant.power * 0.3f;
+                                break;
+                            case EnchantType.MagicBoost:
+                                bonuses.intelligence += enchant.power * 0.35f;
+                                break;
+                            case EnchantType.Fortune:
+                                bonuses.luck += enchant.power * 0.125f;
+                                break;
+                        }
+                    }
+                    catch { }
+                }
+            }
+
             return bonuses;
         }
         
@@ -347,6 +398,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             serializer.SerializeValue(ref instanceId);
             serializer.SerializeValue(ref quantity);
             serializer.SerializeValue(ref acquisitionTime);
+            serializer.SerializeValue(ref enhanceLevel);
             
             // string[] 직렬화 - Unity Netcode가 지원하지 않으므로 수동 처리
             if (serializer.IsReader)
@@ -377,7 +429,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             {
                 int customDataCount = 0;
                 serializer.SerializeValue(ref customDataCount);
-                customData = new Dictionary<string, string>();
+                customData = new SerializableDictionary<string, string>();
                 for (int i = 0; i < customDataCount; i++)
                 {
                     string key = "";

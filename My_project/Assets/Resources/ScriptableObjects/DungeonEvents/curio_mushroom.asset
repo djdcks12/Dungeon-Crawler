@@ -1,0 +1,77 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 69720ba5637a68e4ea25f77fe61a9920, type: 3}
+  m_Name: curio_mushroom
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.DungeonEventData
+  eventId: curio_mushroom
+  eventName: "\uBE5B\uB098\uB294 \uBC84\uC12F \uAD70\uB77D"
+  description: "\uD615\uD615\uC0C9\uC0C9\uC758 \uAC70\uB300 \uBC84\uC12F\uC774 \uC790\uB77C\uACE0
+    \uC788\uB2E4."
+  eventIcon: {fileID: 0}
+  eventType: 2
+  rarity: 0
+  triggerType: 1
+  spawnChance: 0.07
+  minFloor: 1
+  maxFloor: 7
+  minDifficulty: 1
+  oncePerDungeon: 0
+  interactionText: "\uBC84\uC12F\uC744 \uBA39\uB294\uB2E4"
+  interactionTime: 1
+  requiresChoice: 0
+  bareHandOutcomes:
+  - description: "\uD798\uC774 \uC19F\uB294\uB2E4! \uC77C\uC2DC\uC801 \uAC15\uD654!"
+    chance: 0.3
+    effectType: 7
+    effectValue: 5
+    duration: 90
+    statusEffect: 0
+    isNegative: 0
+  - description: "\uD658\uAC01\uC5D0 \uBE60\uC84C\uB2E4... \uC7A0\uC2DC \uD63C\uB780."
+    chance: 0.25
+    effectType: 8
+    effectValue: 3
+    duration: 30
+    statusEffect: 0
+    isNegative: 1
+  - description: "\uB3C5\uBC84\uC12F\uC774\uC5C8\uB2E4!"
+    chance: 0.25
+    effectType: 10
+    effectValue: 0
+    duration: 8
+    statusEffect: 0
+    isNegative: 1
+  - description: "\uB9DB\uC788\uB2E4! HP\uAC00 \uD68C\uBCF5\uB418\uC5C8\uB2E4."
+    chance: 0.2
+    effectType: 0
+    effectValue: 50
+    duration: 0
+    statusEffect: 0
+    isNegative: 0
+  itemInteractions:
+  - requiredItemName: PoisonAntidote
+    resultDescription: "\uD574\uB3C5\uC81C\uB85C \uB3C5\uC131\uC744 \uC911\uD654\uC2DC\uD0A8
+      \uD6C4 \uBA39\uC5C8\uB2E4."
+    guaranteedOutcome:
+      description: "\uC548\uC804\uD558\uAC8C \uBC84\uC12F\uC758 \uD798\uC744 \uD761\uC218\uD588\uB2E4!"
+      chance: 1
+      effectType: 7
+      effectValue: 7
+      duration: 120
+      statusEffect: 0
+      isNegative: 0
+  choices: []
+  combatWaves: []
+  combatTimeLimit: 0
+  shopItems: []
+  glowColor: {r: 0.8, g: 0.8, b: 0.8, a: 1}
+  activationSFX: 

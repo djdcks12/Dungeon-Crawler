@@ -1,0 +1,60 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 69720ba5637a68e4ea25f77fe61a9920, type: 3}
+  m_Name: curio_well
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.DungeonEventData
+  eventId: curio_well
+  eventName: "\uC18C\uC6D0\uC758 \uC6B0\uBB3C"
+  description: "\uB3D9\uC804\uC744 \uB358\uC9C0\uBA74 \uC18C\uC6D0\uC744 \uB4E4\uC5B4\uC900\uB2E4\uB294
+    \uC6B0\uBB3C."
+  eventIcon: {fileID: 0}
+  eventType: 2
+  rarity: 1
+  triggerType: 1
+  spawnChance: 0.05
+  minFloor: 1
+  maxFloor: 10
+  minDifficulty: 1
+  oncePerDungeon: 0
+  interactionText: "\uB3D9\uC804\uC744 \uB358\uC9C4\uB2E4"
+  interactionTime: 1
+  requiresChoice: 0
+  bareHandOutcomes:
+  - description: "\uC18C\uC6D0\uC774 \uC774\uB8E8\uC5B4\uC84C\uB2E4! \uB79C\uB364
+      \uBC84\uD504!"
+    chance: 0.4
+    effectType: 21
+    effectValue: 0
+    duration: 180
+    statusEffect: 0
+    isNegative: 0
+  - description: "\uC6B0\uBB3C\uC774 \uACE8\uB4DC\uB97C \uD1A0\uD574\uB0C8\uB2E4!"
+    chance: 0.25
+    effectType: 4
+    effectValue: 200
+    duration: 0
+    statusEffect: 0
+    isNegative: 0
+  - description: "\uB3D9\uC804\uB9CC \uC783\uC5C8\uB2E4..."
+    chance: 0.35
+    effectType: 5
+    effectValue: 50
+    duration: 0
+    statusEffect: 0
+    isNegative: 1
+  itemInteractions: []
+  choices: []
+  combatWaves: []
+  combatTimeLimit: 0
+  shopItems: []
+  glowColor: {r: 0.8, g: 0.8, b: 0.8, a: 1}
+  activationSFX: 

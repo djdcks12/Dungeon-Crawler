@@ -1,0 +1,47 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 83bf213b717bc9344b16ba745c099e7d, type: 3}
+  m_Name: rune_def_endure_flawed
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.RuneData
+  runeId: rune_def_endure_flawed
+  runeName: "\uACB0\uD568\uC788\uB294 \uC778\uB0B4\uC758 \uB8EC"
+  description: "\uACE0\uB09C\uC744 \uACAC\uB514\uB294 \uB8EC"
+  runeIcon: {fileID: 0}
+  runeType: 1
+  runeGrade: 2
+  socketColor: 1
+  buyPrice: 250
+  sellPrice: 62
+  statBonus:
+    strength: 0
+    agility: 0
+    vitality: 4.5
+    intelligence: 0
+    defense: 4.5
+    magicDefense: 0
+    luck: 0
+    stability: 0
+  hpBonus: 37.5
+  mpBonus: 0
+  critChanceBonus: 0
+  critDamageBonus: 0
+  attackSpeedBonus: 0
+  moveSpeedBonus: 0
+  cooldownReduction: 0
+  lifestealPercent: 0.75
+  expBonusPercent: 0
+  goldBonusPercent: 0
+  elementalType: 0
+  elementalDamageBonus: 0
+  comboRuneId: 
+  comboEffectDesc: 
+  comboBonusMultiplier: 0

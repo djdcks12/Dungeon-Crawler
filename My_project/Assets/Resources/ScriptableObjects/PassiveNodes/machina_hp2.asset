@@ -1,0 +1,52 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b2c84fe78a63cc841b6166c374fc46e3, type: 3}
+  m_Name: machina_hp2
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.PassiveSkillTreeData
+  nodeId: machina_hp2
+  nodeName: "\uB0B4\uAD6C\uB3C4 \uC99D\uAC00 II"
+  description: HP+50, VIT+3.
+  nodeIcon: {fileID: 0}
+  requiredRace: 4
+  nodeType: 1
+  tier: 2
+  pointCost: 2
+  requiredLevel: 5
+  prerequisiteNodeIds:
+  - machina_hp1
+  statBonus:
+    strength: 0
+    agility: 0
+    vitality: 3
+    intelligence: 0
+    defense: 0
+    magicDefense: 0
+    luck: 0
+    stability: 0
+  hpBonus: 50
+  mpBonus: 0
+  hpPercentBonus: 0
+  mpPercentBonus: 0
+  critChanceBonus: 0
+  critDamageBonus: 0
+  moveSpeedBonus: 0
+  attackSpeedBonus: 0
+  cooldownReduction: 0
+  lifestealPercent: 0
+  manaRegenBonus: 0
+  isKeystone: 0
+  keystonePositiveDesc: 
+  keystoneNegativeDesc: 
+  keystonePositiveValue: 0
+  keystoneNegativeValue: 0
+  keystoneType: 0
+  treePosition: {x: 0, y: 0}

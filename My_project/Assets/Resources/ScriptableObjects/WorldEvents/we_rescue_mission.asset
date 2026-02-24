@@ -1,0 +1,67 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4b0881b9cf4f0ee4ebd3a22aad14bb50, type: 3}
+  m_Name: we_rescue_mission
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.WorldEventData
+  eventId: we_rescue_mission
+  eventName: "\uAD6C\uCD9C \uC758\uB8B0"
+  description: "\uC0C1\uC778\uC774 \uC0B0\uC801\uC5D0\uAC8C \uB0A9\uCE58\uB418\uC5C8\uB2E4!
+    \uAD6C\uCD9C\uD558\uBA74 \uD070 \uBCF4\uC0C1\uC744 \uBC1B\uC744 \uC218 \uC788\uB2E4!"
+  eventIcon: {fileID: 0}
+  eventType: 12
+  rarity: 1
+  spawnChance: 0.06
+  checkInterval: 55
+  minPlayerLevel: 2
+  maxPlayerLevel: 99
+  requiresNight: 0
+  requiresDay: 0
+  requiredWeather: 0
+  duration: 120
+  isPermanentUntilCompleted: 1
+  eventMonsters:
+  - monsterVariantId: goblin_normal
+    count: 4
+    gradeMin: 102
+    gradeMax: 108
+    isBoss: 0
+    spawnDelay: 0
+  - monsterVariantId: goblin_leader
+    count: 1
+    gradeMin: 108
+    gradeMax: 114
+    isBoss: 0
+    spawnDelay: 5
+  rewards:
+  - rewardType: 0
+    amount: 800
+    itemId: 
+    dropChance: 1
+  - rewardType: 1
+    amount: 500
+    itemId: 
+    dropChance: 1
+  - rewardType: 2
+    amount: 1
+    itemId: HealthPotion_Large
+    dropChance: 0.3
+  dialogues:
+  - speakerName: "\uC0C1\uC778"
+    dialogue: "\uC0B4\uB824\uC8FC\uC138\uC694! \uC0B0\uC801\uB4E4\uC5D0\uAC8C \uC7A1\uD600\uC11C..."
+    order: 0
+  - speakerName: "\uC0C1\uC778"
+    dialogue: "\uAC10\uC0AC\uD569\uB2C8\uB2E4! \uC740\uD61C\uB97C \uC78A\uC9C0 \uC54A\uACA0\uC2B5\uB2C8\uB2E4!"
+    order: 1
+  choices: []
+  spawnRadius: 15
+  announceToAll: 0
+  announceMessage: 

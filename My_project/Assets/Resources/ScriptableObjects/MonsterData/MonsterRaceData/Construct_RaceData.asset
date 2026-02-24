@@ -1,0 +1,57 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 828010b4834c18546ab4e8fa5b6e8eda, type: 3}
+  m_Name: Construct_RaceData
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.MonsterRaceData
+  raceType: 7
+  raceName: Construct
+  description: "\uAE30\uACC4\uC871 - \uADF9\uB3C4\uB85C \uB192\uC740 \uBC29\uC5B4\uB825\uACFC
+    \uC548\uC815\uC131\uC744 \uC9C0\uB2CC \uBC29\uC5B4\uD615 \uC885\uC871"
+  raceIcon: {fileID: 0}
+  baseStats:
+    strength: 10
+    agility: 5
+    vitality: 16
+    intelligence: 6
+    defense: 14
+    magicDefense: 8
+    luck: 4
+    stability: 12
+  gradeGrowth:
+    strengthGrowth: 1.5
+    agilityGrowth: 0.6
+    vitalityGrowth: 2.5
+    intelligenceGrowth: 0.8
+    defenseGrowth: 2.5
+    magicDefenseGrowth: 1.2
+    luckGrowth: 0.5
+    stabilityGrowth: 2
+  elementalAffinity:
+    fireAttack: 0
+    fireResist: 0
+    iceAttack: 0
+    iceResist: 0
+    lightningAttack: 0
+    lightningResist: -15
+    poisonAttack: 0
+    poisonResist: 25
+    darkAttack: 0
+    darkResist: 0
+    holyAttack: 0
+    holyResist: 0
+  mandatorySkills: []
+  availableSkills: []
+  baseExperience: 48
+  baseGold: 12
+  soulDropRate: 0.0008
+  commonDrops: []
+  rareDrops: []

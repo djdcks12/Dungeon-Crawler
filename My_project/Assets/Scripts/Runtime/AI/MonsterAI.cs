@@ -45,6 +45,9 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         protected MonsterEntity monsterEntity;
         protected SpriteRenderer spriteRenderer;
         protected MonsterSpriteAnimator spriteAnimator;
+
+        // GC 최적화: 재사용 버퍼
+        private static readonly Collider2D[] s_OverlapBuffer = new Collider2D[32];
         
         // 네트워크 동기화
         private NetworkVariable<MonsterAIState> networkState = new NetworkVariable<MonsterAIState>(
@@ -352,13 +355,13 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         protected PlayerController FindNearestPlayer()
         {
-            Collider2D[] nearbyColliders = Physics2D.OverlapCircleAll(transform.position, detectionRange);
+            int count = Physics2D.OverlapCircleNonAlloc(transform.position, detectionRange, s_OverlapBuffer);
             PlayerController nearestPlayer = null;
             float nearestDistance = float.MaxValue;
-            
-            foreach (var collider in nearbyColliders)
+
+            for (int i = 0; i < count; i++)
             {
-                var player = collider.GetComponent<PlayerController>();
+                var player = s_OverlapBuffer[i].GetComponent<PlayerController>();
                 if (player != null)
                 {
                     // 플레이어가 살아있는지 확인
@@ -374,7 +377,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                     }
                 }
             }
-            
+
             return nearestPlayer;
         }
         
@@ -778,16 +781,18 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             Vector3 startPosition = transform.position;
             float duration = 0.1f;
             float elapsed = 0f;
-            
+
             while (elapsed < duration)
             {
+                if (!IsSpawned || gameObject == null) yield break;
                 elapsed += Time.deltaTime;
                 float progress = elapsed / duration;
                 transform.position = Vector3.Lerp(startPosition, targetPosition, progress);
                 yield return null;
             }
-            
-            transform.position = targetPosition;
+
+            if (IsSpawned && gameObject != null)
+                transform.position = targetPosition;
         }
 
         /// <summary>
@@ -808,7 +813,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             if (monsterEntity == null) return;
 
             EffectData attackEffect = GetMonsterAttackEffect(monsterEntity);
-            if (attackEffect != null)
+            if (attackEffect != null && EffectManager.Instance != null)
             {
                 EffectManager.Instance.PlayHitEffect(attackEffect.name, targetPosition);
             }
@@ -895,7 +900,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 GiveRewardToNearbyPlayers();
                 
                 // 기존 영혼 드롭 시스템 (기본 0.1% 확률)
-                var soulDropSystem = FindObjectOfType<SoulDropSystem>();
+                var soulDropSystem = FindFirstObjectByType<SoulDropSystem>();
                 if (soulDropSystem != null)
                 {
                     soulDropSystem.CheckSoulDrop(transform.position, 1, name);
@@ -910,19 +915,19 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         private void GiveRewardToNearbyPlayers()
         {
             if (!IsServer) return;
-            
-            Collider2D[] nearbyColliders = Physics2D.OverlapCircleAll(transform.position, 10f);
-            
-            foreach (var collider in nearbyColliders)
+
+            int count = Physics2D.OverlapCircleNonAlloc(transform.position, 10f, s_OverlapBuffer);
+
+            for (int i = 0; i < count; i++)
             {
-                var player = collider.GetComponent<PlayerController>();
+                var player = s_OverlapBuffer[i].GetComponent<PlayerController>();
                 if (player != null)
                 {
                     var statsManager = player.GetComponent<PlayerStatsManager>();
                     if (statsManager != null && !statsManager.IsDead)
                     {
                         long expReward = 40; // 기본 경험치 (MonsterEntity가 없는 구형 몬스터용)
-                        
+
                         // 서버에서 직접 경험치 지급 (NetworkVariable을 통해 동기화됨)
                         statsManager.AddExperience(expReward);
                     }
@@ -931,6 +936,12 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         }
         
         
+        public override void OnDestroy()
+        {
+            StopAllCoroutines();
+            base.OnDestroy();
+        }
+
         /// <summary>
         /// 디버그 기즈모
         /// </summary>
@@ -992,6 +1003,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         Passive,        // 소극적 - 공격받기 전까지 반응 안함
         Defensive,      // 방어적 - 가까이 오면 반응, 짧게 추적
         Aggressive,     // 공격적 - 멀리서도 탐지, 길게 추적
-        Territorial     // 영역형 - 일정 영역을 순찰하며 지킴
+        Territorial,    // 영역형 - 일정 영역을 순찰하며 지킴
+        Strategic       // 전략적 - 상황 판단 후 최적 행동 (보스/리더용)
     }
 }

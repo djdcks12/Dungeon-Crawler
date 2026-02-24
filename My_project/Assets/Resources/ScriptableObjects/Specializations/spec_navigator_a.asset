@@ -1,0 +1,60 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d70bb1618049f314c82decbdeb4530d2, type: 3}
+  m_Name: spec_navigator_a
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.JobSpecializationData
+  specId: spec_navigator_a
+  specName: "\uD3ED\uD48D \uD56D\uD574\uC0AC"
+  description: "\uD3ED\uD48D\uC744 \uB2E4\uB8E8\uB294 \uC804\uD22C\uD615 \uD56D\uD574\uC0AC.
+    \uBC14\uB78C\uACFC \uBC88\uAC1C\uB85C \uC801\uC744 \uC4F8\uC5B4\uBC84\uB9B0\uB2E4."
+  specIcon: {fileID: 0}
+  parentJob: 1
+  specIndex: 0
+  requiredLevel: 10
+  resetGoldCost: 50000
+  statBonus:
+    strength: 2
+    agility: 4
+    vitality: 0
+    intelligence: 3
+    defense: 0
+    magicDefense: 2
+    luck: 1
+    stability: 0
+  hpBonusPercent: 0
+  mpBonusPercent: 10
+  critRateBonusPercent: 5
+  critDamageBonusPercent: 15
+  attackSpeedBonusPercent: 8
+  cooldownReductionPercent: 0
+  lifestealPercent: 0
+  passive1:
+    passiveName: "\uD3ED\uD48D\uC758 \uC77C\uACA9"
+    passiveDescription: "\uD3ED\uD48D\uC758 \uC77C\uACA9: 12%"
+    passiveType: 8
+    value: 12
+  passive2:
+    passiveName: "\uBC88\uAC1C \uB9C8\uC2A4\uD130\uB9AC"
+    passiveDescription: "\uBC88\uAC1C \uB9C8\uC2A4\uD130\uB9AC: 10%"
+    passiveType: 2
+    value: 10
+  passive3:
+    passiveName: "\uBC14\uB78C\uC758 \uAC00\uD638"
+    passiveDescription: "\uBC14\uB78C\uC758 \uAC00\uD638: 8%"
+    passiveType: 9
+    value: 8
+  specSkillName: "\uD3ED\uD48D \uC18C\uD658"
+  specSkillDescription: "\uC8FC\uBCC0 \uC801\uC5D0\uAC8C \uBC88\uAC1C \uB370\uBBF8\uC9C0\uB97C
+    \uC5F0\uC1C4\uB85C \uAC00\uD55C\uB2E4."
+  specSkillDamageMultiplier: 2
+  specSkillCooldown: 60
+  specSkillManaCost: 25

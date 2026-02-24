@@ -55,7 +55,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
 
             foreach (var argument in m_Args)
             {
-                if (argument.StartsWith(argName)) //I.E: "-epiclocale=it"
+                if (argument.StartsWith(argName) && argument.Length > argName.Length + 1) //I.E: "-epiclocale=it"
                 {
                     return argument.Substring(argName.Length + 1, argument.Length - argName.Length - 1);
                 }

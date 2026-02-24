@@ -56,7 +56,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         private void Start()
         {
             // 던전 매니저 찾기
-            dungeonManager = FindObjectOfType<DungeonManager>();
+            dungeonManager = FindFirstObjectByType<DungeonManager>();
             if (dungeonManager != null)
             {
                 // 이벤트 구독
@@ -69,6 +69,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         
         private void OnDestroy()
         {
+            CancelInvoke();
             // 이벤트 구독 해제
             if (dungeonManager != null)
             {
@@ -151,7 +152,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             // 플로어 진행도 업데이트
             if (floorProgressSlider != null)
             {
-                floorProgressSlider.value = (float)newFloor / totalFloors;
+                floorProgressSlider.value = totalFloors > 0 ? (float)newFloor / totalFloors : 0f;
             }
         }
         

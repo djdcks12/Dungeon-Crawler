@@ -1,6 +1,5 @@
 using UnityEngine;
 using Unity.Netcode;
-using Unity.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -29,7 +28,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         private NetworkVariable<float> totalRemainingTime = new NetworkVariable<float>();
         
         // 던전 참가자 관리
-        private NetworkList<DungeonPlayer> dungeonPlayers;
+        private NetworkList<DungeonPlayer> dungeonPlayers = new NetworkList<DungeonPlayer>();
         
         // 컴포넌트 참조
         private List<MonsterEntitySpawner> activeSpawners = new List<MonsterEntitySpawner>();
@@ -59,20 +58,21 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         public float CurrentFloorRemainingTime => currentFloorRemainingTime.Value;
         public float TotalRemainingTime => totalRemainingTime.Value;
         public bool IsActive => dungeonState.Value == DungeonState.Active;
-        public List<DungeonPlayer> Players 
-        { 
-            get 
-            { 
-                var players = new List<DungeonPlayer>();
+        private readonly List<DungeonPlayer> cachedPlayersList = new List<DungeonPlayer>();
+        public List<DungeonPlayer> Players
+        {
+            get
+            {
+                cachedPlayersList.Clear();
                 if (dungeonPlayers != null)
                 {
                     for (int i = 0; i < dungeonPlayers.Count; i++)
                     {
-                        players.Add(dungeonPlayers[i]);
+                        cachedPlayersList.Add(dungeonPlayers[i]);
                     }
                 }
-                return players;
-            } 
+                return cachedPlayersList;
+            }
         }
         
         private void Awake()
@@ -88,13 +88,17 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 Destroy(gameObject);
             }
         }
-        
+
+        public override void OnDestroy()
+        {
+            base.OnDestroy();
+            if (Instance == this)
+                Instance = null;
+        }
+
         public override void OnNetworkSpawn()
         {
             base.OnNetworkSpawn();
-            
-            // NetworkList 초기화
-            dungeonPlayers = new NetworkList<DungeonPlayer>();
             
             // 서버에서만 기본 던전 데이터 초기화
             if (IsServer)
@@ -133,8 +137,8 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             if (dungeonState.Value == DungeonState.Active)
             {
                 // 층별 시간 감소
-                currentFloorRemainingTime.Value -= Time.deltaTime;
-                totalRemainingTime.Value -= Time.deltaTime;
+                currentFloorRemainingTime.Value = Mathf.Max(0f, currentFloorRemainingTime.Value - Time.deltaTime);
+                totalRemainingTime.Value = Mathf.Max(0f, totalRemainingTime.Value - Time.deltaTime);
                 
                 // 총 던전 시간 초과 체크
                 if (totalRemainingTime.Value <= 0)
@@ -415,14 +419,17 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             if (dungeonData != null)
             {
                 var reward = dungeonData.CalculateCompletionReward(completionTime, totalMonstersKilled);
-                
+
                 // 보상 지급
                 DistributeRewards(reward);
-                
+
                 // 던전 완료 알림
                 NotifyDungeonCompletedClientRpc(reward);
+
+                // 시스템 알림: 던전 클리어
+                NotifyDungeonClearToSystems(dungeonData.DungeonName);
             }
-            
+
             dungeonState.Value = DungeonState.Completed;
         }
         
@@ -496,6 +503,26 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             }
         }
         
+        /// <summary>
+        /// 던전 클리어 시 관련 시스템에 알림
+        /// </summary>
+        private void NotifyDungeonClearToSystems(string dungeonName)
+        {
+            for (int i = 0; i < dungeonPlayers.Count; i++)
+            {
+                var dp = dungeonPlayers[i];
+                ulong clientId = dp.clientId;
+
+                // 지식 서고: 던전 최초 클리어
+                if (CodexSystem.Instance != null)
+                    CodexSystem.Instance.ReportProgress(clientId, CodexUnlockCondition.DungeonFirstClear, dungeonName, 1);
+
+                // 예언 시스템: 던전 발견 타입
+                if (ProphecySystem.Instance != null)
+                    ProphecySystem.Instance.ReportProgress(clientId, ProphecyType.Discover, dungeonName, 1);
+            }
+        }
+
         /// <summary>
         /// 현재 던전 데이터 가져오기
         /// </summary>
@@ -701,8 +728,9 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         private void EjectAllPlayersToTownClientRpc(string reason)
         {
             Debug.LogWarning($"💨 Ejected from dungeon: {reason}");
-            
+
             // 로컬 플레이어를 마을 위치로 이동
+            if (NetworkManager.Singleton == null) return;
             var localPlayer = NetworkManager.Singleton.SpawnManager.GetLocalPlayerObject();
             if (localPlayer != null)
             {
@@ -755,10 +783,10 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         [ClientRpc]
         private void EjectPlayerToTownClientRpc(ulong targetClientId, string reason)
         {
-            if (NetworkManager.Singleton.LocalClientId != targetClientId) return;
-            
+            if (NetworkManager.Singleton == null || NetworkManager.Singleton.LocalClientId != targetClientId) return;
+
             Debug.LogWarning($"💨 You were ejected from dungeon: {reason}");
-            
+
             var localPlayer = NetworkManager.Singleton.SpawnManager.GetLocalPlayerObject();
             if (localPlayer != null)
             {

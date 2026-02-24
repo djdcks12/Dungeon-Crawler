@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 90005bb3089040640aedb90ac658bc76, type: 3}
+  m_Name: daily_levelup
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.QuestData
+  questId: daily_levelup
+  questName: "[\uC77C\uC77C] \uC131\uC7A5"
+  description: "\uB808\uBCA8\uC5C5 1\uD68C \uB2EC\uC131\uD558\uC138\uC694."
+  difficulty: 1
+  requiredLevel: 1
+  isRepeatable: 1
+  isDaily: 1
+  objectives:
+  - objectiveType: 5
+    targetId: 
+    targetName: "\uB808\uBCA8\uC5C5"
+    requiredCount: 1
+  reward:
+    experienceReward: 500
+    goldReward: 300
+    itemRewardId: 
+    itemRewardCount: 0
+  prerequisiteQuestId: 

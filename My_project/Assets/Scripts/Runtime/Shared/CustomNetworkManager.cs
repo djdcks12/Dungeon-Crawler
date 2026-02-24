@@ -288,7 +288,9 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         Player InstantiateBotGamePlayer()
         {
             Player bot = Instantiate(m_BotPrefab, Vector3.zero, Quaternion.identity);
-            bot.GetComponent<NetworkObject>().Spawn();
+            var botNetObj = bot.GetComponent<NetworkObject>();
+            if (botNetObj != null) botNetObj.Spawn();
+            else Debug.LogError("Bot prefab missing NetworkObject");
             BotsSpawned++;
             return bot;
         }
@@ -313,7 +315,10 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             Debug.Log($"Client {ClientId} disconnected");
             if (IsServer)
             {
-                ReadyPlayers.RemoveWhere(p => p.NetworkObject == m_NetworkManager.ConnectedClients[ClientId].PlayerObject);
+                if (m_NetworkManager.ConnectedClients.TryGetValue(ClientId, out var disconnectedClient))
+                {
+                    ReadyPlayers.RemoveWhere(p => p.NetworkObject == disconnectedClient.PlayerObject);
+                }
             }
         }
 
@@ -357,7 +362,10 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             m_PreparedGame = true;
             foreach (var connectionToClient in m_NetworkManager.ConnectedClients.Values)
             {
-                connectionToClient.PlayerObject.GetComponent<Player>().OnClientPrepareGameClientRpc();
+                if (connectionToClient.PlayerObject == null) continue;
+                var player = connectionToClient.PlayerObject.GetComponent<Player>();
+                if (player != null)
+                    player.OnClientPrepareGameClientRpc();
             }
         }
 
@@ -381,6 +389,23 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 m_NetworkManager.Shutdown();
             }
             ReturnToMetagame?.Invoke();
+        }
+
+        private void OnDestroy()
+        {
+            StopAllCoroutines();
+
+            if (m_NetworkManager != null)
+            {
+                m_NetworkManager.OnClientConnectedCallback -= OnClientConnected;
+                m_NetworkManager.OnClientDisconnectCallback -= OnClientDisconnected;
+                m_NetworkManager.OnServerStarted -= OnServerStarted;
+            }
+
+            if (Singleton == this)
+            {
+                Singleton = null;
+            }
         }
 
         internal void OnEnteredMatchmaker()

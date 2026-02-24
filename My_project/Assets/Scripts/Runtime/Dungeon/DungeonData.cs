@@ -1,5 +1,4 @@
 using UnityEngine;
-using Unity.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -66,6 +65,9 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         public List<FloorConfiguration> FloorConfigs => floorConfigs;
         public List<MonsterSpawnInfo> AvailableMonsters => availableMonsters;
         public List<BossSpawnInfo> BossMonsters => bossMonsters;
+        public float ExpMultiplierPerFloor => expMultiplierPerFloor;
+        public float GoldMultiplierPerFloor => goldMultiplierPerFloor;
+        public float CompletionBonusMultiplier => completionBonusMultiplier;
         public DungeonTimeMode TimeMode => timeMode;
         public float BaseFloorTime => baseFloorTime;
         public float TimeIncreasePerFloor => timeIncreasePerFloor;
@@ -343,7 +345,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                     
                 case DungeonTimeMode.Total:
                     // 총 제한시간을 층수로 나눈 시간
-                    return timeLimit / maxFloors;
+                    return maxFloors > 0 ? timeLimit / maxFloors : timeLimit;
                     
                 case DungeonTimeMode.Custom:
                     // FloorConfiguration에서 개별 설정된 시간
@@ -387,7 +389,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                     
                 case DungeonTimeMode.Total:
                     info += $"총 제한시간: {timeLimit / 60:F1}분\n";
-                    info += $"층당 평균시간: {(timeLimit / maxFloors) / 60:F1}분";
+                    info += maxFloors > 0 ? $"층당 평균시간: {(timeLimit / maxFloors) / 60:F1}분" : "층당 평균시간: N/A";
                     break;
                     
                 case DungeonTimeMode.Custom:

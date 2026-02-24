@@ -1,0 +1,55 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4759a9d92f8e8704ea8b349c78f693f8, type: 3}
+  m_Name: Level7_A
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.SkillData
+  skillName: "\uC554\uC0B4 \uAE30\uC2B5"
+  skillId: Scout_Level7_A
+  description: "\uC644\uBCBD\uD55C \uC740\uC2E0 \uD6C4 \uCE58\uBA85\uC801 \uAE30\uC2B5
+    \uACF5\uACA9\uC744 \uAC00\uD55C\uB2E4."
+  skillIcon: {fileID: 0}
+  requiredLevel: 7
+  goldCost: 500
+  requiredRace: 1
+  category: 26
+  skillTier: 4
+  prerequisiteSkills: []
+  skillType: 0
+  damageType: 0
+  cooldown: 14
+  manaCost: 35
+  castTime: 0.3
+  range: 2
+  baseDamage: 90
+  damageScaling: 1.6
+  minDamagePercent: 80
+  maxDamagePercent: 120
+  statBonus:
+    strength: 0
+    agility: 0
+    vitality: 0
+    intelligence: 0
+    defense: 0
+    magicDefense: 0
+    luck: 0
+    stability: 0
+  healthBonus: 0
+  manaBonus: 0
+  moveSpeedBonus: 0
+  attackSpeedBonus: 0
+  statusEffects: []
+  statusDuration: 5
+  statusChance: 100
+  behaviorType: 0
+  skillEffect: {fileID: 0}
+  castSound: {fileID: 0}
+  hitSound: {fileID: 0}

@@ -199,7 +199,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 var fillImage = slider.fillRect?.GetComponent<Image>();
                 if (fillImage != null)
                 {
-                    float healthPercent = current / max;
+                    float healthPercent = max > 0 ? current / max : 0f;
                     if (healthPercent <= 0.25f)
                         fillImage.color = Color.red;
                     else if (healthPercent <= 0.5f)
@@ -310,6 +310,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         private void OnDestroy()
         {
+            StopAllCoroutines();
             if (statsManager != null)
             {
                 statsManager.OnStatsUpdated -= OnStatsChanged;

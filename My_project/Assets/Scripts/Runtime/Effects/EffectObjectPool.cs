@@ -30,7 +30,13 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 Destroy(gameObject);
             }
         }
-        
+
+        private void OnDestroy()
+        {
+            if (Instance == this)
+                Instance = null;
+        }
+
         private void InitializePool()
         {
             for (int i = 0; i < initialPoolSize; i++)
@@ -77,8 +83,15 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             else
             {
                 // 가장 오래된 활성 오브젝트 재사용
-                pooledObject = activeObjects[0];
-                ReturnObject(pooledObject);
+                if (activeObjects.Count > 0)
+                {
+                    pooledObject = activeObjects[0];
+                    ReturnObject(pooledObject);
+                }
+                else
+                {
+                    pooledObject = CreateNewPoolObject();
+                }
             }
             
             // 타겟에 붙이기

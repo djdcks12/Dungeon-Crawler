@@ -43,7 +43,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             {
                 if (instance == null)
                 {
-                    instance = FindObjectOfType<SaveSystem>();
+                    instance = FindFirstObjectByType<SaveSystem>();
                 }
                 return instance;
             }
@@ -73,7 +73,14 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 Destroy(gameObject);
             }
         }
-        
+
+        public override void OnDestroy()
+        {
+            base.OnDestroy();
+            if (instance == this)
+                instance = null;
+        }
+
         private void Update()
         {
             // 자동 저장 처리

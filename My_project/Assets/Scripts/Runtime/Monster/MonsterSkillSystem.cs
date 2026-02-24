@@ -25,6 +25,9 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         // 컴포넌트 참조
         private MonsterAI monsterAI;
         private Collider2D monsterCollider;
+
+        // GC 최적화: 재사용 버퍼
+        private static readonly Collider2D[] s_OverlapBuffer = new Collider2D[16];
         
         // 이벤트
         public System.Action<MonsterSkillData, float> OnSkillActivated;
@@ -328,16 +331,16 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             
             if (range <= 0) return targets;
             
-            var colliders = Physics2D.OverlapCircleAll(transform.position, range, targetLayers);
-            
-            foreach (var collider in colliders)
+            int findCount = Physics2D.OverlapCircleNonAlloc(transform.position, range, s_OverlapBuffer, targetLayers);
+
+            for (int i = 0; i < findCount; i++)
             {
-                if (collider != monsterCollider) // 자기 자신 제외
+                if (s_OverlapBuffer[i] != monsterCollider) // 자기 자신 제외
                 {
-                    var player = collider.GetComponent<PlayerController>();
+                    var player = s_OverlapBuffer[i].GetComponent<PlayerController>();
                     if (player != null)
                     {
-                        targets.Add(collider);
+                        targets.Add(s_OverlapBuffer[i]);
                     }
                 }
             }
@@ -439,6 +442,15 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 string cooldownInfo = skill.CanUse ? "Ready" : $"Cooldown: {skill.skillData.Cooldown - (Time.time - skill.lastUsedTime):F1}s";
                 Debug.Log($"- {skill.skillData.skillName} ({skill.skillData.SkillType}, {skill.effectGrade}): {cooldownInfo}");
             }
+        }
+
+        public override void OnDestroy()
+        {
+            OnSkillActivated = null;
+            OnSkillCooldownStarted = null;
+            CancelInvoke();
+            StopAllCoroutines();
+            base.OnDestroy();
         }
     }
 }

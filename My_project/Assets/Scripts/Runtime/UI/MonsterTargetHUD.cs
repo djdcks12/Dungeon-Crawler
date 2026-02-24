@@ -235,7 +235,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 var fillImage = monsterHealthSlider.fillRect?.GetComponent<Image>();
                 if (fillImage != null)
                 {
-                    float healthPercent = currentHP / maxHP;
+                    float healthPercent = maxHP > 0 ? currentHP / maxHP : 0f;
                     if (healthPercent <= 0.25f)
                         fillImage.color = Color.red;
                     else if (healthPercent <= 0.5f)

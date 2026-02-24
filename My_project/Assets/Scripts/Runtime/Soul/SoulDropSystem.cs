@@ -89,27 +89,29 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         private SoulData GenerateSoulData(int sourceLevel, string sourceName, PlayerStatsData sourceStats = null)
         {
+            string currentLocation = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
+
             var soulData = new SoulData
             {
                 soulId = GenerateUniqueSoulId(),
                 soulName = sourceName,
-                // TODO: sourceLevel, obtainTime, obtainLocation 필드가 SoulData에 정의되지 않음
-                // 기존 필드들로 대체
-                floorFound = sourceLevel,
+                sourceLevel = sourceLevel,
                 acquiredTime = System.DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
-                description = $"Level {sourceLevel} soul from {UnityEngine.SceneManagement.SceneManager.GetActiveScene().name}"
+                obtainLocation = currentLocation,
+                floorFound = sourceLevel,
+                description = $"Level {sourceLevel} soul from {currentLocation}"
             };
-            
+
             if (sourceStats != null)
             {
                 // 플레이어 영혼: 원래 스탯의 일부를 보너스로 변환
-                // TODO: sourceRace 필드가 SoulData에 정의되지 않음 - description에 포함
+                soulData.sourceRace = sourceStats.CharacterRace.ToString();
                 soulData.statBonus = CalculatePlayerSoulBonus(sourceStats);
             }
             else
             {
                 // 몬스터 영혼: 레벨 기반 랜덤 스탯 보너스
-                // TODO: sourceRace 필드가 SoulData에 정의되지 않음
+                soulData.sourceRace = "Monster";
                 soulData.statBonus = CalculateMonsterSoulBonus(sourceLevel);
             }
             
@@ -346,6 +348,12 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             Debug.Log($"📊 Soul collected! Total: {totalSoulsCollected}/{totalSoulsDropped}");
         }
         
+        public override void OnDestroy()
+        {
+            StopAllCoroutines();
+            base.OnDestroy();
+        }
+
         /// <summary>
         /// 영혼 드롭 통계
         /// </summary>

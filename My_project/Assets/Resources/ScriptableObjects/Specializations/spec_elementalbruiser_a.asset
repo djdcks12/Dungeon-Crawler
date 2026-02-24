@@ -1,0 +1,60 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d70bb1618049f314c82decbdeb4530d2, type: 3}
+  m_Name: spec_elementalbruiser_a
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.JobSpecializationData
+  specId: spec_elementalbruiser_a
+  specName: "\uD654\uC5FC \uD22C\uC0AC"
+  description: "\uD654\uC5FC\uC758 \uD798\uC744 \uC8FC\uBA39\uC5D0 \uB2F4\uB294 \uC6D0\uC18C
+    \uD22C\uC0AC."
+  specIcon: {fileID: 0}
+  parentJob: 16
+  specIndex: 0
+  requiredLevel: 10
+  resetGoldCost: 50000
+  statBonus:
+    strength: 4
+    agility: 2
+    vitality: 2
+    intelligence: 3
+    defense: 0
+    magicDefense: 1
+    luck: 0
+    stability: 0
+  hpBonusPercent: 0
+  mpBonusPercent: 5
+  critRateBonusPercent: 5
+  critDamageBonusPercent: 20
+  attackSpeedBonusPercent: 8
+  cooldownReductionPercent: 0
+  lifestealPercent: 2
+  passive1:
+    passiveName: "\uD654\uC5FC \uB9C8\uC2A4\uD130"
+    passiveDescription: "\uD654\uC5FC \uB9C8\uC2A4\uD130: 18%"
+    passiveType: 8
+    value: 18
+  passive2:
+    passiveName: "\uBD88\uAF43 \uC8FC\uBA39"
+    passiveDescription: "\uBD88\uAF43 \uC8FC\uBA39: 10%"
+    passiveType: 0
+    value: 10
+  passive3:
+    passiveName: "\uC6A9\uC554 \uC800\uD56D"
+    passiveDescription: "\uC6A9\uC554 \uC800\uD56D: 5%"
+    passiveType: 1
+    value: 5
+  specSkillName: "\uBD88\uAF43 \uC6A9\uAD8C"
+  specSkillDescription: "\uD654\uC5FC\uC744 \uB450\uB978 \uC0C1\uC2B9 \uC8FC\uBA39
+    \uACF5\uACA9."
+  specSkillDamageMultiplier: 3
+  specSkillCooldown: 45
+  specSkillManaCost: 35

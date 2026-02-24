@@ -1,0 +1,55 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4759a9d92f8e8704ea8b349c78f693f8, type: 3}
+  m_Name: Ultimate
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.SkillData
+  skillName: "\uB9CC\uAC80\uADC0\uB958"
+  skillId: Duelist_Ultimate
+  description: "\uC218\uBC31 \uBC88\uC758 \uAC80\uACA9\uC744 \uC21C\uC2DD\uAC04\uC5D0
+    \uAC00\uD558\uB294 \uAD81\uADF9\uC758 \uAC80\uC220."
+  skillIcon: {fileID: 0}
+  requiredLevel: 10
+  goldCost: 1000
+  requiredRace: 1
+  category: 24
+  skillTier: 5
+  prerequisiteSkills: []
+  skillType: 0
+  damageType: 0
+  cooldown: 25
+  manaCost: 55
+  castTime: 1
+  range: 4
+  baseDamage: 170
+  damageScaling: 2.3
+  minDamagePercent: 90
+  maxDamagePercent: 150
+  statBonus:
+    strength: 0
+    agility: 0
+    vitality: 0
+    intelligence: 0
+    defense: 0
+    magicDefense: 0
+    luck: 0
+    stability: 0
+  healthBonus: 0
+  manaBonus: 0
+  moveSpeedBonus: 0
+  attackSpeedBonus: 0
+  statusEffects: []
+  statusDuration: 5
+  statusChance: 100
+  behaviorType: 0
+  skillEffect: {fileID: 0}
+  castSound: {fileID: 0}
+  hitSound: {fileID: 0}

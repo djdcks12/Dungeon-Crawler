@@ -154,23 +154,19 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         
         private void FindLocalPlayerStatsManager()
         {
-            // 로컬 플레이어 찾기
-            var playerControllers = FindObjectsOfType<PlayerController>();
-            foreach (var controller in playerControllers)
+            // NetworkManager로 로컬 플레이어 찾기
+            var netManager = Unity.Netcode.NetworkManager.Singleton;
+            if (netManager != null && netManager.LocalClient != null && netManager.LocalClient.PlayerObject != null)
             {
-                var networkBehaviour = controller.GetComponent<Unity.Netcode.NetworkBehaviour>();
-                if (networkBehaviour != null && networkBehaviour.IsLocalPlayer)
+                var playerObj = netManager.LocalClient.PlayerObject;
+                statsManager = playerObj.GetComponent<PlayerStatsManager>();
+
+                // EquipmentManager 이벤트도 구독
+                var equipmentManager = playerObj.GetComponent<EquipmentManager>();
+                if (equipmentManager != null)
                 {
-                    statsManager = controller.GetComponent<PlayerStatsManager>();
-                    
-                    // EquipmentManager 이벤트도 구독
-                    var equipmentManager = controller.GetComponent<EquipmentManager>();
-                    if (equipmentManager != null)
-                    {
-                        equipmentManager.OnEquipmentChanged += OnEquipmentChanged;
-                        Debug.Log("📊 StatsUI subscribed to EquipmentManager events");
-                    }
-                    break;
+                    equipmentManager.OnEquipmentChanged += OnEquipmentChanged;
+                    Debug.Log("📊 StatsUI subscribed to EquipmentManager events");
                 }
             }
             
@@ -261,7 +257,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             
             if (expSlider != null)
             {
-                expSlider.value = (float)stats.CurrentExperience / stats.ExpToNextLevel;
+                expSlider.value = stats.ExpToNextLevel > 0 ? (float)stats.CurrentExperience / stats.ExpToNextLevel : 0f;
             }
             
             if (availablePointsText != null)
@@ -277,7 +273,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             
             if (healthSlider != null)
             {
-                healthSlider.value = stats.CurrentHP / stats.MaxHP;
+                healthSlider.value = stats.MaxHP > 0 ? stats.CurrentHP / stats.MaxHP : 0f;
             }
             
             if (healthText != null)
@@ -287,7 +283,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             
             if (manaSlider != null)
             {
-                manaSlider.value = stats.CurrentMP / stats.MaxMP;
+                manaSlider.value = stats.MaxMP > 0 ? stats.CurrentMP / stats.MaxMP : 0f;
             }
             
             if (manaText != null)
@@ -374,7 +370,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         {
             if (healthSlider != null)
             {
-                healthSlider.value = currentHP / maxHP;
+                healthSlider.value = maxHP > 0 ? currentHP / maxHP : 0f;
             }
             
             if (healthText != null)

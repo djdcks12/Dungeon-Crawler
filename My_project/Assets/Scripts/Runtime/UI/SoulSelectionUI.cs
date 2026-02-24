@@ -259,7 +259,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             
             for (int i = soulButtonContainer.childCount - 1; i >= 0; i--)
             {
-                DestroyImmediate(soulButtonContainer.GetChild(i).gameObject);
+                Destroy(soulButtonContainer.GetChild(i).gameObject);
             }
         }
         
@@ -329,6 +329,9 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         
         private void OnDestroy()
         {
+            if (confirmButton != null) confirmButton.onClick.RemoveAllListeners();
+            if (skipButton != null) skipButton.onClick.RemoveAllListeners();
+
             // 게임 일시정지 해제
             Time.timeScale = 1f;
         }

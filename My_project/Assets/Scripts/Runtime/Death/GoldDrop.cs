@@ -1,5 +1,6 @@
 using UnityEngine;
 using Unity.Netcode;
+using System.Collections;
 
 namespace Unity.Template.Multiplayer.NGO.Runtime
 {
@@ -26,6 +27,9 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         private bool isBeingMagnetized = false;
         private Transform magnetTarget;
         
+        // GC 최적화: 재사용 버퍼
+        private static readonly Collider2D[] s_OverlapBuffer = new Collider2D[8];
+
         // 컴포넌트 참조
         private SpriteRenderer spriteRenderer;
         private Collider2D pickupCollider;
@@ -177,12 +181,12 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         private void CheckForMagnetEffect()
         {
             if (!IsServer) return;
-            
-            Collider2D[] players = Physics2D.OverlapCircleAll(transform.position, magnetRange, playerLayerMask);
-            
-            foreach (var playerCollider in players)
+
+            int count = Physics2D.OverlapCircleNonAlloc(transform.position, magnetRange, s_OverlapBuffer, playerLayerMask);
+
+            for (int i = 0; i < count; i++)
             {
-                var playerController = playerCollider.GetComponent<PlayerController>();
+                var playerController = s_OverlapBuffer[i].GetComponent<PlayerController>();
                 if (playerController != null)
                 {
                     // 자석 효과 시작
@@ -234,12 +238,12 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         private void CheckForPickup()
         {
             if (!IsServer) return;
-            
-            Collider2D[] players = Physics2D.OverlapCircleAll(transform.position, pickupRange, playerLayerMask);
-            
-            foreach (var playerCollider in players)
+
+            int pickupCount = Physics2D.OverlapCircleNonAlloc(transform.position, pickupRange, s_OverlapBuffer, playerLayerMask);
+
+            for (int i = 0; i < pickupCount; i++)
             {
-                var playerController = playerCollider.GetComponent<PlayerController>();
+                var playerController = s_OverlapBuffer[i].GetComponent<PlayerController>();
                 if (playerController != null)
                 {
                     // 플레이어에게 골드 지급
@@ -272,9 +276,26 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         [ClientRpc]
         private void PlayPickupEffectClientRpc(long amount)
         {
-            // 골드 픽업 사운드나 파티클 효과 재생
-            // TODO: 골드 픽업 효과 구현
-            Debug.Log($"💰 Picked up {amount} gold!");
+            Debug.Log($"Picked up {amount} gold!");
+            SpawnGoldPickupEffect(transform.position, amount);
+        }
+
+        /// <summary>
+        /// 골드 픽업 이펙트 오브젝트 생성 및 애니메이션
+        /// </summary>
+        private void SpawnGoldPickupEffect(Vector3 position, long amount)
+        {
+            var effectObj = new GameObject("GoldPickupEffect");
+            effectObj.transform.position = position;
+
+            var sr = effectObj.AddComponent<SpriteRenderer>();
+            sr.sprite = spriteRenderer != null ? spriteRenderer.sprite : CreateGoldSprite();
+            sr.color = new Color(1f, 0.9f, 0.1f);
+            sr.sortingLayerName = "Items";
+            sr.sortingOrder = 10;
+
+            var effectRunner = effectObj.AddComponent<PickupEffectRunner>();
+            effectRunner.Run(sr, 0.4f);
         }
         
         /// <summary>

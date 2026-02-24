@@ -51,3 +51,21 @@ MonoBehaviour:
     holyResist: 0
   specialties: []
   defaultHitEffect: {fileID: 0}
+  idleSprites:
+  - {fileID: 3204480812468917802, guid: a00223dc3905b894fa3bb4fccc17a00a, type: 3}
+  idleFrameRate: 6
+  walkSprites:
+  - {fileID: -6815865655073467910, guid: 9d8791d8ba1c4ef439ab513fcd30b3d6, type: 3}
+  walkFrameRate: 8
+  attackSprites:
+  - {fileID: 3117775995601270193, guid: 9c9c830e36bbe38488b4d06ac5bb4e75, type: 3}
+  attackFrameRate: 12
+  attackDamageFrame: 2
+  hitSprites:
+  - {fileID: 4237140444910105288, guid: 564f3ab8a93b5d640b212e2da5b27a3b, type: 3}
+  hitFrameRate: 12
+  castingSprites: []
+  castingFrameRate: 10
+  deathSprites:
+  - {fileID: -6066306879103524113, guid: f88d654bd10f812478af57b6298574dd, type: 3}
+  deathFrameRate: 8

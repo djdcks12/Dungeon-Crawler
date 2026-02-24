@@ -1,0 +1,38 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c2c8e01c115367544bfe9ef82ec71256, type: 3}
+  m_Name: Beast_Fist
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.RaceWeaponGroupData
+  race: 3
+  weaponGroup: 7
+  combinationName: Beast_Fist
+  description: "\uC218\uC778 \uACA9\uD22C - \uD0C0\uACE0\uB09C \uC57C\uC218\uC758
+    \uBC1C\uD1B1\uACFC \uC774\uBE68\uB85C \uC2F8\uC6B0\uB294 \uC6D0\uC2DC \uACA9\uD22C."
+  previewSprite: {fileID: 0}
+  idleSprites:
+  - {fileID: 3204480812468917802, guid: ca1a5c11bafd00e42a8876838b8add87, type: 3}
+  idleFrameRate: 8
+  walkSprites:
+  - {fileID: -6815865655073467910, guid: b0da867fd71bdfa449c89a0ebdb7b501, type: 3}
+  walkFrameRate: 10
+  attackSprites:
+  - {fileID: 3117775995601270193, guid: afa9d3e730d590b4c99e2b1667fd9824, type: 3}
+  attackFrameRate: 16
+  attackDamageFrame: 2
+  hitSprites:
+  - {fileID: 4237140444910105288, guid: 35c4067c25c41394398cab392bd91e70, type: 3}
+  hitFrameRate: 14
+  castingSprites: []
+  castingFrameRate: 12
+  deathSprites:
+  - {fileID: -6066306879103524113, guid: fbcc4f325b6da694f8945012393be8c3, type: 3}
+  deathFrameRate: 10

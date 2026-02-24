@@ -1,0 +1,45 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 69720ba5637a68e4ea25f77fe61a9920, type: 3}
+  m_Name: shrine_speed
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.DungeonEventData
+  eventId: shrine_speed
+  eventName: "\uC18D\uB3C4\uC758 \uC81C\uB2E8"
+  description: "\uBC14\uB78C\uC774 \uC18C\uC6A9\uB3CC\uC774\uCE58\uB294 \uC81C\uB2E8.
+    \uC774\uB3D9\uC774 \uBE68\uB77C\uC9C4\uB2E4."
+  eventIcon: {fileID: 0}
+  eventType: 0
+  rarity: 0
+  triggerType: 1
+  spawnChance: 0.07
+  minFloor: 1
+  maxFloor: 10
+  minDifficulty: 1
+  oncePerDungeon: 0
+  interactionText: "\uBC14\uB78C\uC744 \uB9CC\uC9C4\uB2E4"
+  interactionTime: 1
+  requiresChoice: 0
+  bareHandOutcomes:
+  - description: "\uBC14\uB78C\uC758 \uCD95\uBCF5\uC744 \uBC1B\uC558\uB2E4!"
+    chance: 1
+    effectType: 17
+    effectValue: 25
+    duration: 120
+    statusEffect: 0
+    isNegative: 0
+  itemInteractions: []
+  choices: []
+  combatWaves: []
+  combatTimeLimit: 0
+  shopItems: []
+  glowColor: {r: 1, g: 0.84, b: 0, a: 1}
+  activationSFX: 

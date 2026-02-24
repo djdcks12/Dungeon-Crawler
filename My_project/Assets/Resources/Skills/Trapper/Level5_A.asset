@@ -1,0 +1,55 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4759a9d92f8e8704ea8b349c78f693f8, type: 3}
+  m_Name: Level5_A
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.SkillData
+  skillName: "\uC5F0\uC1C4 \uD568\uC815"
+  skillId: Trapper_Level5_A
+  description: "\uC5F0\uC1C4\uC801\uC73C\uB85C \uD3ED\uBC1C\uD558\uB294 \uD568\uC815\uC744
+    \uC124\uCE58\uD55C\uB2E4."
+  skillIcon: {fileID: 0}
+  requiredLevel: 5
+  goldCost: 300
+  requiredRace: 1
+  category: 26
+  skillTier: 3
+  prerequisiteSkills: []
+  skillType: 0
+  damageType: 2
+  cooldown: 10
+  manaCost: 28
+  castTime: 1.5
+  range: 6
+  baseDamage: 48
+  damageScaling: 1
+  minDamagePercent: 80
+  maxDamagePercent: 120
+  statBonus:
+    strength: 0
+    agility: 0
+    vitality: 0
+    intelligence: 0
+    defense: 0
+    magicDefense: 0
+    luck: 0
+    stability: 0
+  healthBonus: 0
+  manaBonus: 0
+  moveSpeedBonus: 0
+  attackSpeedBonus: 0
+  statusEffects: []
+  statusDuration: 5
+  statusChance: 100
+  behaviorType: 2
+  skillEffect: {fileID: 0}
+  castSound: {fileID: 0}
+  hitSound: {fileID: 0}

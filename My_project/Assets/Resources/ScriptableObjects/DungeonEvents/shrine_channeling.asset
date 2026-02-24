@@ -1,0 +1,46 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 69720ba5637a68e4ea25f77fe61a9920, type: 3}
+  m_Name: shrine_channeling
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.DungeonEventData
+  eventId: shrine_channeling
+  eventName: "\uC9D1\uC911\uC758 \uC81C\uB2E8"
+  description: "\uC218\uC815\uC73C\uB85C \uB41C \uAC70\uB300\uD55C \uC81C\uB2E8.
+    \uB9C8\uBC95 \uD6A8\uC728\uC774 \uADF9\uB300\uD654\uB41C\uB2E4."
+  eventIcon: {fileID: 0}
+  eventType: 0
+  rarity: 2
+  triggerType: 1
+  spawnChance: 0.04
+  minFloor: 4
+  maxFloor: 10
+  minDifficulty: 1
+  oncePerDungeon: 0
+  interactionText: "\uC9D1\uC911\uD55C\uB2E4"
+  interactionTime: 1
+  requiresChoice: 0
+  bareHandOutcomes:
+  - description: "\uC9D1\uC911\uC758 \uD798\uC774 \uAE43\uB4E4\uC5C8\uB2E4! \uCFE8\uB2E4\uC6B4
+      75% \uAC10\uC18C!"
+    chance: 1
+    effectType: 18
+    effectValue: 75
+    duration: 30
+    statusEffect: 0
+    isNegative: 0
+  itemInteractions: []
+  choices: []
+  combatWaves: []
+  combatTimeLimit: 0
+  shopItems: []
+  glowColor: {r: 1, g: 0.84, b: 0, a: 1}
+  activationSFX: 

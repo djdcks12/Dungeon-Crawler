@@ -41,6 +41,11 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         private Camera mainCamera;
         private Material originalMaterial;
         private Material outlineMaterial;
+
+        // 캐시된 아웃라인 머티리얼 (Resources.Load 반복 호출 방지)
+        private static Material cachedOutlineMaterial;
+        // 캐시된 툴팁 매니저 (FindFirstObjectByType 반복 호출 방지)
+        private ItemTooltipManager cachedTooltipManager;
         
         // 프로퍼티
         public ItemInstance ItemInstance => itemInstance;
@@ -56,7 +61,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             spriteRenderer = GetComponent<SpriteRenderer>();
             basePosition = transform.position;
             dropTime = Time.time;
-            mainCamera = Camera.allCameras[0];
+            mainCamera = Camera.main != null ? Camera.main : (Camera.allCameras.Length > 0 ? Camera.allCameras[0] : null);
             
             // 초기 위치를 약간 랜덤하게 조정
             bobTimer = Random.Range(0f, 2f * Mathf.PI);
@@ -151,8 +156,10 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             // 기존 머티리얼 저장
             originalMaterial = spriteRenderer.material;
             
-            // 아웃라인 머티리얼 로드
-            outlineMaterial = Resources.Load<Material>("Shader/simpleOutline");
+            // 아웃라인 머티리얼 로드 (캐시 사용)
+            if (cachedOutlineMaterial == null)
+                cachedOutlineMaterial = Resources.Load<Material>("Shader/simpleOutline");
+            outlineMaterial = cachedOutlineMaterial;
             if (outlineMaterial == null)
             {
                 Debug.LogWarning("simpleOutline 머티리얼을 찾을 수 없습니다: Resources/Shader/simpleOutline");
@@ -323,32 +330,31 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         private void ShowTooltip()
         {
-            // Singleton 인스턴스 우선 사용
-            var tooltipManager = ItemTooltipManager.Instance;
-            if (tooltipManager == null)
-            {
-                // Singleton이 없으면 FindObjectOfType으로 찾기
-                tooltipManager = FindObjectOfType<ItemTooltipManager>();
-            }
-            
+            var tooltipManager = GetTooltipManager();
             if (tooltipManager != null && itemInstance != null)
                 tooltipManager.ShowTooltip(itemInstance, Input.mousePosition);
         }
-        
+
         /// <summary>
         /// 툴팁 숨김
         /// </summary>
         private void HideTooltip()
         {
-            var tooltipManager = ItemTooltipManager.Instance;
-            if (tooltipManager == null)
-            {
-                tooltipManager = FindObjectOfType<ItemTooltipManager>();
-            }
-            
+            var tooltipManager = GetTooltipManager();
             if (tooltipManager != null)
                 tooltipManager.HideTooltip();
-            
+        }
+
+        /// <summary>
+        /// 툴팁 매니저 캐시 조회 (FindFirstObjectByType 반복 방지)
+        /// </summary>
+        private ItemTooltipManager GetTooltipManager()
+        {
+            if (cachedTooltipManager != null) return cachedTooltipManager;
+            cachedTooltipManager = ItemTooltipManager.Instance;
+            if (cachedTooltipManager == null)
+                cachedTooltipManager = FindFirstObjectByType<ItemTooltipManager>();
+            return cachedTooltipManager;
         }
         
         /// <summary>
@@ -439,13 +445,40 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 NotifyPickupClientRpc(player.OwnerClientId,
                     $"{itemInstance.ItemData.ItemName} x{itemInstance.Quantity} 획득",
                     itemInstance.ItemData.GradeColor);
+
+                // 시스템 알림: 아이템 획득
+                NotifyItemPickupToSystems(player.OwnerClientId, itemInstance);
             }
 
-            // 즉시 오브젝트 제거
-            DestroyImmediate(gameObject);
+            // 오브젝트 제거
             HideTooltip();
+            var netObj = GetComponent<NetworkObject>();
+            if (netObj != null && netObj.IsSpawned)
+            {
+                netObj.Despawn();
+            }
+            else
+            {
+                Destroy(gameObject);
+            }
         }
         
+        /// <summary>
+        /// 아이템 획득 시 관련 시스템에 알림
+        /// </summary>
+        private void NotifyItemPickupToSystems(ulong clientId, ItemInstance item)
+        {
+            string itemId = item.ItemId;
+
+            // 도감 시스템
+            if (CollectionSystem.Instance != null)
+                CollectionSystem.Instance.RegisterItem(itemId);
+
+            // 예언 시스템 (수집 타입)
+            if (ProphecySystem.Instance != null)
+                ProphecySystem.Instance.ReportProgress(clientId, ProphecyType.Collect, "material", item.Quantity);
+        }
+
         /// <summary>
         /// 픽업 알림 (클라이언트)
         /// </summary>

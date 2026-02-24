@@ -1,0 +1,38 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c2c8e01c115367544bfe9ef82ec71256, type: 3}
+  m_Name: Machina_Fist
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.RaceWeaponGroupData
+  race: 4
+  weaponGroup: 7
+  combinationName: Machina_Fist
+  description: "\uAE30\uACC4\uC871 \uACA9\uD22C - \uAC15\uD654\uB41C \uAE08\uC18D
+    \uC8FC\uBA39\uACFC \uC815\uBC00 \uAE30\uC5B4\uB85C \uAC15\uB825\uD55C \uD0C0\uACA9."
+  previewSprite: {fileID: 0}
+  idleSprites:
+  - {fileID: 3204480812468917802, guid: 62158596918afbe499ea9368868fd358, type: 3}
+  idleFrameRate: 8
+  walkSprites:
+  - {fileID: -6815865655073467910, guid: 6916c30bc0fed2c4b8b9ebf13ffa32d4, type: 3}
+  walkFrameRate: 10
+  attackSprites:
+  - {fileID: 3117775995601270193, guid: 00c7fd52df116f445af8f89c48f59010, type: 3}
+  attackFrameRate: 16
+  attackDamageFrame: 2
+  hitSprites:
+  - {fileID: 4237140444910105288, guid: 1b301ba6f1e4bf34dbc024c9239147c2, type: 3}
+  hitFrameRate: 14
+  castingSprites: []
+  castingFrameRate: 12
+  deathSprites:
+  - {fileID: -6066306879103524113, guid: 2dea9f1599ce46649a4eb09729d89372, type: 3}
+  deathFrameRate: 10

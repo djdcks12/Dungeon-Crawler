@@ -1,0 +1,46 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: df3982322dfc5c54c9f7a692a8fef638, type: 3}
+  m_Name: StrengthScroll
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.ItemData
+  itemId: consumable_strengthscroll
+  itemName: "\uD798\uC758 \uC8FC\uBB38\uC11C"
+  description: "60\uCD08\uAC04 STR+5 \uC99D\uAC00"
+  itemIcon: {fileID: 0}
+  itemType: 1
+  grade: 1
+  equipmentSlot: 0
+  weaponType: 30
+  stackSize: 10
+  sellPrice: 50
+  isDroppable: 1
+  isDestroyable: 1
+  statBonuses:
+    strength: 0
+    agility: 0
+    vitality: 0
+    intelligence: 0
+    defense: 0
+    magicDefense: 0
+    luck: 0
+    stability: 0
+  weaponDamageRange:
+    minDamage: 10
+    maxDamage: 15
+    stability: 0
+  criticalBonus: 0
+  weaponDamageType: 0
+  hitEffect: {fileID: 0}
+  healAmount: 0
+  manaAmount: 0
+  consumableEffects: []
+  gradeColor: {r: 0.8, g: 0.8, b: 0.8, a: 1}

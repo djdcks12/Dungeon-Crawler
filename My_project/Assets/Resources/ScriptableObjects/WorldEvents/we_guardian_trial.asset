@@ -1,0 +1,64 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4b0881b9cf4f0ee4ebd3a22aad14bb50, type: 3}
+  m_Name: we_guardian_trial
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.WorldEventData
+  eventId: we_guardian_trial
+  eventName: "\uC218\uD638\uC790\uC758 \uC2DC\uB828"
+  description: "\uACE0\uB300 \uC218\uD638\uC790\uC758 \uC601\uD63C\uC774 \uB098\uD0C0\uB098
+    \uC2DC\uB828\uC744 \uC81C\uC548\uD55C\uB2E4. \uD1B5\uACFC\uD558\uBA74 \uD070
+    \uD798\uC744 \uC5BB\uB294\uB2E4!"
+  eventIcon: {fileID: 0}
+  eventType: 2
+  rarity: 2
+  spawnChance: 0.04
+  checkInterval: 60
+  minPlayerLevel: 6
+  maxPlayerLevel: 99
+  requiresNight: 0
+  requiresDay: 0
+  requiredWeather: 0
+  duration: 150
+  isPermanentUntilCompleted: 1
+  eventMonsters:
+  - monsterVariantId: construct_boss
+    count: 1
+    gradeMin: 114
+    gradeMax: 120
+    isBoss: 1
+    spawnDelay: 0
+  rewards:
+  - rewardType: 1
+    amount: 1500
+    itemId: 
+    dropChance: 1
+  - rewardType: 3
+    amount: 1
+    itemId: 
+    dropChance: 1
+  - rewardType: 4
+    amount: 1
+    itemId: 
+    dropChance: 0.15
+  dialogues:
+  - speakerName: "\uC218\uD638\uC790"
+    dialogue: "\uC624\uB798\uC804 \uC774 \uB545\uC744 \uC9C0\uD0A4\uB358 \uC790...
+      \uADF8\uB300\uC758 \uC2E4\uB825\uC744 \uBCF4\uC5EC\uB2EC\uB77C."
+    order: 0
+  - speakerName: "\uC218\uD638\uC790"
+    dialogue: "\uD6CC\uB96D\uD558\uB2E4. \uADF8\uB300\uB294 \uC9C4\uC815\uD55C \uC804\uC0AC\uB85C\uAD6C\uB098.
+      \uB0B4 \uD798\uC744 \uBB3C\uB824\uBC1B\uC544\uB77C."
+    order: 1
+  choices: []
+  spawnRadius: 12
+  announceToAll: 0
+  announceMessage: 

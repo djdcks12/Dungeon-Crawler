@@ -1,0 +1,67 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4b0881b9cf4f0ee4ebd3a22aad14bb50, type: 3}
+  m_Name: we_elemental_storm
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.WorldEventData
+  eventId: we_elemental_storm
+  eventName: "\uC6D0\uC18C \uD3ED\uD48D"
+  description: "\uD3ED\uD48D\uC774 \uBD88\uC5B4 \uC6D0\uC18C \uC0DD\uBA85\uCCB4\uB4E4\uC774
+    \uC18C\uD658\uB418\uC5C8\uB2E4! \uBC88\uAC1C \uC6D0\uC18C\uC5D0 \uC8FC\uC758\uD558\uB77C!"
+  eventIcon: {fileID: 0}
+  eventType: 8
+  rarity: 1
+  spawnChance: 0.15
+  checkInterval: 40
+  minPlayerLevel: 4
+  maxPlayerLevel: 99
+  requiresNight: 0
+  requiresDay: 0
+  requiredWeather: 3
+  duration: 90
+  isPermanentUntilCompleted: 0
+  eventMonsters:
+  - monsterVariantId: elemental_normal
+    count: 4
+    gradeMin: 105
+    gradeMax: 112
+    isBoss: 0
+    spawnDelay: 0
+  - monsterVariantId: elemental_elite
+    count: 2
+    gradeMin: 108
+    gradeMax: 115
+    isBoss: 0
+    spawnDelay: 5
+  - monsterVariantId: elemental_boss
+    count: 1
+    gradeMin: 112
+    gradeMax: 118
+    isBoss: 1
+    spawnDelay: 10
+  rewards:
+  - rewardType: 0
+    amount: 800
+    itemId: 
+    dropChance: 1
+  - rewardType: 1
+    amount: 600
+    itemId: 
+    dropChance: 1
+  - rewardType: 2
+    amount: 1
+    itemId: CrystalStaff_Rare
+    dropChance: 0.2
+  dialogues: []
+  choices: []
+  spawnRadius: 15
+  announceToAll: 1
+  announceMessage: "\uC6D0\uC18C \uD3ED\uD48D\uC774 \uBAB0\uB824\uC635\uB2C8\uB2E4!"

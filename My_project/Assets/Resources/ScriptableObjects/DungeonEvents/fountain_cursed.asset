@@ -1,0 +1,60 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 69720ba5637a68e4ea25f77fe61a9920, type: 3}
+  m_Name: fountain_cursed
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.DungeonEventData
+  eventId: fountain_cursed
+  eventName: "\uC800\uC8FC\uBC1B\uC740 \uC0D8"
+  description: "\uAC80\uC740 \uBB3C\uC774 \uACE0\uC778 \uBD88\uAE38\uD55C \uC0D8.
+    \uC704\uD5D8\uD558\uC9C0\uB9CC \uBCF4\uC0C1\uC774 \uD06C\uB2E4."
+  eventIcon: {fileID: 0}
+  eventType: 1
+  rarity: 1
+  triggerType: 1
+  spawnChance: 0.05
+  minFloor: 3
+  maxFloor: 10
+  minDifficulty: 1
+  oncePerDungeon: 0
+  interactionText: "\uB9C8\uC2E0\uB2E4"
+  interactionTime: 1
+  requiresChoice: 0
+  bareHandOutcomes:
+  - description: "\uC800\uC8FC\uC758 \uB300\uAC00\uB85C \uAC15\uD574\uC84C\uB2E4!"
+    chance: 0.5
+    effectType: 22
+    effectValue: 30
+    duration: 180
+    statusEffect: 0
+    isNegative: 1
+  - description: "\uC800\uC8FC\uC5D0 \uC800\uD56D\uD588\uB2E4! \uACBD\uD5D8\uCE58\uB97C
+      \uC5BB\uC5C8\uB2E4."
+    chance: 0.3
+    effectType: 6
+    effectValue: 200
+    duration: 0
+    statusEffect: 0
+    isNegative: 0
+  - description: "\uC800\uC8FC\uAC00 \uB108\uBB34 \uAC15\uD588\uB2E4..."
+    chance: 0.2
+    effectType: 3
+    effectValue: 80
+    duration: 0
+    statusEffect: 0
+    isNegative: 1
+  itemInteractions: []
+  choices: []
+  combatWaves: []
+  combatTimeLimit: 0
+  shopItems: []
+  glowColor: {r: 0.3, g: 0.6, b: 1, a: 1}
+  activationSFX: 

@@ -176,10 +176,11 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         {
             float dropRate = baseDropRate;
             
-            if (killer?.GetComponent<PlayerStatsManager>()?.CurrentStats != null)
+            var killerStatsManager = killer?.GetComponent<PlayerStatsManager>();
+            if (killerStatsManager?.CurrentStats != null)
             {
-                var stats = killer.GetComponent<PlayerStatsManager>().CurrentStats;
-                
+                var stats = killerStatsManager.CurrentStats;
+
                 // 운 스탯에 따른 드롭률 증가 (LUK * 0.01%)
                 dropRate += stats.TotalLUK * 0.0001f;
                 
@@ -219,9 +220,10 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             int finalAmount = Mathf.RoundToInt(baseAmount * (1f + variance));
             
             // 운 스탯 보너스
-            if (killer?.GetComponent<PlayerStatsManager>()?.CurrentStats != null)
+            var killerStats = killer?.GetComponent<PlayerStatsManager>();
+            if (killerStats?.CurrentStats != null)
             {
-                var stats = killer.GetComponent<PlayerStatsManager>().CurrentStats;
+                var stats = killerStats.CurrentStats;
                 float luckBonus = stats.TotalLUK * 0.01f; // LUK당 1% 증가
                 finalAmount = Mathf.RoundToInt(finalAmount * (1f + luckBonus));
             }

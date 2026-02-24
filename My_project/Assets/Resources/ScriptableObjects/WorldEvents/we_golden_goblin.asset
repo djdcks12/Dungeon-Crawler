@@ -1,0 +1,55 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4b0881b9cf4f0ee4ebd3a22aad14bb50, type: 3}
+  m_Name: we_golden_goblin
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.WorldEventData
+  eventId: we_golden_goblin
+  eventName: "\uD669\uAE08 \uACE0\uBE14\uB9B0"
+  description: "\uC628 \uBAB8\uC774 \uAE08\uBE5B\uC73C\uB85C \uBE5B\uB098\uB294 \uD2B9\uBCC4\uD55C
+    \uACE0\uBE14\uB9B0! \uC5C4\uCCAD\uB09C \uBCF4\uBB3C\uC744 \uAC16\uACE0 \uC788\uB2E4!"
+  eventIcon: {fileID: 0}
+  eventType: 0
+  rarity: 2
+  spawnChance: 0.05
+  checkInterval: 60
+  minPlayerLevel: 3
+  maxPlayerLevel: 99
+  requiresNight: 0
+  requiresDay: 0
+  requiredWeather: 0
+  duration: 30
+  isPermanentUntilCompleted: 0
+  eventMonsters:
+  - monsterVariantId: goblin_elite
+    count: 1
+    gradeMin: 110
+    gradeMax: 120
+    isBoss: 0
+    spawnDelay: 0
+  rewards:
+  - rewardType: 0
+    amount: 2000
+    itemId: 
+    dropChance: 1
+  - rewardType: 1
+    amount: 500
+    itemId: 
+    dropChance: 1
+  - rewardType: 2
+    amount: 1
+    itemId: Longsword_Rare
+    dropChance: 0.3
+  dialogues: []
+  choices: []
+  spawnRadius: 10
+  announceToAll: 1
+  announceMessage: "\uD669\uAE08 \uACE0\uBE14\uB9B0\uC774 \uCD9C\uD604\uD588\uC2B5\uB2C8\uB2E4!"

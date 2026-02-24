@@ -1,0 +1,56 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 69720ba5637a68e4ea25f77fe61a9920, type: 3}
+  m_Name: ambush_undead
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.DungeonEventData
+  eventId: ambush_undead
+  eventName: "\uC5B8\uB370\uB4DC \uC2B5\uACA9"
+  description: "\uB545\uC5D0\uC11C \uD574\uACE8\uC774 \uC19F\uC544\uC624\uB978\uB2E4!"
+  eventIcon: {fileID: 0}
+  eventType: 4
+  rarity: 0
+  triggerType: 1
+  spawnChance: 0.07
+  minFloor: 3
+  maxFloor: 8
+  minDifficulty: 1
+  oncePerDungeon: 0
+  interactionText: 
+  interactionTime: 1
+  requiresChoice: 0
+  bareHandOutcomes:
+  - description: "\uC5B8\uB370\uB4DC\uAC00 \uBD80\uD65C\uD55C\uB2E4!"
+    chance: 1
+    effectType: 14
+    effectValue: 4
+    duration: 0
+    statusEffect: 0
+    isNegative: 1
+  itemInteractions: []
+  choices: []
+  combatWaves:
+  - waveNumber: 1
+    monsterRace: Undead
+    monsterVariant: Normal
+    count: 4
+    delayBeforeWave: 0
+    isElite: 0
+  - waveNumber: 2
+    monsterRace: Undead
+    monsterVariant: Elite
+    count: 1
+    delayBeforeWave: 3
+    isElite: 1
+  combatTimeLimit: 0
+  shopItems: []
+  glowColor: {r: 1, g: 0.2, b: 0.2, a: 1}
+  activationSFX: 

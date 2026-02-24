@@ -36,7 +36,14 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 Destroy(gameObject);
             }
         }
-        
+
+        public override void OnDestroy()
+        {
+            base.OnDestroy();
+            if (Instance == this)
+                Instance = null;
+        }
+
         public override void OnNetworkSpawn()
         {
             base.OnNetworkSpawn();
@@ -44,6 +51,11 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             if (IsServer)
             {
                 Debug.Log("🎮 Test Game Manager spawned on Server");
+
+                // SystemBootstrapper 네트워크 시스템 초기화
+                if (SystemBootstrapper.Instance != null)
+                    SystemBootstrapper.Instance.InitializeNetworkSystems();
+
                 InitializeTestEnvironment();
                 InitializeMonsterSpawner();
             }

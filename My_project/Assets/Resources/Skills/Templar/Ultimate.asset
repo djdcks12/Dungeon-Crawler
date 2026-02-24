@@ -1,0 +1,56 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4759a9d92f8e8704ea8b349c78f693f8, type: 3}
+  m_Name: Ultimate
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.SkillData
+  skillName: "\uC2E0\uC758 \uC2EC\uD310"
+  skillId: Templar_Ultimate
+  description: "\uC808\uB300\uC801\uC778 \uC2E0\uC758 \uC2EC\uD310\uC744 \uB0B4\uB824
+    \uBAA8\uB4E0 \uC801\uC5D0\uAC8C \uCE58\uBA85\uC801\uC778 \uC2E0\uC131 \uD53C\uD574\uB97C
+    \uC785\uD78C\uB2E4."
+  skillIcon: {fileID: 0}
+  requiredLevel: 10
+  goldCost: 1000
+  requiredRace: 1
+  category: 1
+  skillTier: 5
+  prerequisiteSkills: []
+  skillType: 0
+  damageType: 7
+  cooldown: 35
+  manaCost: 70
+  castTime: 2.5
+  range: 10
+  baseDamage: 160
+  damageScaling: 2
+  minDamagePercent: 80
+  maxDamagePercent: 120
+  statBonus:
+    strength: 0
+    agility: 0
+    vitality: 0
+    intelligence: 0
+    defense: 0
+    magicDefense: 0
+    luck: 0
+    stability: 0
+  healthBonus: 0
+  manaBonus: 0
+  moveSpeedBonus: 0
+  attackSpeedBonus: 0
+  statusEffects: []
+  statusDuration: 5
+  statusChance: 100
+  behaviorType: 2
+  skillEffect: {fileID: 0}
+  castSound: {fileID: 0}
+  hitSound: {fileID: 0}

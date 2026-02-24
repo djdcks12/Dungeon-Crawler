@@ -1,0 +1,59 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 69720ba5637a68e4ea25f77fe61a9920, type: 3}
+  m_Name: curio_bookshelf
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.DungeonEventData
+  eventId: curio_bookshelf
+  eventName: "\uB0A1\uC740 \uCC45\uC7A5"
+  description: "\uBA3C\uC9C0\uD22C\uC131\uC774 \uCC45\uC7A5. \uACE0\uC11C\uAC00 \uAF42\uD600\uC788\uB2E4."
+  eventIcon: {fileID: 0}
+  eventType: 2
+  rarity: 0
+  triggerType: 1
+  spawnChance: 0.08
+  minFloor: 1
+  maxFloor: 8
+  minDifficulty: 1
+  oncePerDungeon: 0
+  interactionText: "\uCC45\uC744 \uC77D\uB294\uB2E4"
+  interactionTime: 1
+  requiresChoice: 0
+  bareHandOutcomes:
+  - description: "\uC720\uC6A9\uD55C \uC9C0\uC2DD\uC744 \uC5BB\uC5C8\uB2E4!"
+    chance: 0.5
+    effectType: 6
+    effectValue: 100
+    duration: 0
+    statusEffect: 0
+    isNegative: 0
+  - description: "\uC800\uC8FC\uC758 \uBB38\uAD6C\uC600\uB2E4! \uC77C\uC2DC\uC801
+      \uC57D\uD654..."
+    chance: 0.2
+    effectType: 8
+    effectValue: 3
+    duration: 60
+    statusEffect: 0
+    isNegative: 1
+  - description: "\uBE48 \uD398\uC774\uC9C0\uBFD0\uC774\uB2E4."
+    chance: 0.3
+    effectType: 6
+    effectValue: 5
+    duration: 0
+    statusEffect: 0
+    isNegative: 0
+  itemInteractions: []
+  choices: []
+  combatWaves: []
+  combatTimeLimit: 0
+  shopItems: []
+  glowColor: {r: 0.8, g: 0.8, b: 0.8, a: 1}
+  activationSFX: 

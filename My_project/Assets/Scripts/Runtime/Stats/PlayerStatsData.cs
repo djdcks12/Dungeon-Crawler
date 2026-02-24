@@ -157,6 +157,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             }
 
             currentExp += amount;
+            if (currentExp < 0) currentExp = 0;
 
             while (currentExp >= expToNextLevel && currentLevel < maxLevel)
             {

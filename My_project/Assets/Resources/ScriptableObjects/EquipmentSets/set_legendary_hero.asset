@@ -1,0 +1,86 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ec1b857f93ff80c49888a44a0b9ed44e, type: 3}
+  m_Name: set_legendary_hero
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.EquipmentSetData
+  setId: set_legendary_hero
+  setName: "\uC804\uC124\uC758 \uC6A9\uC0AC"
+  description: "\uC804\uC124\uC5D0 \uAC78\uB9DE\uB294 \uC601\uC6C5\uC758 \uC138\uD2B8"
+  itemIds:
+  - Greatsword_Legendary
+  - Helmet_Legendary
+  - ChestArmor_Legendary
+  - Greaves_Legendary
+  - Boots_Legendary
+  bonus2Piece:
+    strength: 8
+    agility: 6
+    vitality: 5
+    intelligence: 0
+    defense: 0
+    magicDefense: 0
+    luck: 0
+    stability: 0
+  bonus2HP: 50
+  bonus2MP: 30
+  bonus2Desc: STR+8, AGI+6, VIT+5, HP+50
+  bonus3Piece:
+    strength: 14
+    agility: 10
+    vitality: 8
+    intelligence: 6
+    defense: 0
+    magicDefense: 0
+    luck: 0
+    stability: 0
+  bonus3HP: 80
+  bonus3MP: 50
+  bonus3CritChance: 8
+  bonus3CritDamage: 15
+  bonus3Desc: "\uC804\uD22C \uC2A4\uD0EF \uB300\uD3ED \uC99D\uAC00"
+  bonus4Piece:
+    strength: 20
+    agility: 15
+    vitality: 12
+    intelligence: 10
+    defense: 10
+    magicDefense: 0
+    luck: 0
+    stability: 0
+  bonus4HP: 120
+  bonus4MP: 70
+  bonus4CritChance: 12
+  bonus4CritDamage: 25
+  bonus4MoveSpeed: 8
+  bonus4AttackSpeed: 8
+  bonus4Desc: "\uC804 \uC2A4\uD0EF \uB300\uD3ED \uC99D\uAC00, \uD06C\uB9AC+12%"
+  bonus5Piece:
+    strength: 30
+    agility: 22
+    vitality: 18
+    intelligence: 15
+    defense: 15
+    magicDefense: 10
+    luck: 10
+    stability: 8
+  bonus5HP: 200
+  bonus5MP: 100
+  bonus5CritChance: 18
+  bonus5CritDamage: 40
+  bonus5MoveSpeed: 12
+  bonus5AttackSpeed: 12
+  bonus5CooldownReduction: 12
+  bonus5Lifesteal: 8
+  bonus5ExpBonus: 10
+  bonus5Desc: "\uCD5C\uAC15 \uD480\uC138\uD2B8: \uBAA8\uB4E0 \uC2A4\uD0EF \uADF9\uB300\uD654"
+  setGrade: 5
+  requiredRace: 0

@@ -1,0 +1,217 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 83d2f19ed21e61f469acd8e16a311cb7, type: 3}
+  m_Name: mount_vendor
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.DialogueData
+  dialogueId: mount_vendor
+  npcName: "\uB9C8\uAD6C\uAC04 \uC8FC\uC778 \uC2A4\uD14C\uBE48"
+  npcPortrait: {fileID: 0}
+  nodes:
+  - nodeId: n1
+    speakerName: "\uC2A4\uD14C\uBE48"
+    text: "\uD0C8\uAC83\uC774 \uD544\uC694\uD55C\uAC00? \uC774\uB3D9\uC18D\uB3C4\uAC00
+      \uBE68\uB77C\uC9C0\uBA74 \uBAA8\uD5D8\uC774 \uD6E8\uC52C \uD3B8\uD574\uC9C0\uC9C0!"
+    choices: []
+    nextNodeId: n2
+    effect:
+      effectType: 0
+      intValue: 0
+      stringValue: 
+  - nodeId: n2
+    speakerName: "\uC2A4\uD14C\uBE48"
+    text: "\uC5B4\uB5A4 \uD0C8\uAC83\uC774 \uAD00\uC2EC \uC788\uB098?"
+    choices:
+    - choiceText: "\uAD70\uB9C8 (2000G)"
+      nextNodeId: n3
+      condition:
+        conditionType: 0
+        requiredValue: 0
+        requiredStringValue: 
+        requiredRace: 0
+        requiredJob: 0
+      effect:
+        effectType: 0
+        intValue: 0
+        stringValue: 
+    - choiceText: "\uADF8\uB9AC\uD3F0 (50000G)"
+      nextNodeId: n4
+      condition:
+        conditionType: 0
+        requiredValue: 0
+        requiredStringValue: 
+        requiredRace: 0
+        requiredJob: 0
+      effect:
+        effectType: 0
+        intValue: 0
+        stringValue: 
+    - choiceText: "\uB098\uC911\uC5D0\uC694"
+      nextNodeId: n5
+      condition:
+        conditionType: 0
+        requiredValue: 0
+        requiredStringValue: 
+        requiredRace: 0
+        requiredJob: 0
+      effect:
+        effectType: 0
+        intValue: 0
+        stringValue: 
+    nextNodeId: 
+    effect:
+      effectType: 0
+      intValue: 0
+      stringValue: 
+  - nodeId: n3
+    speakerName: "\uC2A4\uD14C\uBE48"
+    text: "\uAD70\uB9C8\uB294 \uC774\uB3D9\uC18D\uB3C4 +50%\uC57C. \uCD08\uBCF4 \uBAA8\uD5D8\uAC00\uC5D0\uAC90
+      \uB531\uC774\uC9C0!"
+    choices:
+    - choiceText: "\uAD70\uB9C8 (2000G)"
+      nextNodeId: n3
+      condition:
+        conditionType: 0
+        requiredValue: 0
+        requiredStringValue: 
+        requiredRace: 0
+        requiredJob: 0
+      effect:
+        effectType: 0
+        intValue: 0
+        stringValue: 
+    - choiceText: "\uADF8\uB9AC\uD3F0 (50000G)"
+      nextNodeId: n4
+      condition:
+        conditionType: 0
+        requiredValue: 0
+        requiredStringValue: 
+        requiredRace: 0
+        requiredJob: 0
+      effect:
+        effectType: 0
+        intValue: 0
+        stringValue: 
+    - choiceText: "\uB098\uC911\uC5D0\uC694"
+      nextNodeId: n5
+      condition:
+        conditionType: 0
+        requiredValue: 0
+        requiredStringValue: 
+        requiredRace: 0
+        requiredJob: 0
+      effect:
+        effectType: 0
+        intValue: 0
+        stringValue: 
+    nextNodeId: 
+    effect:
+      effectType: 0
+      intValue: 0
+      stringValue: 
+  - nodeId: n4
+    speakerName: "\uC2A4\uD14C\uBE48"
+    text: "\uADF8\uB9AC\uD3F0\uC740 \uBE44\uD589\uC774 \uAC00\uB2A5\uD55C \uC804\uC124\uC801\uC778
+      \uD0C8\uAC83\uC774\uC57C! \uD558\uB298\uC744 \uB0A0 \uC218 \uC788\uC9C0!"
+    choices:
+    - choiceText: "\uAD70\uB9C8 (2000G)"
+      nextNodeId: n3
+      condition:
+        conditionType: 0
+        requiredValue: 0
+        requiredStringValue: 
+        requiredRace: 0
+        requiredJob: 0
+      effect:
+        effectType: 0
+        intValue: 0
+        stringValue: 
+    - choiceText: "\uADF8\uB9AC\uD3F0 (50000G)"
+      nextNodeId: n4
+      condition:
+        conditionType: 0
+        requiredValue: 0
+        requiredStringValue: 
+        requiredRace: 0
+        requiredJob: 0
+      effect:
+        effectType: 0
+        intValue: 0
+        stringValue: 
+    - choiceText: "\uB098\uC911\uC5D0\uC694"
+      nextNodeId: n5
+      condition:
+        conditionType: 0
+        requiredValue: 0
+        requiredStringValue: 
+        requiredRace: 0
+        requiredJob: 0
+      effect:
+        effectType: 0
+        intValue: 0
+        stringValue: 
+    nextNodeId: 
+    effect:
+      effectType: 0
+      intValue: 0
+      stringValue: 
+  - nodeId: n5
+    speakerName: "\uC2A4\uD14C\uBE48"
+    text: "\uB9C8\uC74C\uC774 \uBC14\uB00C\uBA74 \uC5B8\uC81C\uB4E0 \uC640!"
+    choices:
+    - choiceText: "\uAD70\uB9C8 (2000G)"
+      nextNodeId: n3
+      condition:
+        conditionType: 0
+        requiredValue: 0
+        requiredStringValue: 
+        requiredRace: 0
+        requiredJob: 0
+      effect:
+        effectType: 0
+        intValue: 0
+        stringValue: 
+    - choiceText: "\uADF8\uB9AC\uD3F0 (50000G)"
+      nextNodeId: n4
+      condition:
+        conditionType: 0
+        requiredValue: 0
+        requiredStringValue: 
+        requiredRace: 0
+        requiredJob: 0
+      effect:
+        effectType: 0
+        intValue: 0
+        stringValue: 
+    - choiceText: "\uB098\uC911\uC5D0\uC694"
+      nextNodeId: n5
+      condition:
+        conditionType: 0
+        requiredValue: 0
+        requiredStringValue: 
+        requiredRace: 0
+        requiredJob: 0
+      effect:
+        effectType: 0
+        intValue: 0
+        stringValue: 
+    nextNodeId: 
+    effect:
+      effectType: 0
+      intValue: 0
+      stringValue: 
+  condition:
+    conditionType: 0
+    requiredValue: 0
+    requiredStringValue: 
+    requiredRace: 0
+    requiredJob: 0
+  priority: 0

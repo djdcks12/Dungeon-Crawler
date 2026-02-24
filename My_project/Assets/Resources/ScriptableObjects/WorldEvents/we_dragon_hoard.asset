@@ -1,0 +1,62 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4b0881b9cf4f0ee4ebd3a22aad14bb50, type: 3}
+  m_Name: we_dragon_hoard
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.WorldEventData
+  eventId: we_dragon_hoard
+  eventName: "\uB4DC\uB798\uACE4 \uBCF4\uBB3C\uACE0"
+  description: "\uB4DC\uB798\uACE4\uC774 \uC7A0\uC2DC \uC790\uB9AC\uB97C \uBE44\uC6B4
+    \uBCF4\uBB3C\uACE0! \uBE68\uB9AC \uBCF4\uBB3C\uC744 \uAC00\uC838\uAC00\uC790!"
+  eventIcon: {fileID: 0}
+  eventType: 0
+  rarity: 3
+  spawnChance: 0.02
+  checkInterval: 120
+  minPlayerLevel: 8
+  maxPlayerLevel: 99
+  requiresNight: 0
+  requiresDay: 0
+  requiredWeather: 0
+  duration: 20
+  isPermanentUntilCompleted: 0
+  eventMonsters: []
+  rewards:
+  - rewardType: 0
+    amount: 5000
+    itemId: 
+    dropChance: 1
+  - rewardType: 1
+    amount: 1000
+    itemId: 
+    dropChance: 1
+  - rewardType: 2
+    amount: 1
+    itemId: Greatsword_Epic
+    dropChance: 0.5
+  dialogues: []
+  choices:
+  - choiceText: "\uBCF4\uBB3C\uC744 \uC870\uC2EC\uC2A4\uB7FD\uAC8C \uAC00\uC838\uAC04\uB2E4"
+    resultDescription: "\uC548\uC804\uD558\uAC8C \uC77C\uBD80\uB9CC \uAC00\uC838\uC654\uB2E4."
+    rewardType: 0
+    rewardAmount: 2000
+    riskChance: 0
+    riskDamage: 0
+  - choiceText: "\uC804\uBD80 \uC4F8\uC5B4\uB2F4\uB294\uB2E4"
+    resultDescription: "\uB4DC\uB798\uACE4\uC774 \uB3CC\uC544\uC624\uAE30 \uC804\uC5D0
+      \uC804\uBD80 \uAC00\uC838\uC654\uB2E4... \uD558\uC9C0\uB9CC \uC704\uD5D8!"
+    rewardType: 0
+    rewardAmount: 5000
+    riskChance: 0.4
+    riskDamage: 200
+  spawnRadius: 15
+  announceToAll: 1
+  announceMessage: "\uB4DC\uB798\uACE4\uC758 \uBCF4\uBB3C\uACE0\uAC00 \uBC1C\uACAC\uB418\uC5C8\uC2B5\uB2C8\uB2E4!"

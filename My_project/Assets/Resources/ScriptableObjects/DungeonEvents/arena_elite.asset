@@ -1,0 +1,56 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 69720ba5637a68e4ea25f77fe61a9920, type: 3}
+  m_Name: arena_elite
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.DungeonEventData
+  eventId: arena_elite
+  eventName: "\uC815\uC608\uC758 \uBC29"
+  description: "\uAC15\uB825\uD55C \uC5D8\uB9AC\uD2B8 \uBAAC\uC2A4\uD130\uAC00 \uAE30\uB2E4\uB9B0\uB2E4!"
+  eventIcon: {fileID: 0}
+  eventType: 5
+  rarity: 1
+  triggerType: 1
+  spawnChance: 0.04
+  minFloor: 3
+  maxFloor: 10
+  minDifficulty: 1
+  oncePerDungeon: 0
+  interactionText: 
+  interactionTime: 1
+  requiresChoice: 0
+  bareHandOutcomes:
+  - description: "\uC815\uC608\uB97C \uCC98\uCE58\uD588\uB2E4! \uACE0\uAE09 \uBCF4\uC0C1!"
+    chance: 1
+    effectType: 4
+    effectValue: 500
+    duration: 0
+    statusEffect: 0
+    isNegative: 0
+  itemInteractions: []
+  choices: []
+  combatWaves:
+  - waveNumber: 1
+    monsterRace: Orc
+    monsterVariant: Elite
+    count: 2
+    delayBeforeWave: 0
+    isElite: 1
+  - waveNumber: 2
+    monsterRace: Orc
+    monsterVariant: Berserker
+    count: 1
+    delayBeforeWave: 5
+    isElite: 0
+  combatTimeLimit: 0
+  shopItems: []
+  glowColor: {r: 1, g: 0.5, b: 0, a: 1}
+  activationSFX: 

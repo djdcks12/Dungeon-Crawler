@@ -1,0 +1,57 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4b0881b9cf4f0ee4ebd3a22aad14bb50, type: 3}
+  m_Name: we_beast_swarm
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.WorldEventData
+  eventId: we_beast_swarm
+  eventName: "\uC57C\uC218 \uB5BC \uCD9C\uD604"
+  description: "\uAC70\uB300\uD55C \uC57C\uC218 \uBB34\uB9AC\uAC00 \uC601\uC5ED\uC744
+    \uCE68\uBC94\uD588\uB2E4! \uC0AC\uB0E5\uD558\uC5EC \uC4F0\uB7EC\uB728\uB824\uB77C!"
+  eventIcon: {fileID: 0}
+  eventType: 3
+  rarity: 0
+  spawnChance: 0.1
+  checkInterval: 35
+  minPlayerLevel: 2
+  maxPlayerLevel: 99
+  requiresNight: 0
+  requiresDay: 0
+  requiredWeather: 0
+  duration: 90
+  isPermanentUntilCompleted: 0
+  eventMonsters:
+  - monsterVariantId: beast_normal
+    count: 8
+    gradeMin: 98
+    gradeMax: 105
+    isBoss: 0
+    spawnDelay: 0
+  - monsterVariantId: beast_berserker
+    count: 2
+    gradeMin: 103
+    gradeMax: 110
+    isBoss: 0
+    spawnDelay: 4
+  rewards:
+  - rewardType: 0
+    amount: 250
+    itemId: 
+    dropChance: 1
+  - rewardType: 1
+    amount: 300
+    itemId: 
+    dropChance: 1
+  dialogues: []
+  choices: []
+  spawnRadius: 18
+  announceToAll: 0
+  announceMessage: 

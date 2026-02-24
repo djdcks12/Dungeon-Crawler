@@ -1,0 +1,57 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 828010b4834c18546ab4e8fa5b6e8eda, type: 3}
+  m_Name: Dragon_RaceData
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.MonsterRaceData
+  raceType: 6
+  raceName: Dragon
+  description: "\uB4DC\uB798\uACE4\uC871 - \uBAA8\uB4E0 \uC2A4\uD0EF\uC774 \uCD5C\uC0C1\uAE09\uC778
+    \uCD5C\uAC15 \uC885\uC871"
+  raceIcon: {fileID: 0}
+  baseStats:
+    strength: 18
+    agility: 8
+    vitality: 20
+    intelligence: 14
+    defense: 12
+    magicDefense: 11
+    luck: 12
+    stability: 10
+  gradeGrowth:
+    strengthGrowth: 3
+    agilityGrowth: 1.2
+    vitalityGrowth: 3.5
+    intelligenceGrowth: 2.5
+    defenseGrowth: 2
+    magicDefenseGrowth: 1.8
+    luckGrowth: 1.5
+    stabilityGrowth: 1.5
+  elementalAffinity:
+    fireAttack: 20
+    fireResist: 20
+    iceAttack: 0
+    iceResist: 5
+    lightningAttack: 0
+    lightningResist: 5
+    poisonAttack: 0
+    poisonResist: 0
+    darkAttack: 0
+    darkResist: 10
+    holyAttack: 0
+    holyResist: 5
+  mandatorySkills: []
+  availableSkills: []
+  baseExperience: 79
+  baseGold: 19
+  soulDropRate: 0.005
+  commonDrops: []
+  rareDrops: []

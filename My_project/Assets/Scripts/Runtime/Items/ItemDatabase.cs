@@ -229,8 +229,8 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             // 이름으로 검색
             if (!string.IsNullOrEmpty(searchTerm))
             {
-                results = results.Where(item => item.ItemName.Contains(searchTerm) || 
-                                              item.Description.Contains(searchTerm));
+                results = results.Where(item => item.ItemName.IndexOf(searchTerm, System.StringComparison.OrdinalIgnoreCase) >= 0 ||
+                                              item.Description.IndexOf(searchTerm, System.StringComparison.OrdinalIgnoreCase) >= 0);
             }
             
             // 타입 필터

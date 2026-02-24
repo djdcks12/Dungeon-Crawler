@@ -1,0 +1,82 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 33698dae12dc03d4682f30c422f8b081, type: 3}
+  m_Name: Machina_RaceData
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.RaceData
+  raceType: 4
+  raceName: Machina
+  description: "\uAE30\uACC4\uC871 - \uB192\uC740 \uBC29\uC5B4\uB825\uACFC \uC548\uC815\uC131\uC744
+    \uC9C0\uB2CC \uBC29\uC5B4 \uD2B9\uD654 \uC885\uC871.\n\uACAC\uACE0\uD55C \uC678\uD53C\uC640
+    \uC815\uBC00\uD55C \uB0B4\uBD80 \uAD6C\uC870\uB85C \uC5B4\uB5A4 \uC0C1\uD669\uC5D0\uC11C\uB3C4
+    \uC548\uC815\uC801\uC778 \uC804\uD22C\uB97C \uC218\uD589\uD569\uB2C8\uB2E4.\n\uB290\uB9AC\uC9C0\uB9CC
+    \uAC15\uC778\uD55C, \uD300\uC758 \uB4E0\uB4E0\uD55C \uBC29\uBCBD\uC785\uB2C8\uB2E4."
+  raceIcon: {fileID: 0}
+  baseStats:
+    strength: 10
+    agility: 6
+    vitality: 16
+    intelligence: 12
+    defense: 14
+    magicDefense: 8
+    luck: 4
+    stability: 12
+  statGrowth:
+    strengthGrowth: 1.5
+    agilityGrowth: 0.8
+    vitalityGrowth: 2.5
+    intelligenceGrowth: 1.2
+    defenseGrowth: 2
+    magicDefenseGrowth: 1
+    luckGrowth: 0.5
+    stabilityGrowth: 1.5
+  elementalAffinity:
+    fireAttack: 0
+    fireResist: 5
+    iceAttack: 0
+    iceResist: 5
+    lightningAttack: 5
+    lightningResist: -10
+    poisonAttack: 0
+    poisonResist: 15
+    darkAttack: 0
+    darkResist: 5
+    holyAttack: 0
+    holyResist: 0
+  specialties:
+  - specialtyType: 2
+    value: 15
+    description: "+15% \uAE30\uC220 \uC219\uB828\uB3C4 \uBCF4\uB108\uC2A4"
+  - specialtyType: 1
+    value: 10
+    description: "+10% \uBB3C\uB9AC \uBC29\uC5B4 \uBCF4\uB108\uC2A4"
+  - specialtyType: 5
+    value: 10
+    description: "+10% \uC18D\uC131 \uC800\uD56D \uBCF4\uB108\uC2A4"
+  defaultHitEffect: {fileID: 0}
+  idleSprites:
+  - {fileID: 3204480812468917802, guid: 62158596918afbe499ea9368868fd358, type: 3}
+  idleFrameRate: 6
+  walkSprites:
+  - {fileID: -6815865655073467910, guid: 6916c30bc0fed2c4b8b9ebf13ffa32d4, type: 3}
+  walkFrameRate: 8
+  attackSprites:
+  - {fileID: 3117775995601270193, guid: 00c7fd52df116f445af8f89c48f59010, type: 3}
+  attackFrameRate: 12
+  attackDamageFrame: 2
+  hitSprites:
+  - {fileID: 4237140444910105288, guid: 1b301ba6f1e4bf34dbc024c9239147c2, type: 3}
+  hitFrameRate: 12
+  castingSprites: []
+  castingFrameRate: 10
+  deathSprites:
+  - {fileID: -6066306879103524113, guid: 2dea9f1599ce46649a4eb09729d89372, type: 3}
+  deathFrameRate: 8

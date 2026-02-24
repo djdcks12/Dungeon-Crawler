@@ -214,6 +214,16 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         {
             return creationState;
         }
+
+        public override void OnDestroy()
+        {
+            OnRaceOptionsUpdated = null;
+            OnWeaponGroupOptionsUpdated = null;
+            OnJobOptionsUpdated = null;
+            OnCharacterCreated = null;
+            OnCreationError = null;
+            base.OnDestroy();
+        }
     }
     
     /// <summary>
@@ -253,6 +263,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
     [System.Serializable]
     public class CharacterCreationData
     {
+        public string characterName;
         public Race race;
         public JobType jobType;
         public WeaponGroup weaponGroup;

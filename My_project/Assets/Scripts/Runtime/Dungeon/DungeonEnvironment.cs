@@ -56,7 +56,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             {
                 if (instance == null)
                 {
-                    instance = FindObjectOfType<DungeonEnvironment>();
+                    instance = FindFirstObjectByType<DungeonEnvironment>();
                 }
                 return instance;
             }
@@ -87,7 +87,11 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             {
                 DungeonManager.Instance.OnFloorChanged -= OnFloorChanged;
             }
-            
+
+            OnTrapTriggered = null;
+            OnChestOpened = null;
+            OnSecretFound = null;
+
             base.OnNetworkDespawn();
         }
         
@@ -102,7 +106,15 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 Destroy(gameObject);
             }
         }
-        
+
+        public override void OnDestroy()
+        {
+            StopAllCoroutines();
+            base.OnDestroy();
+            if (instance == this)
+                instance = null;
+        }
+
         /// <summary>
         /// 층 변경 이벤트 처리
         /// </summary>

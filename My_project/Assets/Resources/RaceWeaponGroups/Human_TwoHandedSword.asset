@@ -1,0 +1,38 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c2c8e01c115367544bfe9ef82ec71256, type: 3}
+  m_Name: Human_TwoHandedSword
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.RaceWeaponGroupData
+  race: 1
+  weaponGroup: 1
+  combinationName: Human_TwoHandedSword
+  description: "\uC778\uAC04 \uC591\uC190 \uB300\uAC80 - \uAC15\uB825\uD55C \uC77C\uACA9\uC5D0
+    \uD2B9\uD654\uB41C \uC804\uD22C \uC2A4\uD0C0\uC77C."
+  previewSprite: {fileID: 0}
+  idleSprites:
+  - {fileID: 3204480812468917802, guid: 4fff3d86fd14e194e9243bc47ff6386c, type: 3}
+  idleFrameRate: 6
+  walkSprites:
+  - {fileID: -6815865655073467910, guid: f37654b19245f4543a387e0a6b963d00, type: 3}
+  walkFrameRate: 8
+  attackSprites:
+  - {fileID: 1334909474723237668, guid: 8300d6d6a9caa4046939223b76dbbd0b, type: 3}
+  attackFrameRate: 12
+  attackDamageFrame: 3
+  hitSprites:
+  - {fileID: 4237140444910105288, guid: 69d992f5996d77c4b848a45fc3b9f03a, type: 3}
+  hitFrameRate: 12
+  castingSprites: []
+  castingFrameRate: 10
+  deathSprites:
+  - {fileID: -6066306879103524113, guid: 376943dfc7735a74d8020198b91de5f5, type: 3}
+  deathFrameRate: 8

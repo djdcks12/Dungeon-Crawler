@@ -25,6 +25,9 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         // 상태
         private bool isPickedUp = false;
         private PlayerController nearbyPlayer = null;
+
+        // GC 최적화: 재사용 버퍼
+        private static readonly Collider2D[] s_OverlapBuffer = new Collider2D[8];
         
         public MonsterSoulData SoulData => soulData;
         
@@ -117,13 +120,13 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         private void CheckNearbyPlayers()
         {
-            Collider2D[] nearbyColliders = Physics2D.OverlapCircleAll(transform.position, pickupRange);
+            int count = Physics2D.OverlapCircleNonAlloc(transform.position, pickupRange, s_OverlapBuffer);
             PlayerController closestPlayer = null;
             float closestDistance = float.MaxValue;
-            
-            foreach (var collider in nearbyColliders)
+
+            for (int i = 0; i < count; i++)
             {
-                var player = collider.GetComponent<PlayerController>();
+                var player = s_OverlapBuffer[i].GetComponent<PlayerController>();
                 if (player != null && player.IsOwner) // 로컬 플레이어만
                 {
                     var statsManager = player.GetComponent<PlayerStatsManager>();
@@ -362,7 +365,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         [ContextMenu("Force Pickup")]
         public void ForcePickup()
         {
-            var player = FindObjectOfType<PlayerController>();
+            var player = FindFirstObjectByType<PlayerController>();
             if (player != null && player.IsOwner)
             {
                 TryPickup(player);

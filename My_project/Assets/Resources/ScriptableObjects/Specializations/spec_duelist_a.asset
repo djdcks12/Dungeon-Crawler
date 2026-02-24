@@ -1,0 +1,59 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d70bb1618049f314c82decbdeb4530d2, type: 3}
+  m_Name: spec_duelist_a
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.JobSpecializationData
+  specId: spec_duelist_a
+  specName: "\uAC80\uC220 \uB2EC\uC778"
+  description: "\uC644\uBCBD\uD55C \uAC80\uC220\uB85C \uC801\uC758 \uACF5\uACA9\uC744
+    \uD758\uB9AC\uACE0 \uBC18\uACA9\uD558\uB294 \uACB0\uD22C\uAC00."
+  specIcon: {fileID: 0}
+  parentJob: 9
+  specIndex: 0
+  requiredLevel: 10
+  resetGoldCost: 50000
+  statBonus:
+    strength: 3
+    agility: 4
+    vitality: 1
+    intelligence: 0
+    defense: 2
+    magicDefense: 0
+    luck: 2
+    stability: 2
+  hpBonusPercent: 0
+  mpBonusPercent: 0
+  critRateBonusPercent: 7
+  critDamageBonusPercent: 18
+  attackSpeedBonusPercent: 10
+  cooldownReductionPercent: 3
+  lifestealPercent: 2
+  passive1:
+    passiveName: "\uC644\uBCBD\uD55C \uD328\uB9AC"
+    passiveDescription: "\uC644\uBCBD\uD55C \uD328\uB9AC: 18%"
+    passiveType: 15
+    value: 18
+  passive2:
+    passiveName: "\uC815\uBC00 \uAC80\uC220"
+    passiveDescription: "\uC815\uBC00 \uAC80\uC220: 12%"
+    passiveType: 7
+    value: 12
+  passive3:
+    passiveName: "\uBC18\uACA9 \uAC15\uD654"
+    passiveDescription: "\uBC18\uACA9 \uAC15\uD654: 8%"
+    passiveType: 0
+    value: 8
+  specSkillName: "\uB9CC\uAC80\uADC0\uB958: \uADF9"
+  specSkillDescription: "\uC5F0\uC18D 10\uD68C \uC815\uBC00 \uD0C0\uACA9."
+  specSkillDamageMultiplier: 3.5
+  specSkillCooldown: 50
+  specSkillManaCost: 35

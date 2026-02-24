@@ -1,5 +1,6 @@
 using UnityEngine;
 using Unity.Netcode;
+using System.Collections;
 
 namespace Unity.Template.Multiplayer.NGO.Runtime
 {
@@ -19,6 +20,9 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         private Vector3 originalPosition;
         private float bobTimer = 0f;
         
+        // GC 최적화: 재사용 버퍼
+        private static readonly Collider2D[] s_OverlapBuffer = new Collider2D[8];
+
         // 컴포넌트 참조
         private SpriteRenderer spriteRenderer;
         private Collider2D pickupCollider;
@@ -147,9 +151,26 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         [ClientRpc]
         private void PlayPickupEffectClientRpc()
         {
-            // 픽업 사운드나 파티클 효과 재생
-            // TODO: 픽업 효과 구현
-            Debug.Log($"🎁 Picked up item: {itemInstance?.ItemData?.ItemName}");
+            Debug.Log($"Picked up item: {itemInstance?.ItemData?.ItemName}");
+            SpawnPickupEffect(transform.position, spriteRenderer?.sprite, GetGradeColor(itemInstance?.ItemData?.Grade ?? ItemGrade.Common));
+        }
+
+        /// <summary>
+        /// 픽업 이펙트 오브젝트 생성 및 애니메이션
+        /// </summary>
+        private void SpawnPickupEffect(Vector3 position, Sprite itemSprite, Color gradeColor)
+        {
+            var effectObj = new GameObject("PickupEffect");
+            effectObj.transform.position = position;
+
+            var sr = effectObj.AddComponent<SpriteRenderer>();
+            sr.sprite = itemSprite;
+            sr.color = gradeColor;
+            sr.sortingLayerName = "Items";
+            sr.sortingOrder = 10;
+
+            var effectRunner = effectObj.AddComponent<PickupEffectRunner>();
+            effectRunner.Run(sr, 0.5f);
         }
         
         /// <summary>
@@ -189,15 +210,55 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         public bool HasNearbyPlayer()
         {
-            Collider2D[] players = Physics2D.OverlapCircleAll(transform.position, pickupRange, playerLayerMask);
-            return players.Length > 0;
+            int count = Physics2D.OverlapCircleNonAlloc(transform.position, pickupRange, s_OverlapBuffer, playerLayerMask);
+            return count > 0;
         }
         
+        public override void OnDestroy()
+        {
+            StopAllCoroutines();
+            base.OnDestroy();
+        }
+
         // 디버그용 기즈모
         private void OnDrawGizmosSelected()
         {
             Gizmos.color = Color.yellow;
             Gizmos.DrawWireSphere(transform.position, pickupRange);
+        }
+    }
+
+    /// <summary>
+    /// 픽업 이펙트 애니메이션 실행용 헬퍼
+    /// </summary>
+    public class PickupEffectRunner : MonoBehaviour
+    {
+        public void Run(SpriteRenderer sr, float duration)
+        {
+            StartCoroutine(PickupEffectCoroutine(sr, duration));
+        }
+
+        private IEnumerator PickupEffectCoroutine(SpriteRenderer sr, float duration)
+        {
+            Vector3 startScale = transform.localScale;
+            Vector3 startPos = transform.position;
+            Color startColor = sr.color;
+            float elapsed = 0f;
+
+            while (elapsed < duration)
+            {
+                elapsed += Time.deltaTime;
+                float t = elapsed / duration;
+
+                // 위로 올라가면서 커지고 페이드아웃
+                transform.localScale = startScale * (1f + t * 0.5f);
+                transform.position = startPos + Vector3.up * t * 1.5f;
+                sr.color = new Color(startColor.r, startColor.g, startColor.b, 1f - t);
+
+                yield return null;
+            }
+
+            Destroy(gameObject);
         }
     }
 }

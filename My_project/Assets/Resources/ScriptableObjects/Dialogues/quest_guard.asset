@@ -1,0 +1,135 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 83d2f19ed21e61f469acd8e16a311cb7, type: 3}
+  m_Name: quest_guard
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.DialogueData
+  dialogueId: quest_guard
+  npcName: "\uACBD\uBE44\uBCD1 \uB9C8\uB974\uCF54"
+  npcPortrait: {fileID: 0}
+  nodes:
+  - nodeId: n1
+    speakerName: "\uB9C8\uB974\uCF54"
+    text: "\uB9C8\uC744 \uC8FC\uBCC0\uC5D0 \uBAAC\uC2A4\uD130\uAC00 \uB298\uC5B4\uB098\uACE0
+      \uC788\uC18C. \uB3C4\uC640\uC904 \uC218 \uC788\uACA0\uC18C?"
+    choices: []
+    nextNodeId: n2
+    effect:
+      effectType: 0
+      intValue: 0
+      stringValue: 
+  - nodeId: n2
+    speakerName: "\uB9C8\uB974\uCF54"
+    text: "\uACE0\uBE14\uB9B0 10\uB9C8\uB9AC\uB97C \uCC98\uCE58\uD574\uC8FC\uC2DC\uC624."
+    choices:
+    - choiceText: "\uB9E1\uAE30\uC138\uC694!"
+      nextNodeId: n3
+      condition:
+        conditionType: 0
+        requiredValue: 0
+        requiredStringValue: 
+        requiredRace: 0
+        requiredJob: 0
+      effect:
+        effectType: 4
+        intValue: 0
+        stringValue: quest_goblin_10
+    - choiceText: "\uC9C0\uAE08\uC740 \uD798\uB4E4\uC5B4\uC694"
+      nextNodeId: n4
+      condition:
+        conditionType: 0
+        requiredValue: 0
+        requiredStringValue: 
+        requiredRace: 0
+        requiredJob: 0
+      effect:
+        effectType: 4
+        intValue: 0
+        stringValue: quest_goblin_10
+    nextNodeId: 
+    effect:
+      effectType: 0
+      intValue: 0
+      stringValue: 
+  - nodeId: n3
+    speakerName: "\uB9C8\uB974\uCF54"
+    text: "\uACE0\uB9D9\uC18C! \uACE0\uBE14\uB9B0\uC740 \uB9C8\uC744 \uBD81\uCABD\uC5D0\uC11C
+      \uCD9C\uBAB0\uD558\uC624."
+    choices:
+    - choiceText: "\uB9E1\uAE30\uC138\uC694!"
+      nextNodeId: n3
+      condition:
+        conditionType: 0
+        requiredValue: 0
+        requiredStringValue: 
+        requiredRace: 0
+        requiredJob: 0
+      effect:
+        effectType: 4
+        intValue: 0
+        stringValue: quest_goblin_10
+    - choiceText: "\uC9C0\uAE08\uC740 \uD798\uB4E4\uC5B4\uC694"
+      nextNodeId: n4
+      condition:
+        conditionType: 0
+        requiredValue: 0
+        requiredStringValue: 
+        requiredRace: 0
+        requiredJob: 0
+      effect:
+        effectType: 4
+        intValue: 0
+        stringValue: quest_goblin_10
+    nextNodeId: 
+    effect:
+      effectType: 0
+      intValue: 0
+      stringValue: 
+  - nodeId: n4
+    speakerName: "\uB9C8\uB974\uCF54"
+    text: "\uC900\uBE44\uAC00 \uB418\uBA74 \uB2E4\uC2DC \uC640\uC8FC\uC2DC\uC624."
+    choices:
+    - choiceText: "\uB9E1\uAE30\uC138\uC694!"
+      nextNodeId: n3
+      condition:
+        conditionType: 0
+        requiredValue: 0
+        requiredStringValue: 
+        requiredRace: 0
+        requiredJob: 0
+      effect:
+        effectType: 4
+        intValue: 0
+        stringValue: quest_goblin_10
+    - choiceText: "\uC9C0\uAE08\uC740 \uD798\uB4E4\uC5B4\uC694"
+      nextNodeId: n4
+      condition:
+        conditionType: 0
+        requiredValue: 0
+        requiredStringValue: 
+        requiredRace: 0
+        requiredJob: 0
+      effect:
+        effectType: 4
+        intValue: 0
+        stringValue: quest_goblin_10
+    nextNodeId: 
+    effect:
+      effectType: 0
+      intValue: 0
+      stringValue: 
+  condition:
+    conditionType: 0
+    requiredValue: 0
+    requiredStringValue: 
+    requiredRace: 0
+    requiredJob: 0
+  priority: 0

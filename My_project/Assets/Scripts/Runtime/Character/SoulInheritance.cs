@@ -84,7 +84,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             var existingSoul = characterSoulCollections[characterId].FirstOrDefault(soul => soul.soulId == newSoul.soulId);
             if (existingSoul.soulId != 0)
             {
-                Debug.Log($"Soul {newSoul.soulName} already owned by character {characterId}");
+                Debug.Log($"Soul {newSoul.soulName ?? "Unknown"} already owned by character {characterId}");
                 return;
             }
             
@@ -100,7 +100,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 Send = new ClientRpcSendParams { TargetClientIds = new[] { clientId } }
             });
             
-            Debug.Log($"Soul '{newSoul.soulName}' acquired by character {characterId}");
+            Debug.Log($"Soul '{newSoul.soulName ?? "Unknown"}' acquired by character {characterId}");
         }
         
         /// <summary>
@@ -110,7 +110,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         private void SoulAcquiredClientRpc(SoulData acquiredSoul, ClientRpcParams rpcParams = default)
         {
             OnSoulAcquired?.Invoke(acquiredSoul);
-            Debug.Log($"Soul acquired: {acquiredSoul.soulName} (+{acquiredSoul.statBonus.strength} STR, +{acquiredSoul.statBonus.agility} AGI, etc.)");
+            Debug.Log($"Soul acquired: {acquiredSoul.soulName ?? "Unknown"} (+{acquiredSoul.statBonus.strength} STR, +{acquiredSoul.statBonus.agility} AGI, etc.)");
         }
         
         /// <summary>
@@ -188,7 +188,10 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 specialEffect = GenerateSpecialEffect(rarity),
                 description = GenerateSoulDescription(soulType, rarity),
                 floorFound = dungeonFloor,
-                acquiredTime = System.DateTime.Now.ToBinary()
+                acquiredTime = System.DateTime.Now.ToBinary(),
+                sourceLevel = dungeonFloor,
+                obtainLocation = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name,
+                sourceRace = "Dungeon"
             };
             
             return newSoul;
@@ -340,11 +343,12 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         private void ShowSoulSelectionUI(ulong characterId, List<SoulData> souls)
         {
-            var soulSelectionUI = FindObjectOfType<SoulSelectionUI>();
+            var soulSelectionUI = FindFirstObjectByType<SoulSelectionUI>();
             if (soulSelectionUI == null)
             {
                 Debug.LogError("SoulSelectionUI not found! Creating fallback selection...");
                 // 폴백: 첫 번째 영혼 자동 선택
+                if (souls == null || souls.Count == 0) return;
                 var selectedSoul = souls[0];
                 OnSoulSelected(characterId, selectedSoul);
                 return;
@@ -467,7 +471,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             Debug.Log($"⚰️ Processing complete death for character {characterId}");
             
             // DeathManager에게 사망 처리 완료 알림
-            var deathManager = FindObjectOfType<DeathManager>();
+            var deathManager = FindFirstObjectByType<DeathManager>();
             if (deathManager != null)
             {
                 // DeathManager가 나머지 사망 처리 담당 (아이템 드롭, 캐릭터 삭제 등)
@@ -541,6 +545,13 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             
             return stats;
         }
+
+        public override void OnDestroy()
+        {
+            OnSoulAcquired = null;
+            OnSoulCollectionUpdated = null;
+            base.OnDestroy();
+        }
     }
     
     /// <summary>
@@ -559,7 +570,10 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         public int floorFound;
         public long acquiredTime;
         public int characterLevel;
-        
+        public int sourceLevel;
+        public string obtainLocation;
+        public string sourceRace;
+
         public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
         {
             serializer.SerializeValue(ref soulId);
@@ -572,6 +586,9 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             serializer.SerializeValue(ref floorFound);
             serializer.SerializeValue(ref acquiredTime);
             serializer.SerializeValue(ref characterLevel);
+            serializer.SerializeValue(ref sourceLevel);
+            serializer.SerializeValue(ref obtainLocation);
+            serializer.SerializeValue(ref sourceRace);
         }
         
         public System.DateTime GetAcquiredDateTime()

@@ -71,6 +71,8 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         private void OnDestroy()
         {
             SavePlayerStats();
+            if (Instance == this)
+                Instance = null;
         }
         
         private void InitializeSaveSystem()
@@ -82,16 +84,11 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         
         private void FindLocalPlayerStatsManager()
         {
-            // 로컬 플레이어의 StatsManager 찾기
-            var playerControllers = FindObjectsOfType<PlayerController>();
-            foreach (var controller in playerControllers)
+            // NetworkManager로 로컬 플레이어 찾기
+            var netManager = Unity.Netcode.NetworkManager.Singleton;
+            if (netManager != null && netManager.LocalClient != null && netManager.LocalClient.PlayerObject != null)
             {
-                var networkBehaviour = controller.GetComponent<Unity.Netcode.NetworkBehaviour>();
-                if (networkBehaviour != null && networkBehaviour.IsLocalPlayer)
-                {
-                    statsManager = controller.GetComponent<PlayerStatsManager>();
-                    break;
-                }
+                statsManager = netManager.LocalClient.PlayerObject.GetComponent<PlayerStatsManager>();
             }
         }
         

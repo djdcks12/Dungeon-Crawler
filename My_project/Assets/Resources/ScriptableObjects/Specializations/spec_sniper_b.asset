@@ -1,0 +1,59 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d70bb1618049f314c82decbdeb4530d2, type: 3}
+  m_Name: spec_sniper_b
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.JobSpecializationData
+  specId: spec_sniper_b
+  specName: "\uC18D\uC0AC\uC218"
+  description: "\uBE60\uB978 \uC5F0\uC0AC\uB85C \uC801\uC744 \uC81C\uC555\uD558\uB294
+    \uC800\uACA9\uC218."
+  specIcon: {fileID: 0}
+  parentJob: 10
+  specIndex: 1
+  requiredLevel: 10
+  resetGoldCost: 50000
+  statBonus:
+    strength: 3
+    agility: 5
+    vitality: 1
+    intelligence: 0
+    defense: 0
+    magicDefense: 0
+    luck: 2
+    stability: 1
+  hpBonusPercent: 0
+  mpBonusPercent: 0
+  critRateBonusPercent: 8
+  critDamageBonusPercent: 12
+  attackSpeedBonusPercent: 20
+  cooldownReductionPercent: 3
+  lifestealPercent: 1
+  passive1:
+    passiveName: "\uC18D\uC0AC"
+    passiveDescription: "\uC18D\uC0AC: 10%"
+    passiveType: 0
+    value: 10
+  passive2:
+    passiveName: "\uD0C4\uCC3D \uAD00\uB9AC"
+    passiveDescription: "\uD0C4\uCC3D \uAD00\uB9AC: 12%"
+    passiveType: 11
+    value: 12
+  passive3:
+    passiveName: "\uAD00\uD1B5\uD0C4"
+    passiveDescription: "\uAD00\uD1B5\uD0C4: 8%"
+    passiveType: 13
+    value: 8
+  specSkillName: "\uD0C4\uB9C9 \uC0AC\uACA9"
+  specSkillDescription: "3\uCD08\uAC04 \uC804\uBC29\uC5D0 \uD0C4\uB9C9\uC744 \uC3DF\uC544\uBD93\uB294\uB2E4."
+  specSkillDamageMultiplier: 2
+  specSkillCooldown: 40
+  specSkillManaCost: 25

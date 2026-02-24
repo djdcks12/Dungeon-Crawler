@@ -22,10 +22,15 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         private PlayerController playerController;
         private PlayerStatsManager statsManager;
         private EnchantManager enchantManager;
+        private WeaponProficiencySystem weaponProficiencySystem;
         
         // 공격 상태
         private float attackStartTime;
         private Vector2 attackDirection;
+
+        // GC 최적화: 재사용 버퍼
+        private static readonly Collider2D[] s_OverlapBuffer = new Collider2D[16];
+        private readonly List<Collider2D> targetResultCache = new List<Collider2D>();
         
         public override void OnNetworkSpawn()
         {
@@ -34,6 +39,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             playerController = GetComponent<PlayerController>();
             statsManager = GetComponent<PlayerStatsManager>();
             enchantManager = GetComponent<EnchantManager>();
+            weaponProficiencySystem = GetComponent<WeaponProficiencySystem>();
         }
         
         /// <summary>
@@ -75,21 +81,27 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         private Collider2D FindNearestEnemy()
         {
             float attackRange = 3.0f; // 공격 가능 범위
-            var nearbyEnemies = Physics2D.OverlapCircleAll(transform.position, attackRange, enemyLayerMask);
-            
+            int count = Physics2D.OverlapCircleNonAlloc(transform.position, attackRange, s_OverlapBuffer, enemyLayerMask);
+
             Collider2D nearestEnemy = null;
             float nearestDistance = float.MaxValue;
-            
-            foreach (var enemy in nearbyEnemies)
+
+            for (int i = 0; i < count; i++)
             {
-                float distance = Vector2.Distance(transform.position, enemy.transform.position);
+                // 자기 자신 제외
+                if (s_OverlapBuffer[i].transform == transform) continue;
+
+                // 몬스터만 타겟팅 (같은 레이어의 다른 플레이어 제외)
+                if (s_OverlapBuffer[i].GetComponent<MonsterEntity>() == null) continue;
+
+                float distance = Vector2.Distance(transform.position, s_OverlapBuffer[i].transform.position);
                 if (distance < nearestDistance)
                 {
                     nearestDistance = distance;
-                    nearestEnemy = enemy;
+                    nearestEnemy = s_OverlapBuffer[i];
                 }
             }
-            
+
             return nearestEnemy;
         }
         
@@ -124,7 +136,8 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         private List<Collider2D> DetectTargetsInRange(Vector2 attackPosition, Vector2 attackDirection)
         {
-            var targets = new List<Collider2D>();
+            targetResultCache.Clear();
+            var targets = targetResultCache;
             
             // 현재 스탯에서 공격 사거리 가져오기
             float attackRange = 2.0f; // 기본값
@@ -135,17 +148,17 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             }
             
             // 원형 범위로 타겟 감지
-            var colliders = Physics2D.OverlapCircleAll(attackPosition, attackRange, enemyLayerMask | playerLayerMask);
-            
-            foreach (var collider in colliders)
+            int detectCount = Physics2D.OverlapCircleNonAlloc(attackPosition, attackRange, s_OverlapBuffer, enemyLayerMask | playerLayerMask);
+
+            for (int i = 0; i < detectCount; i++)
             {
                 // 자기 자신은 제외
-                if (collider.transform == transform) continue;
-                
+                if (s_OverlapBuffer[i].transform == transform) continue;
+
                 // 정면 방향 체크 (90도 범위)
-                if (IsTargetInFrontRange(attackPosition, attackDirection, collider.transform.position))
+                if (IsTargetInFrontRange(attackPosition, attackDirection, s_OverlapBuffer[i].transform.position))
                 {
-                    targets.Add(collider);
+                    targets.Add(s_OverlapBuffer[i]);
                 }
             }
             
@@ -210,10 +223,29 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             if (statsManager?.CurrentStats != null)
             {
                 var stats = statsManager.CurrentStats;
-                
-                // 민댐/맥댐 시스템으로 데미지 계산
-                attackDamage = stats.CalculateAttackDamage(DamageType.Physical);
-                
+
+                // 무기 숙련도 적용: 숙련도에 따라 최소 데미지 상향
+                if (weaponProficiencySystem != null)
+                {
+                    WeaponType weaponType = weaponProficiencySystem.GetCurrentWeaponType();
+                    var physRange = stats.CombatStats.physicalDamage;
+                    float adjustedMin = weaponProficiencySystem.ApplyProficiencyToMinDamage(
+                        weaponType, physRange.minDamage, physRange.maxDamage);
+                    attackDamage = Random.Range(adjustedMin, physRange.maxDamage);
+
+                    // 치명타 판정
+                    if (Random.value < stats.CombatStats.criticalChance)
+                    {
+                        isCritical = true;
+                        attackDamage *= stats.CombatStats.criticalMultiplier;
+                    }
+                }
+                else
+                {
+                    // 숙련도 시스템 없을 때 기존 방식
+                    attackDamage = stats.CalculateAttackDamage(DamageType.Physical);
+                }
+
                 // 인챈트 효과 적용
                 if (enchantManager != null)
                 {
@@ -282,10 +314,17 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             string critText = isCritical ? " (CRITICAL)" : "";
             Debug.Log($"{name} dealt {actualDamage:F1} {damageType} damage to {targetStatsManager.name}{critText}");
             
+            // 무기 숙련도 경험치 획득 (PvP)
+            if (weaponProficiencySystem != null)
+            {
+                WeaponType weaponType = weaponProficiencySystem.GetCurrentWeaponType();
+                weaponProficiencySystem.GainProficiencyExp(weaponType, actualDamage);
+            }
+
             // 피격 이펙트 표시
             Vector2 hitPosition = targetStatsManager.transform.position;
             ShowDamageEffectClientRpc(hitPosition, actualDamage, isCritical, damageType);
-            
+
             // PvP 킬/데스 처리 (타겟이 죽었을 경우)
             if (targetStatsManager.IsDead)
             {
@@ -330,6 +369,13 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             // 몬스터 공격 이벤트 발생 (MonsterTargetHUD가 구독)
             OnMonsterAttacked?.Invoke(targetMonster, actualDamage);
             
+            // 무기 숙련도 경험치 획득
+            if (weaponProficiencySystem != null)
+            {
+                WeaponType weaponType = weaponProficiencySystem.GetCurrentWeaponType();
+                weaponProficiencySystem.GainProficiencyExp(weaponType, actualDamage);
+            }
+
             // 인챈트 효과 적용 (실제 가한 데미지 기반)
             if (enchantManager != null && statsManager != null)
             {
@@ -391,17 +437,10 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         [ClientRpc]
         private void ShowDamageEffectClientRpc(Vector2 hitPosition, float damage, bool isCritical, DamageType damageType)
         {
-            // 데미지 텍스트 표시
-            string damageText = $"{damage:F0}";
-            Color textColor = damageType == DamageType.Physical ? Color.white : Color.cyan;
-            
-            if (isCritical)
+            if (DamageNumberManager.Instance != null)
             {
-                damageText = $"CRIT! {damageText}";
-                textColor = Color.red;
+                DamageNumberManager.Instance.ShowDamage(hitPosition, damage, isCritical, damageType);
             }
-            
-            // 실제 UI 데미지 텍스트 표시는 추후 UI 시스템에서 구현
         }
         
         /// <summary>
@@ -435,7 +474,14 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         {
             var skillManager = GetComponent<SkillManager>();
             if (skillManager == null) return;
-            
+
+            // SkillManager를 통한 검증 및 자원 소모 (마나/쿨다운)
+            if (!skillManager.ValidateAndConsumeSkillResources(skillId))
+            {
+                Debug.LogWarning($"Skill validation failed: {skillId}");
+                return;
+            }
+
             // 스킬 데이터 가져오기
             var skillData = skillManager.GetSkillData(skillId);
             if (skillData == null)
@@ -477,7 +523,8 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         [ClientRpc]
         private void PlayHitEffectClientRpc(string effectName,Vector3 targetPosition)
         {
-            EffectManager.Instance.PlayHitEffect(effectName, targetPosition);
+            if (EffectManager.Instance != null)
+                EffectManager.Instance.PlayHitEffect(effectName, targetPosition);
         }
         
         /// <summary>
@@ -540,14 +587,21 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             // 데미지 계산
             float skillDamage = statsManager.CurrentStats.CalculateSkillDamage(
                 skillData.minDamagePercent, skillData.maxDamagePercent, skillData.damageType);
-            
+
+            // 무기 숙련도 경험치 획득 (스킬 사용 시)
+            if (weaponProficiencySystem != null)
+            {
+                WeaponType weaponType = weaponProficiencySystem.GetCurrentWeaponType();
+                weaponProficiencySystem.GainProficiencyExp(weaponType, skillDamage * 0.5f);
+            }
+
             // 반경 내 적들 찾기
-            Collider2D[] enemies = Physics2D.OverlapCircleAll(position, radius, LayerMask.GetMask("Monster", "Player"));
-            
-            foreach (var enemy in enemies)
+            int enemyCount = Physics2D.OverlapCircleNonAlloc(position, radius, s_OverlapBuffer, LayerMask.GetMask("Monster", "Player"));
+
+            for (int i = 0; i < enemyCount; i++)
             {
                 // 몬스터에게 데미지 적용
-                var monsterEntity = enemy.GetComponent<MonsterEntity>();
+                var monsterEntity = s_OverlapBuffer[i].GetComponent<MonsterEntity>();
                 if (monsterEntity != null)
                 {
                     var attackerNetworkObject = GetComponent<NetworkObject>();
@@ -559,7 +613,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 }
                 
                 // 플레이어에게 데미지 적용 (PvP)
-                var enemyPlayer = enemy.GetComponent<PlayerStatsManager>();
+                var enemyPlayer = s_OverlapBuffer[i].GetComponent<PlayerStatsManager>();
                 if (enemyPlayer != null && enemyPlayer != statsManager)
                 {
                     enemyPlayer.TakeDamage(skillDamage, skillData.damageType);
@@ -590,23 +644,25 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 ulong killerClientId = killerNetworkBehaviour.OwnerClientId;
                 ulong victimClientId = victimNetworkBehaviour.OwnerClientId;
                 
+                if (PvPBalanceSystem.Instance == null) return;
+
                 // 킬 보상 계산
                 var killReward = PvPBalanceSystem.Instance.CalculatePvPKillReward(
                     killerClientId, victimClientId, victimStatsManager.CurrentStats.CurrentLevel);
-                
+
                 // 데스 페널티 계산
                 var deathPenalty = PvPBalanceSystem.Instance.CalculatePvPDeathPenalty(
-                    victimClientId, victimStatsManager.CurrentStats.CurrentExperience, 
+                    victimClientId, victimStatsManager.CurrentStats.CurrentExperience,
                     victimStatsManager.CurrentStats.CurrentGold);
-                
+
                 // 킬러에게 보상 지급
                 killerStatsManager.AddExperience(killReward.finalExpReward);
                 killerStatsManager.ChangeGold(killReward.finalGoldReward);
-                
+
                 // 피해자에게 페널티 적용
                 victimStatsManager.AddExperience(-deathPenalty.expLoss); // 경험치 감소
                 victimStatsManager.ChangeGold(-deathPenalty.goldDrop);   // 골드 드롭
-                
+
                 // 로그 출력
                 string revengeText = killReward.isRevenge ? " [REVENGE]" : "";
                 int killStreak = PvPBalanceSystem.Instance.GetKillStreak(killerClientId);
@@ -642,6 +698,12 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// <summary>
         /// 디버그용 공격 범위 시각화
         /// </summary>
+        public override void OnDestroy()
+        {
+            OnMonsterAttacked = null;
+            base.OnDestroy();
+        }
+
         private void OnDrawGizmosSelected()
         {
             // 공격 범위 시각화

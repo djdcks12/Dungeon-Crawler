@@ -31,11 +31,21 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         // 상태
         private float lastSkillUseTime = 0f;
         private bool isGlobalCooldown = false;
+
+        // 활성 상태이상 효과
+        private List<ActiveStatusEffect> activeEffects = new List<ActiveStatusEffect>();
+
+        // GC 최적화: 재사용 버퍼
+        private static readonly Collider2D[] s_OverlapBuffer = new Collider2D[16];
+        // GC 최적화: 쿨다운 키 캐시 (UpdateCooldowns에서 매프레임 new List 방지)
+        private readonly List<string> cooldownKeysCache = new List<string>();
+        private readonly List<string> cooldownExpiredCache = new List<string>();
         
         // 이벤트
         public System.Action<string> OnSkillLearned;
         public System.Action<string, float> OnSkillUsed;
         public System.Action<string, float> OnSkillCooldownUpdated;
+        public System.Action<StatusType, bool> OnStatusEffectChanged; // type, isApplied
         
         public override void OnNetworkSpawn()
         {
@@ -62,18 +72,25 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         public override void OnNetworkDespawn()
         {
             networkLearnedSkills.OnValueChanged -= OnNetworkSkillsChanged;
+            OnSkillLearned = null;
+            OnSkillUsed = null;
+            OnSkillCooldownUpdated = null;
+            OnStatusEffectChanged = null;
             base.OnNetworkDespawn();
         }
         
         private void Update()
         {
             if (!IsOwner) return;
-            
+
             // 쿨다운 업데이트
             UpdateCooldowns();
-            
+
             // 글로벌 쿨다운 체크
             UpdateGlobalCooldown();
+
+            // 상태이상 효과 업데이트
+            UpdateActiveStatusEffects();
         }
         
         /// <summary>
@@ -387,15 +404,15 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         private void ExecuteDamageSkill(SkillData skillData, Vector3 targetPosition)
         {
             // 범위 내 적들 찾기
-            Collider2D[] targets = Physics2D.OverlapCircleAll(targetPosition, skillData.range);
-            
-            foreach (var target in targets)
+            int targetCount = Physics2D.OverlapCircleNonAlloc(targetPosition, skillData.range, s_OverlapBuffer);
+
+            for (int i = 0; i < targetCount; i++)
             {
                 // 플레이어는 제외
-                if (target.GetComponent<PlayerController>() != null) continue;
-                
+                if (s_OverlapBuffer[i].GetComponent<PlayerController>() != null) continue;
+
                 // 몬스터 타겟인지 확인
-                var monsterEntity = target.GetComponent<MonsterEntity>();
+                var monsterEntity = s_OverlapBuffer[i].GetComponent<MonsterEntity>();
                 if (monsterEntity != null)
                 {
                     // 데미지 계산 (새로운 민댐/맥댐 시스템 사용)
@@ -408,7 +425,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                     // 몬스터에 데미지 적용 (새로운 네트워킹 시스템 사용)
                     monsterEntity.TakeDamage(damage, skillData.damageType, attackerClientId);
                     
-                    Debug.Log($"🔥 Skill damage: {damage:F0} to {target.name} via {skillData.skillName}");
+                    Debug.Log($"🔥 Skill damage: {damage:F0} to {monsterEntity.name} via {skillData.skillName}");
                 }
             }
         }
@@ -428,12 +445,235 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         }
         
         /// <summary>
-        /// 상태이상 효과 적용
+        /// 상태이상 효과 적용 (범위 내 대상에게)
         /// </summary>
         private void ApplyStatusEffects(SkillData skillData, Vector3 targetPosition)
         {
-            // 추후 상태이상 시스템과 연동
-            Debug.Log($"🌟 Applied status effects from {skillData.skillName}");
+            if (skillData.statusEffects == null || skillData.statusEffects.Length == 0) return;
+
+            foreach (var effect in skillData.statusEffects)
+            {
+                // 적용 확률 체크
+                if (Random.value * 100f > skillData.statusChance) continue;
+
+                bool isBuff = IsBuff(effect.type);
+
+                if (isBuff)
+                {
+                    // 버프는 자신에게 적용
+                    ApplyStatusEffectToSelf(effect);
+                }
+                else
+                {
+                    // 디버프는 범위 내 적에게 적용
+                    int debuffCount = Physics2D.OverlapCircleNonAlloc(targetPosition, skillData.range, s_OverlapBuffer);
+                    for (int j = 0; j < debuffCount; j++)
+                    {
+                        if (s_OverlapBuffer[j].transform == transform) continue;
+
+                        var targetSkillManager = s_OverlapBuffer[j].GetComponent<SkillManager>();
+                        if (targetSkillManager != null)
+                        {
+                            targetSkillManager.ApplyStatusEffectToSelf(effect);
+                        }
+                    }
+                }
+            }
+
+            Debug.Log($"Applied status effects from {skillData.skillName}");
+        }
+
+        /// <summary>
+        /// 자신에게 상태이상 효과 적용
+        /// </summary>
+        public void ApplyStatusEffectToSelf(StatusEffect effect)
+        {
+            // 중첩 불가능 시 기존 같은 타입 제거
+            if (!effect.stackable)
+            {
+                RemoveStatusEffect(effect.type);
+            }
+
+            var activeEffect = new ActiveStatusEffect
+            {
+                effect = effect,
+                remainingDuration = effect.duration,
+                tickTimer = effect.tickInterval
+            };
+
+            activeEffects.Add(activeEffect);
+            OnApplyStatusEffect(effect);
+            OnStatusEffectChanged?.Invoke(effect.type, true);
+
+            Debug.Log($"Status effect applied: {effect.type} ({effect.value} for {effect.duration}s)");
+        }
+
+        /// <summary>
+        /// 상태이상 효과 적용 시 즉시 처리
+        /// </summary>
+        private void OnApplyStatusEffect(StatusEffect effect)
+        {
+            if (statsManager?.CurrentStats == null) return;
+
+            switch (effect.type)
+            {
+                case StatusType.Strength:
+                    statsManager.AddSoulBonusStats(new StatBlock { strength = effect.value });
+                    break;
+                case StatusType.Speed:
+                    statsManager.AddSoulBonusStats(new StatBlock { agility = effect.value });
+                    break;
+                case StatusType.Shield:
+                    // 보호막: 임시 HP 증가
+                    statsManager.Heal(effect.value);
+                    break;
+                case StatusType.Blessing:
+                    statsManager.AddSoulBonusStats(new StatBlock
+                    {
+                        strength = effect.value, agility = effect.value,
+                        vitality = effect.value, intelligence = effect.value
+                    });
+                    break;
+                case StatusType.Berserk:
+                    statsManager.AddSoulBonusStats(new StatBlock { strength = effect.value * 2, defense = -effect.value });
+                    break;
+                case StatusType.Enhancement:
+                    statsManager.AddSoulBonusStats(new StatBlock { strength = effect.value, intelligence = effect.value });
+                    break;
+                case StatusType.Stun:
+                case StatusType.Root:
+                    // 이동/공격 제한은 PlayerController에서 체크
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// 상태이상 효과 제거 시 역효과 처리
+        /// </summary>
+        private void OnRemoveStatusEffect(StatusEffect effect)
+        {
+            if (statsManager?.CurrentStats == null) return;
+
+            switch (effect.type)
+            {
+                case StatusType.Strength:
+                    statsManager.AddSoulBonusStats(new StatBlock { strength = -effect.value });
+                    break;
+                case StatusType.Speed:
+                    statsManager.AddSoulBonusStats(new StatBlock { agility = -effect.value });
+                    break;
+                case StatusType.Blessing:
+                    statsManager.AddSoulBonusStats(new StatBlock
+                    {
+                        strength = -effect.value, agility = -effect.value,
+                        vitality = -effect.value, intelligence = -effect.value
+                    });
+                    break;
+                case StatusType.Berserk:
+                    statsManager.AddSoulBonusStats(new StatBlock { strength = -effect.value * 2, defense = effect.value });
+                    break;
+                case StatusType.Enhancement:
+                    statsManager.AddSoulBonusStats(new StatBlock { strength = -effect.value, intelligence = -effect.value });
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// 활성 상태이상 효과 업데이트 (매 프레임)
+        /// </summary>
+        private void UpdateActiveStatusEffects()
+        {
+            for (int i = activeEffects.Count - 1; i >= 0; i--)
+            {
+                var active = activeEffects[i];
+                active.remainingDuration -= Time.deltaTime;
+
+                // DoT/HoT 틱 처리
+                if (active.effect.tickInterval > 0)
+                {
+                    active.tickTimer -= Time.deltaTime;
+                    if (active.tickTimer <= 0f)
+                    {
+                        active.tickTimer = active.effect.tickInterval;
+                        ProcessStatusTick(active.effect);
+                    }
+                }
+
+                activeEffects[i] = active;
+
+                // 만료 체크
+                if (active.remainingDuration <= 0f)
+                {
+                    OnRemoveStatusEffect(active.effect);
+                    OnStatusEffectChanged?.Invoke(active.effect.type, false);
+                    activeEffects.RemoveAt(i);
+                }
+            }
+        }
+
+        /// <summary>
+        /// DoT/HoT 틱 처리
+        /// </summary>
+        private void ProcessStatusTick(StatusEffect effect)
+        {
+            if (statsManager == null) return;
+
+            switch (effect.type)
+            {
+                case StatusType.Poison:
+                    statsManager.TakeDamage(effect.value, DamageType.Poison);
+                    break;
+                case StatusType.Burn:
+                    statsManager.TakeDamage(effect.value, DamageType.Fire);
+                    break;
+                case StatusType.Regeneration:
+                    statsManager.Heal(effect.value);
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// 특정 타입의 상태이상 제거
+        /// </summary>
+        public void RemoveStatusEffect(StatusType type)
+        {
+            for (int i = activeEffects.Count - 1; i >= 0; i--)
+            {
+                if (activeEffects[i].effect.type == type)
+                {
+                    OnRemoveStatusEffect(activeEffects[i].effect);
+                    OnStatusEffectChanged?.Invoke(type, false);
+                    activeEffects.RemoveAt(i);
+                }
+            }
+        }
+
+        /// <summary>
+        /// 특정 상태이상이 활성 중인지 확인
+        /// </summary>
+        public bool HasStatusEffect(StatusType type)
+        {
+            for (int i = 0; i < activeEffects.Count; i++)
+            {
+                if (activeEffects[i].effect.type == type) return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// 활성 상태이상 효과 리스트 (읽기 전용)
+        /// </summary>
+        public IReadOnlyList<ActiveStatusEffect> ActiveEffects => activeEffects;
+
+        /// <summary>
+        /// 버프 타입인지 확인
+        /// </summary>
+        private bool IsBuff(StatusType type)
+        {
+            return type == StatusType.Strength || type == StatusType.Speed ||
+                   type == StatusType.Regeneration || type == StatusType.Shield ||
+                   type == StatusType.Blessing || type == StatusType.Berserk ||
+                   type == StatusType.Enhancement || type == StatusType.Invisibility;
         }
         
         /// <summary>
@@ -463,20 +703,33 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         private void UpdateCooldowns()
         {
-            var keys = new List<string>(skillCooldowns.Keys);
-            foreach (string skillId in keys)
+            if (skillCooldowns.Count == 0) return;
+
+            cooldownKeysCache.Clear();
+            cooldownExpiredCache.Clear();
+
+            // 키 목록 캐시에 복사 (Dictionary 열거 중 수정 방지)
+            foreach (var kvp in skillCooldowns)
+                cooldownKeysCache.Add(kvp.Key);
+
+            for (int i = 0; i < cooldownKeysCache.Count; i++)
             {
-                skillCooldowns[skillId] -= Time.deltaTime;
-                
-                if (skillCooldowns[skillId] <= 0f)
+                string skillId = cooldownKeysCache[i];
+                float remaining = skillCooldowns[skillId] - Time.deltaTime;
+
+                if (remaining <= 0f)
                 {
-                    skillCooldowns.Remove(skillId);
+                    cooldownExpiredCache.Add(skillId);
                 }
                 else
                 {
-                    OnSkillCooldownUpdated?.Invoke(skillId, skillCooldowns[skillId]);
+                    skillCooldowns[skillId] = remaining;
+                    OnSkillCooldownUpdated?.Invoke(skillId, remaining);
                 }
             }
+
+            for (int i = 0; i < cooldownExpiredCache.Count; i++)
+                skillCooldowns.Remove(cooldownExpiredCache[i]);
         }
         
         /// <summary>
@@ -490,6 +743,31 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             }
         }
         
+        /// <summary>
+        /// 스킬 자원 검증 및 소모 (CombatSystem에서 호출)
+        /// 마나/쿨다운 확인 후 소모 처리. 데미지는 CombatSystem이 담당.
+        /// </summary>
+        public bool ValidateAndConsumeSkillResources(string skillId)
+        {
+            if (!enableSkillSystem) return false;
+            if (!learnedSkillIds.Contains(skillId)) return false;
+            if (!availableSkills.ContainsKey(skillId)) return false;
+            if (isGlobalCooldown) return false;
+            if (IsSkillOnCooldown(skillId)) return false;
+
+            var skillData = availableSkills[skillId];
+            if (statsManager.CurrentStats.CurrentMP < skillData.manaCost) return false;
+
+            // 자원 소모
+            statsManager.ChangeMP(-skillData.manaCost);
+            skillCooldowns[skillId] = skillData.cooldown;
+            lastSkillUseTime = Time.time;
+            isGlobalCooldown = true;
+
+            OnSkillUsed?.Invoke(skillId, skillData.cooldown);
+            return true;
+        }
+
         /// <summary>
         /// 스킬이 쿨다운 중인지 확인
         /// </summary>
@@ -507,11 +785,11 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         }
         
         /// <summary>
-        /// 학습한 스킬 목록 가져오기
+        /// 학습한 스킬 목록 가져오기 (읽기 전용 - GC 방지)
         /// </summary>
-        public List<string> GetLearnedSkills()
+        public IReadOnlyList<string> GetLearnedSkills()
         {
-            return new List<string>(learnedSkillIds);
+            return learnedSkillIds;
         }
         
         /// <summary>
@@ -751,6 +1029,17 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         }
     }
     
+    /// <summary>
+    /// 활성 상태이상 효과 인스턴스 (런타임 추적용)
+    /// </summary>
+    [System.Serializable]
+    public struct ActiveStatusEffect
+    {
+        public StatusEffect effect;
+        public float remainingDuration;
+        public float tickTimer;
+    }
+
     /// <summary>
     /// 스킬 목록 래퍼 (네트워크 직렬화용)
     /// </summary>

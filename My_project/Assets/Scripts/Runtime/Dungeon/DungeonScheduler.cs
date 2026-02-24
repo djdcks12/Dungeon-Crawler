@@ -24,8 +24,8 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         private NetworkVariable<int> selectedDungeonIndex = new NetworkVariable<int>();
         
         // 참가자 관리
-        private NetworkList<ulong> registeredPlayers;
-        private NetworkList<PartySpawnGroup> partySpawnGroups;
+        private NetworkList<ulong> registeredPlayers = new NetworkList<ulong>();
+        private NetworkList<PartySpawnGroup> partySpawnGroups = new NetworkList<PartySpawnGroup>();
         
         // 컴포넌트 참조
         private DungeonManager dungeonManager;
@@ -44,10 +44,6 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         public override void OnNetworkSpawn()
         {
             base.OnNetworkSpawn();
-            
-            // NetworkList 초기화
-            registeredPlayers = new NetworkList<ulong>();
-            partySpawnGroups = new NetworkList<PartySpawnGroup>();
             
             // 컴포넌트 참조
             dungeonManager = FindFirstObjectByType<DungeonManager>();
@@ -70,7 +66,19 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             
             Debug.Log($"🕒 DungeonScheduler spawned (IsServer: {IsServer})");
         }
-        
+
+        public override void OnNetworkDespawn()
+        {
+            if (IsServer)
+            {
+                nextEntryTime.OnValueChanged -= OnNextEntryTimeChangedServer;
+                isPreparationPhase.OnValueChanged -= OnPreparationPhaseChangedServer;
+            }
+            nextEntryTime.OnValueChanged -= OnNextEntryTimeChangedClient;
+            isPreparationPhase.OnValueChanged -= OnPreparationPhaseChangedClient;
+            base.OnNetworkDespawn();
+        }
+
         private void Update()
         {
             if (!IsServer) return;

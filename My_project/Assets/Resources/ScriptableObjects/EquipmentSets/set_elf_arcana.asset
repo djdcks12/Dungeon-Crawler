@@ -1,0 +1,86 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ec1b857f93ff80c49888a44a0b9ed44e, type: 3}
+  m_Name: set_elf_arcana
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.EquipmentSetData
+  setId: set_elf_arcana
+  setName: "\uC5D8\uD504\uC758 \uBE44\uC804"
+  description: "\uC5D8\uD504 \uB9C8\uBC95\uC0AC\uC758 \uC2E0\uBE44\uB85C\uC6B4 \uC138\uD2B8"
+  itemIds:
+  - CrystalStaff_Epic
+  - Helmet_Epic
+  - ChestArmor_Epic
+  - Greaves_Epic
+  - Boots_Epic
+  bonus2Piece:
+    strength: 0
+    agility: 0
+    vitality: 0
+    intelligence: 7
+    defense: 0
+    magicDefense: 4
+    luck: 0
+    stability: 0
+  bonus2HP: 0
+  bonus2MP: 40
+  bonus2Desc: INT+7, MDEF+4, MP+40
+  bonus3Piece:
+    strength: 0
+    agility: 0
+    vitality: 0
+    intelligence: 12
+    defense: 0
+    magicDefense: 7
+    luck: 0
+    stability: 0
+  bonus3HP: 0
+  bonus3MP: 70
+  bonus3CritChance: 3
+  bonus3CritDamage: 5
+  bonus3Desc: INT+12, MDEF+7, MP+70
+  bonus4Piece:
+    strength: 0
+    agility: 0
+    vitality: 0
+    intelligence: 18
+    defense: 0
+    magicDefense: 10
+    luck: 5
+    stability: 0
+  bonus4HP: 15
+  bonus4MP: 100
+  bonus4CritChance: 5
+  bonus4CritDamage: 10
+  bonus4MoveSpeed: 3
+  bonus4AttackSpeed: 8
+  bonus4Desc: "INT+18, MP+100, \uACF5\uC18D+8%"
+  bonus5Piece:
+    strength: 0
+    agility: 0
+    vitality: 0
+    intelligence: 25
+    defense: 0
+    magicDefense: 15
+    luck: 8
+    stability: 0
+  bonus5HP: 30
+  bonus5MP: 150
+  bonus5CritChance: 8
+  bonus5CritDamage: 15
+  bonus5MoveSpeed: 5
+  bonus5AttackSpeed: 12
+  bonus5CooldownReduction: 15
+  bonus5Lifesteal: 0
+  bonus5ExpBonus: 8
+  bonus5Desc: "INT+25, MP+150, \uCFE8\uAC10+15%, \uACBD\uD5D8\uCE58+8%"
+  setGrade: 4
+  requiredRace: 2

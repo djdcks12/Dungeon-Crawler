@@ -193,12 +193,13 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         {
             if (!IsServer || !isActive.Value) return;
             
-            var playerObject = NetworkManager.Singleton.ConnectedClients[playerId].PlayerObject;
+            if (!NetworkManager.Singleton.ConnectedClients.TryGetValue(playerId, out var trapClient)) return;
+            var playerObject = trapClient.PlayerObject;
             if (playerObject == null) return;
-            
+
             var playerController = playerObject.GetComponent<PlayerController>();
             if (playerController == null) return;
-            
+
             TriggerTrap(playerController);
         }
         
@@ -318,13 +319,17 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         private IEnumerator PoisonDamageCoroutine(PlayerController player, float damagePerTick, float duration)
         {
             float elapsed = 0f;
-            var statsManager = player.GetComponent<PlayerStatsManager>();
-            
-            while (elapsed < duration && statsManager != null && !statsManager.IsDead)
+            var statsManager = player != null ? player.GetComponent<PlayerStatsManager>() : null;
+
+            while (elapsed < duration)
             {
                 yield return new WaitForSeconds(1f);
                 elapsed += 1f;
-                
+
+                // yield 후 유효성 검증
+                if (player == null || statsManager == null || statsManager.IsDead) yield break;
+                if (!IsSpawned) yield break;
+
                 statsManager.TakeDamage(damagePerTick, DamageType.Magical);
             }
         }
@@ -345,9 +350,9 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         {
             yield return new WaitForSeconds(delay);
             
-            if (IsSpawned)
+            if (IsSpawned && NetworkObject != null)
             {
-                GetComponent<NetworkObject>().Despawn();
+                NetworkObject.Despawn();
             }
         }
         
@@ -431,6 +436,12 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 // PlayerController에 넉백 적용 (구현 필요)
                 Debug.Log($"💥 Knockback applied: {knockbackForce}");
             }
+        }
+
+        public override void OnDestroy()
+        {
+            StopAllCoroutines();
+            base.OnDestroy();
         }
     }
     

@@ -1,0 +1,70 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 69720ba5637a68e4ea25f77fe61a9920, type: 3}
+  m_Name: curio_coffin
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.DungeonEventData
+  eventId: curio_coffin
+  eventName: "\uBD09\uC778\uB41C \uAD00"
+  description: "\uBB35\uC9C1\uD55C \uB3CC \uAD00. \uC5F4\uC5B4\uBCFC \uC6A9\uAE30\uAC00
+    \uC788\uB294\uAC00?"
+  eventIcon: {fileID: 0}
+  eventType: 2
+  rarity: 1
+  triggerType: 1
+  spawnChance: 0.06
+  minFloor: 2
+  maxFloor: 10
+  minDifficulty: 1
+  oncePerDungeon: 0
+  interactionText: "\uAD00\uC744 \uC5F0\uB2E4"
+  interactionTime: 1
+  requiresChoice: 0
+  bareHandOutcomes:
+  - description: "\uBCF4\uBB3C\uC774 \uB4E4\uC5B4\uC788\uC5C8\uB2E4!"
+    chance: 0.35
+    effectType: 4
+    effectValue: 300
+    duration: 0
+    statusEffect: 0
+    isNegative: 0
+  - description: "\uC5B8\uB370\uB4DC\uAC00 \uAE68\uC5B4\uB0AC\uB2E4!"
+    chance: 0.35
+    effectType: 14
+    effectValue: 2
+    duration: 0
+    statusEffect: 0
+    isNegative: 1
+  - description: "\uBE48 \uAD00\uC774\uC5C8\uB2E4. \uBA3C\uC9C0\uB9CC \uB0A0\uB9B0\uB2E4."
+    chance: 0.3
+    effectType: 6
+    effectValue: 20
+    duration: 0
+    statusEffect: 0
+    isNegative: 0
+  itemInteractions:
+  - requiredItemName: IdentifyScroll
+    resultDescription: "\uC2DD\uBCC4 \uC8FC\uBB38\uC73C\uB85C \uAD00\uC758 \uB0B4\uC6A9\uBB3C\uC744
+      \uBBF8\uB9AC \uD655\uC778\uD588\uB2E4."
+    guaranteedOutcome:
+      description: "\uC548\uC804\uD558\uAC8C \uBCF4\uBB3C\uC744 \uD68D\uB4DD\uD588\uB2E4!"
+      chance: 1
+      effectType: 4
+      effectValue: 400
+      duration: 0
+      statusEffect: 0
+      isNegative: 0
+  choices: []
+  combatWaves: []
+  combatTimeLimit: 0
+  shopItems: []
+  glowColor: {r: 0.8, g: 0.8, b: 0.8, a: 1}
+  activationSFX: 

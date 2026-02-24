@@ -381,6 +381,10 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         {
             return currentState;
         }
-        
+
+        private void OnDestroy()
+        {
+            StopAllCoroutines();
+        }
     }
 }

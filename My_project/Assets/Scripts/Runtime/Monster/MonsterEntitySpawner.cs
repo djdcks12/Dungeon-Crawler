@@ -18,6 +18,9 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         [SerializeField] private float spawnInterval = 12f;
         [SerializeField] private bool autoSpawn = true;
         
+        // GC 최적화: 재사용 버퍼
+        private static readonly Collider2D[] s_OverlapBuffer = new Collider2D[8];
+
         [Header("Spawn Conditions")]
         [SerializeField] private float playerDetectionRange = 25f;
         [SerializeField] private int minPlayersNearby = 1;
@@ -107,11 +110,11 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             int nearbyPlayers = 0;
             foreach (var spawnPoint in spawnPoints)
             {
-                var nearbyColliders = Physics2D.OverlapCircleAll(spawnPoint.position, playerDetectionRange);
-                
-                foreach (var collider in nearbyColliders)
+                int nearbyCount = Physics2D.OverlapCircleNonAlloc(spawnPoint.position, playerDetectionRange, s_OverlapBuffer);
+
+                for (int j = 0; j < nearbyCount; j++)
                 {
-                    var player = collider.GetComponent<PlayerController>();
+                    var player = s_OverlapBuffer[j].GetComponent<PlayerController>();
                     if (player != null)
                     {
                         var statsManager = player.GetComponent<PlayerStatsManager>();
@@ -199,7 +202,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                     // NetworkObject 제거 후 풀로 반환
                     if (networkObject != null)
                     {
-                        DestroyImmediate(networkObject);
+                        Destroy(networkObject);
                     }
                     MonsterObjectPool.Instance?.ReturnMonster(monsterObject);
                     yield break;
@@ -311,7 +314,8 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             Debug.Log($"🔧 SetupMonsterEntity: Calling GenerateMonster with race={spawnData.raceData?.raceName}, variant={spawnData.variantData?.variantName}, grade={grade}");
             monsterEntity.GenerateMonster(spawnData.raceData, spawnData.variantData, grade);
             
-            // 사망 이벤트 구독
+            // 사망 이벤트 구독 (기존 핸들러 제거 후 재등록 - 풀링 시 누적 방지)
+            monsterEntity.OnDeath = null;
             monsterEntity.OnDeath += () => OnMonsterEntityDeath(monsterEntity);
             
             // 활성 몬스터 목록에 추가
@@ -463,6 +467,12 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             }
         }
         
+        public override void OnDestroy()
+        {
+            StopAllCoroutines();
+            base.OnDestroy();
+        }
+
         /// <summary>
         /// 디버그 기즈모
         /// </summary>

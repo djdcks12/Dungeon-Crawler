@@ -1,0 +1,54 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 69720ba5637a68e4ea25f77fe61a9920, type: 3}
+  m_Name: portal_treasure
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.DungeonEventData
+  eventId: portal_treasure
+  eventName: "\uBCF4\uBB3C \uD3EC\uD0C8"
+  description: "\uBE5B\uB098\uB294 \uD3EC\uD0C8\uC774 \uBE44\uBC00 \uBCF4\uBB3C\uBC29\uC73C\uB85C
+    \uC774\uC5B4\uC9C4\uB2E4!"
+  eventIcon: {fileID: 0}
+  eventType: 8
+  rarity: 2
+  triggerType: 1
+  spawnChance: 0.03
+  minFloor: 3
+  maxFloor: 10
+  minDifficulty: 1
+  oncePerDungeon: 0
+  interactionText: "\uD3EC\uD0C8\uC5D0 \uB4E4\uC5B4\uAC04\uB2E4"
+  interactionTime: 1
+  requiresChoice: 0
+  bareHandOutcomes:
+  - description: "\uBE44\uBC00 \uBCF4\uBB3C\uBC29\uC5D0 \uB3C4\uCC29! \uBCF4\uBB3C\uC774
+      \uAC00\uB4DD!"
+    chance: 0.7
+    effectType: 4
+    effectValue: 600
+    duration: 0
+    statusEffect: 0
+    isNegative: 0
+  - description: "\uD568\uC815\uC774\uC5C8\uB2E4! \uC704\uD5D8\uD55C \uBC29\uC5D0
+      \uC804\uC774\uB418\uC5C8\uB2E4!"
+    chance: 0.3
+    effectType: 14
+    effectValue: 5
+    duration: 0
+    statusEffect: 0
+    isNegative: 1
+  itemInteractions: []
+  choices: []
+  combatWaves: []
+  combatTimeLimit: 0
+  shopItems: []
+  glowColor: {r: 0.5, g: 0, b: 1, a: 1}
+  activationSFX: 

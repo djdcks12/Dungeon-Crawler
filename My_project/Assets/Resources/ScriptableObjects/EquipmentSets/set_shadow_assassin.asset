@@ -1,0 +1,87 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ec1b857f93ff80c49888a44a0b9ed44e, type: 3}
+  m_Name: set_shadow_assassin
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.EquipmentSetData
+  setId: set_shadow_assassin
+  setName: "\uADF8\uB9BC\uC790 \uC554\uC0B4\uC790"
+  description: "\uC5B4\uB460\uC5D0\uC11C \uCE58\uBA85\uC801\uC778 \uC77C\uACA9\uC744
+    \uAC00\uD558\uB294 \uC138\uD2B8"
+  itemIds:
+  - Dagger_Uncommon
+  - CurvedDagger_Uncommon
+  - Helmet_Uncommon
+  - ChestArmor_Uncommon
+  - Boots_Uncommon
+  bonus2Piece:
+    strength: 0
+    agility: 4
+    vitality: 0
+    intelligence: 0
+    defense: 0
+    magicDefense: 0
+    luck: 2
+    stability: 0
+  bonus2HP: 0
+  bonus2MP: 10
+  bonus2Desc: AGI+4, LUK+2, MP+10
+  bonus3Piece:
+    strength: 0
+    agility: 7
+    vitality: 0
+    intelligence: 0
+    defense: 0
+    magicDefense: 0
+    luck: 4
+    stability: 0
+  bonus3HP: 0
+  bonus3MP: 20
+  bonus3CritChance: 5
+  bonus3CritDamage: 10
+  bonus3Desc: "AGI+7, LUK+4, \uD06C\uB9AC+5%, \uD06C\uB380+10%"
+  bonus4Piece:
+    strength: 0
+    agility: 10
+    vitality: 0
+    intelligence: 0
+    defense: 0
+    magicDefense: 0
+    luck: 6
+    stability: 0
+  bonus4HP: 10
+  bonus4MP: 30
+  bonus4CritChance: 8
+  bonus4CritDamage: 20
+  bonus4MoveSpeed: 5
+  bonus4AttackSpeed: 5
+  bonus4Desc: "AGI+10, LUK+6, \uD06C\uB9AC+8%, \uC774\uB3D9+5%"
+  bonus5Piece:
+    strength: 0
+    agility: 15
+    vitality: 0
+    intelligence: 0
+    defense: 0
+    magicDefense: 0
+    luck: 10
+    stability: 2
+  bonus5HP: 20
+  bonus5MP: 40
+  bonus5CritChance: 12
+  bonus5CritDamage: 35
+  bonus5MoveSpeed: 8
+  bonus5AttackSpeed: 8
+  bonus5CooldownReduction: 5
+  bonus5Lifesteal: 3
+  bonus5ExpBonus: 0
+  bonus5Desc: "\uD06C\uB9AC+12%, \uD06C\uB380+35%, \uC0DD\uBA85\uD761\uC218+3%"
+  setGrade: 2
+  requiredRace: 0

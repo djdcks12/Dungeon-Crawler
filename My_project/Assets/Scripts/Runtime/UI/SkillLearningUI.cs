@@ -1,10 +1,12 @@
 using UnityEngine;
 using UnityEngine.UI;
+using System.Linq;
 
 namespace Unity.Template.Multiplayer.NGO.Runtime
 {
     /// <summary>
     /// 스킬 학습 UI - NPC와 상호작용시 표시되는 스킬 선택 인터페이스
+    /// NewSkillLearningSystem과 연동하여 실제 JobData 기반 스킬 선택지 표시
     /// </summary>
     public class SkillLearningUI : MonoBehaviour
     {
@@ -16,197 +18,356 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         [SerializeField] private Text[] skillNameTexts = new Text[3];
         [SerializeField] private Text[] skillDescriptionTexts = new Text[3];
         [SerializeField] private Text[] skillCostTexts = new Text[3];
+        [SerializeField] private Image[] skillIconImages = new Image[3];
         [SerializeField] private Button closeButton;
-        
+
+        [Header("Level Navigation")]
+        [SerializeField] private Button prevLevelButton;
+        [SerializeField] private Button nextLevelButton;
+
+        [Header("Error Display")]
+        [SerializeField] private Text errorMessageText;
+
         // 현재 상호작용 정보
         private SkillMasterNPC currentNPC;
         private NewSkillLearningSystem currentSkillSystem;
         private int currentLevel;
         private SkillChoice currentSkillChoice;
-        
-        public bool IsOpen => skillLearningPanel.activeInHierarchy;
-        
+        private int[] availableLevels;
+        private int currentLevelIndex;
+
+        public bool IsOpen => skillLearningPanel != null && skillLearningPanel.activeInHierarchy;
+
         private void Awake()
         {
-            // 버튼 이벤트 설정
+            // 스킬 선택 버튼 이벤트 설정
             for (int i = 0; i < skillChoiceButtons.Length; i++)
             {
-                int choiceIndex = i; // 클로저 변수 캡처
+                if (skillChoiceButtons[i] == null) continue;
+                int choiceIndex = i;
                 skillChoiceButtons[i].onClick.AddListener(() => OnSkillChoiceSelected(choiceIndex));
             }
-            
+
             if (closeButton != null)
-            {
                 closeButton.onClick.AddListener(CloseSkillLearningUI);
-            }
-            
+
+            // 레벨 네비게이션 버튼
+            if (prevLevelButton != null)
+                prevLevelButton.onClick.AddListener(ShowPreviousLevel);
+            if (nextLevelButton != null)
+                nextLevelButton.onClick.AddListener(ShowNextLevel);
+
             // 시작시 UI 숨기기
             if (skillLearningPanel != null)
-            {
                 skillLearningPanel.SetActive(false);
-            }
         }
-        
+
         /// <summary>
         /// 스킬 학습 UI 열기
         /// </summary>
-        public void OpenSkillLearningUI(SkillMasterNPC npc, NewSkillLearningSystem skillSystem, int[] availableLevels)
+        public void OpenSkillLearningUI(SkillMasterNPC npc, NewSkillLearningSystem skillSystem, int[] levels)
         {
-            if (availableLevels.Length == 0) return;
-            
+            if (levels == null || levels.Length == 0) return;
+
             currentNPC = npc;
             currentSkillSystem = skillSystem;
-            currentLevel = availableLevels[0]; // 첫 번째 가용 레벨 사용
-            
+            availableLevels = levels;
+            currentLevelIndex = 0;
+            currentLevel = availableLevels[0];
+
+            // 에러 이벤트 구독
+            if (currentSkillSystem != null)
+            {
+                currentSkillSystem.OnSkillLearningError += ShowErrorMessage;
+                currentSkillSystem.OnSkillLearned += OnSkillLearnedHandler;
+            }
+
             // NPC 이름 설정
             if (npcNameText != null)
-            {
                 npcNameText.text = GetJobDisplayName(npc.NPCJobType) + " 마스터";
-            }
-            
-            // 레벨 텍스트 설정
-            if (levelText != null)
-            {
-                levelText.text = $"레벨 {currentLevel} 스킬 학습";
-            }
-            
-            // 스킬 선택지 정보 가져오기
+
+            // 현재 레벨의 스킬 선택지 로드
             LoadSkillChoiceForCurrentLevel();
-            
+
             // UI 패널 활성화
             if (skillLearningPanel != null)
-            {
                 skillLearningPanel.SetActive(true);
-            }
-            
+
+            // 에러 메시지 초기화
+            ClearErrorMessage();
+
             // 커서 상태 변경 (게임 일시정지)
             Time.timeScale = 0f;
             Cursor.lockState = CursorLockMode.None;
             Cursor.visible = true;
         }
-        
+
         /// <summary>
         /// 스킬 학습 UI 닫기
         /// </summary>
         public void CloseSkillLearningUI()
         {
             if (skillLearningPanel != null)
-            {
                 skillLearningPanel.SetActive(false);
+
+            // 이벤트 구독 해제
+            if (currentSkillSystem != null)
+            {
+                currentSkillSystem.OnSkillLearningError -= ShowErrorMessage;
+                currentSkillSystem.OnSkillLearned -= OnSkillLearnedHandler;
             }
-            
+
             // 게임 재개
             Time.timeScale = 1f;
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
-            
+
             // 참조 정리
             currentNPC = null;
             currentSkillSystem = null;
             currentSkillChoice = null;
+            availableLevels = null;
         }
-        
+
         /// <summary>
-        /// 현재 레벨의 스킬 선택지 로드
+        /// 현재 레벨의 스킬 선택지 로드 (실제 JobData 기반)
         /// </summary>
         private void LoadSkillChoiceForCurrentLevel()
         {
-            // 임시로 더미 데이터 사용 (실제로는 JobData에서 가져와야 함)
-            currentSkillChoice = CreateDummySkillChoice();
-            
+            if (currentSkillSystem == null) return;
+
+            // NewSkillLearningSystem에서 실제 스킬 선택지 가져오기
+            currentSkillChoice = currentSkillSystem.GetSkillChoiceForLevel(currentLevel);
+
+            if (currentSkillChoice == null)
+            {
+                ShowErrorMessage($"레벨 {currentLevel}에 해당하는 스킬 데이터가 없습니다.");
+                return;
+            }
+
+            // 레벨 텍스트 설정
+            if (levelText != null)
+            {
+                string levelLabel = currentLevel == 10 ? "궁극기" : $"레벨 {currentLevel} 스킬";
+                levelText.text = levelLabel;
+            }
+
+            // 레벨 네비게이션 버튼 상태
+            UpdateLevelNavigationButtons();
+
             // UI에 스킬 정보 표시
             UpdateSkillChoiceUI();
         }
-        
+
         /// <summary>
         /// 스킬 선택지 UI 업데이트
         /// </summary>
         private void UpdateSkillChoiceUI()
         {
             if (currentSkillChoice == null) return;
-            
-            // 선택지 A
+
+            bool isUltimate = currentLevel == 10;
+
+            // 선택지 A (항상 표시)
             UpdateSkillButton(0, currentSkillChoice.choiceA, currentSkillChoice.goldCostA, currentSkillChoice.conceptA);
-            
-            // 선택지 B
-            UpdateSkillButton(1, currentSkillChoice.choiceB, currentSkillChoice.goldCostB, currentSkillChoice.conceptB);
-            
-            // 선택지 C  
-            UpdateSkillButton(2, currentSkillChoice.choiceC, currentSkillChoice.goldCostC, currentSkillChoice.conceptC);
+
+            // 선택지 B, C (궁극기가 아닌 경우만 표시)
+            if (isUltimate)
+            {
+                // 궁극기는 선택지가 하나뿐
+                if (skillChoiceButtons.Length > 1 && skillChoiceButtons[1] != null)
+                    skillChoiceButtons[1].gameObject.SetActive(false);
+                if (skillChoiceButtons.Length > 2 && skillChoiceButtons[2] != null)
+                    skillChoiceButtons[2].gameObject.SetActive(false);
+            }
+            else
+            {
+                UpdateSkillButton(1, currentSkillChoice.choiceB, currentSkillChoice.goldCostB, currentSkillChoice.conceptB);
+                UpdateSkillButton(2, currentSkillChoice.choiceC, currentSkillChoice.goldCostC, currentSkillChoice.conceptC);
+            }
         }
-        
+
         /// <summary>
         /// 개별 스킬 버튼 업데이트
         /// </summary>
         private void UpdateSkillButton(int index, SkillData skill, long cost, string concept)
         {
-            if (index >= skillChoiceButtons.Length) return;
-            
+            if (index >= skillChoiceButtons.Length || skillChoiceButtons[index] == null) return;
+
             bool hasSkill = skill != null;
             skillChoiceButtons[index].gameObject.SetActive(hasSkill);
-            
+
             if (!hasSkill) return;
-            
+
             // 스킬 이름
-            if (skillNameTexts[index] != null)
-            {
+            if (index < skillNameTexts.Length && skillNameTexts[index] != null)
                 skillNameTexts[index].text = skill.skillName;
-            }
-            
-            // 스킬 설명
-            if (skillDescriptionTexts[index] != null)
+
+            // 스킬 설명 (컨셉 + 상세 설명)
+            if (index < skillDescriptionTexts.Length && skillDescriptionTexts[index] != null)
             {
-                string description = string.IsNullOrEmpty(concept) ? skill.description : $"{concept}\n\n{skill.description}";
+                string description = "";
+
+                // 스킬 타입 표시
+                description += $"[{GetSkillTypeDisplay(skill)}] ";
+
+                // 컨셉이 있으면 추가
+                if (!string.IsNullOrEmpty(concept))
+                    description += $"{concept}\n";
+
+                // 스킬 설명
+                description += skill.description;
+
+                // 스킬 수치 정보
+                description += $"\n\n쿨다운: {skill.cooldown:F1}초";
+                if (skill.manaCost > 0)
+                    description += $" | 마나: {skill.manaCost}";
+                if (skill.baseDamage > 0)
+                    description += $" | 데미지: {skill.baseDamage:F0}";
+
                 skillDescriptionTexts[index].text = description;
             }
-            
+
             // 골드 비용
-            if (skillCostTexts[index] != null)
-            {
+            if (index < skillCostTexts.Length && skillCostTexts[index] != null)
                 skillCostTexts[index].text = $"{cost} Gold";
+
+            // 스킬 아이콘
+            if (index < skillIconImages.Length && skillIconImages[index] != null)
+            {
+                skillIconImages[index].sprite = skill.skillIcon;
+                skillIconImages[index].gameObject.SetActive(skill.skillIcon != null);
             }
-            
-            // 골드 부족시 버튼 비활성화 - PlayerStatsManager에서 골드 정보 가져오기
-            var playerStatsManager = FindObjectOfType<PlayerStatsManager>();
-            bool canAfford = playerStatsManager != null && playerStatsManager.CurrentStats.CurrentGold >= cost;
+
+            // 골드 부족시 버튼 비활성화
+            var playerStatsManager = FindFirstObjectByType<PlayerStatsManager>();
+            bool canAfford = playerStatsManager?.CurrentStats != null && playerStatsManager.CurrentStats.CurrentGold >= cost;
             skillChoiceButtons[index].interactable = canAfford;
+
+            // 비용 텍스트 색상 (부족하면 빨강)
+            if (index < skillCostTexts.Length && skillCostTexts[index] != null)
+                skillCostTexts[index].color = canAfford ? Color.yellow : Color.red;
         }
-        
+
         /// <summary>
         /// 스킬 선택지 클릭 처리
         /// </summary>
         private void OnSkillChoiceSelected(int choiceIndex)
         {
             if (currentNPC == null || currentSkillSystem == null) return;
-            
-            // 스킬 학습 시도
+
+            ClearErrorMessage();
+
+            // 스킬 학습 시도 (NewSkillLearningSystem을 통해)
             currentNPC.ProcessSkillLearning(currentLevel, choiceIndex);
-            
-            // UI 닫기
-            CloseSkillLearningUI();
         }
-        
+
         /// <summary>
-        /// 더미 스킬 선택지 생성 (테스트용)
+        /// 스킬 학습 완료 핸들러
         /// </summary>
-        private SkillChoice CreateDummySkillChoice()
+        private void OnSkillLearnedHandler(int level, SkillData skill)
         {
-            // 실제 구현에서는 JobData에서 가져와야 함
-            // 지금은 테스트용 더미 데이터
-            return new SkillChoice
+            if (level == currentLevel)
             {
-                conceptA = "공격형",
-                conceptB = "방어형", 
-                conceptC = "유틸형",
-                goldCostA = 100,
-                goldCostB = 100,
-                goldCostC = 100
+                Debug.Log($"스킬 학습 완료: {skill.skillName}");
+
+                // 다른 배울 수 있는 레벨이 있으면 갱신, 없으면 닫기
+                if (currentSkillSystem != null)
+                {
+                    int[] newAvailableLevels = currentSkillSystem.GetAvailableSkillLevels();
+                    if (newAvailableLevels.Length > 0)
+                    {
+                        availableLevels = newAvailableLevels;
+                        currentLevelIndex = 0;
+                        currentLevel = availableLevels[0];
+                        LoadSkillChoiceForCurrentLevel();
+                    }
+                    else
+                    {
+                        CloseSkillLearningUI();
+                    }
+                }
+                else
+                {
+                    CloseSkillLearningUI();
+                }
+            }
+        }
+
+        // ── 레벨 네비게이션 ──
+
+        private void ShowPreviousLevel()
+        {
+            if (availableLevels == null || currentLevelIndex <= 0) return;
+
+            currentLevelIndex--;
+            currentLevel = availableLevels[currentLevelIndex];
+            LoadSkillChoiceForCurrentLevel();
+        }
+
+        private void ShowNextLevel()
+        {
+            if (availableLevels == null || currentLevelIndex >= availableLevels.Length - 1) return;
+
+            currentLevelIndex++;
+            currentLevel = availableLevels[currentLevelIndex];
+            LoadSkillChoiceForCurrentLevel();
+        }
+
+        private void UpdateLevelNavigationButtons()
+        {
+            bool hasMultipleLevels = availableLevels != null && availableLevels.Length > 1;
+
+            if (prevLevelButton != null)
+            {
+                prevLevelButton.gameObject.SetActive(hasMultipleLevels);
+                prevLevelButton.interactable = currentLevelIndex > 0;
+            }
+
+            if (nextLevelButton != null)
+            {
+                nextLevelButton.gameObject.SetActive(hasMultipleLevels);
+                nextLevelButton.interactable = availableLevels != null && currentLevelIndex < availableLevels.Length - 1;
+            }
+        }
+
+        // ── 에러/메시지 ──
+
+        private void ShowErrorMessage(string message)
+        {
+            if (errorMessageText != null)
+            {
+                errorMessageText.text = message;
+                errorMessageText.color = Color.red;
+                errorMessageText.gameObject.SetActive(true);
+            }
+
+            Debug.LogWarning($"스킬 학습 에러: {message}");
+        }
+
+        private void ClearErrorMessage()
+        {
+            if (errorMessageText != null)
+            {
+                errorMessageText.text = "";
+                errorMessageText.gameObject.SetActive(false);
+            }
+        }
+
+        // ── 유틸리티 ──
+
+        private string GetSkillTypeDisplay(SkillData skill)
+        {
+            return skill.skillType switch
+            {
+                SkillType.Active => "액티브",
+                SkillType.Passive => "패시브",
+                SkillType.Toggle => "토글",
+                SkillType.Triggered => "조건부",
+                _ => "스킬"
             };
         }
-        
-        /// <summary>
-        /// 직업 타입의 표시 이름 반환
-        /// </summary>
+
         private string GetJobDisplayName(JobType job)
         {
             return job switch
@@ -230,9 +391,26 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 _ => job.ToString()
             };
         }
-        
+
         private void OnDestroy()
         {
+            // 이벤트 구독 해제
+            if (currentSkillSystem != null)
+            {
+                currentSkillSystem.OnSkillLearningError -= ShowErrorMessage;
+                currentSkillSystem.OnSkillLearned -= OnSkillLearnedHandler;
+            }
+
+            // 버튼 리스너 정리
+            for (int i = 0; i < skillChoiceButtons.Length; i++)
+            {
+                if (skillChoiceButtons[i] != null)
+                    skillChoiceButtons[i].onClick.RemoveAllListeners();
+            }
+            if (closeButton != null) closeButton.onClick.RemoveAllListeners();
+            if (prevLevelButton != null) prevLevelButton.onClick.RemoveAllListeners();
+            if (nextLevelButton != null) nextLevelButton.onClick.RemoveAllListeners();
+
             // 시간 스케일 복구
             Time.timeScale = 1f;
         }

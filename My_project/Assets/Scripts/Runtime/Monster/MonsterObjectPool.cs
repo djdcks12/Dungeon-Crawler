@@ -31,7 +31,13 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 Destroy(gameObject);
             }
         }
-        
+
+        private void OnDestroy()
+        {
+            if (Instance == this)
+                Instance = null;
+        }
+
         private void InitializePool()
         {
             for (int i = 0; i < initialPoolSize; i++)
@@ -100,9 +106,17 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             else
             {
                 // 가장 오래된 활성 몬스터 재사용
-                pooledMonster = activeMonsters[0];
-                ReturnMonster(pooledMonster);
-                pooledMonster = availableMonsters.Dequeue();
+                if (activeMonsters.Count > 0)
+                {
+                    pooledMonster = activeMonsters[0];
+                    ReturnMonster(pooledMonster);
+                    if (availableMonsters.Count > 0)
+                        pooledMonster = availableMonsters.Dequeue();
+                }
+                else
+                {
+                    pooledMonster = CreateNewPoolMonster();
+                }
             }
 
             // 몬스터 설정
@@ -230,7 +244,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 }
                 
                 // NetworkObject 컴포넌트 제거
-                DestroyImmediate(networkObject);
+                Destroy(networkObject);
                 Debug.Log($"🔧 Removed NetworkObject from {monster.name}");
             }
             

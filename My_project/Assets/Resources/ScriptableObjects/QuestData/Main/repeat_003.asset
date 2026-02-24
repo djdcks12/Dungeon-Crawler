@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 90005bb3089040640aedb90ac658bc76, type: 3}
+  m_Name: repeat_003
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.QuestData
+  questId: repeat_003
+  questName: "\uC7A5\uBE44 \uAC15\uD654\uC0AC"
+  description: "\uC7A5\uBE44\uB97C \uAC15\uD654\uD558\uC138\uC694."
+  difficulty: 0
+  requiredLevel: 3
+  isRepeatable: 1
+  isDaily: 0
+  objectives:
+  - objectiveType: 4
+    targetId: 
+    targetName: "\uC7A5\uBE44 \uAC15\uD654"
+    requiredCount: 3
+  reward:
+    experienceReward: 200
+    goldReward: 100
+    itemRewardId: 
+    itemRewardCount: 0
+  prerequisiteQuestId: 

@@ -163,7 +163,15 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         Elemental,  // 정령족 - 원소형
         Demon,      // 악마족 - 혼합형
         Dragon,     // 드래곤족 - 최상급
-        Construct   // 기계족 - 방어형
+        Construct,  // 기계족 - 방어형
+        Spider,     // 거미족 - 속박/독
+        Serpent,    // 뱀족 - 독/민첩
+        Fungal,     // 균류족 - 포자/DoT
+        Bandit,     // 산적족 - 인간형/강탈
+        Cultist,    // 광신도족 - 암흑마법/소환
+        Drowned,    // 수몰족 - 물/저주
+        Insect,     // 곤충족 - 떼/빠름
+        Golem       // 골렘족 - 돌/방어
     }
     
     /// <summary>

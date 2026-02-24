@@ -155,7 +155,12 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                     throw new FileNotFoundException($"{configFilePath} not found, please open the Bootstrapper Window to create a default configuration file (menu Window > Multiplayer > Bootstrapper). If you're using multiplayer Play Mode and this is a virtual player, please copy the StartupConfiguration.json file from the root folder of the project of the Main Editor, then use the Multiplayer Play Mode window to navigate to the Virtual Player's folder, and paste it there.");
                 }
 
-                m_Config = JSONNode.Parse(Resources.Load<TextAsset>(templatePath).text);
+                var templateAsset = Resources.Load<TextAsset>(templatePath);
+                if (templateAsset == null)
+                {
+                    throw new FileNotFoundException($"Template resource not found at: {templatePath}");
+                }
+                m_Config = JSONNode.Parse(templateAsset.text);
                 JSONUtilities.WriteJSONToFile(configFilePath, m_Config, false);
                 return;
             }
@@ -171,7 +176,9 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
              * Since user settings may change between versions, we need to be sure that we update them
              * when new ones come up.
              */
-            JSONNode template = JSONNode.Parse(Resources.Load<TextAsset>(templatePath).text);
+            var templateAsset2 = Resources.Load<TextAsset>(templatePath);
+            if (templateAsset2 == null) return;
+            JSONNode template = JSONNode.Parse(templateAsset2.text);
             var newSettings = template.Keys.Except(m_Config.Keys);
             foreach (var item in newSettings)
             {

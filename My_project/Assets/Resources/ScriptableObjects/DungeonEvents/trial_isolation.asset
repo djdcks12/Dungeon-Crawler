@@ -1,0 +1,50 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 69720ba5637a68e4ea25f77fe61a9920, type: 3}
+  m_Name: trial_isolation
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.DungeonEventData
+  eventId: trial_isolation
+  eventName: "\uACE0\uB9BD\uC758 \uC2DC\uB828"
+  description: "\uD640\uB85C \uAC15\uC801\uACFC \uB9DE\uC11C\uB77C!"
+  eventIcon: {fileID: 0}
+  eventType: 6
+  rarity: 2
+  triggerType: 1
+  spawnChance: 0.03
+  minFloor: 4
+  maxFloor: 10
+  minDifficulty: 1
+  oncePerDungeon: 0
+  interactionText: "\uB3C4\uC804\uD55C\uB2E4"
+  interactionTime: 1
+  requiresChoice: 0
+  bareHandOutcomes:
+  - description: "\uAC15\uC801\uC744 \uC4F0\uB7EC\uB728\uB838\uB2E4!"
+    chance: 1
+    effectType: 4
+    effectValue: 600
+    duration: 0
+    statusEffect: 0
+    isNegative: 0
+  itemInteractions: []
+  choices: []
+  combatWaves:
+  - waveNumber: 1
+    monsterRace: Construct
+    monsterVariant: Boss
+    count: 1
+    delayBeforeWave: 0
+    isElite: 1
+  combatTimeLimit: 0
+  shopItems: []
+  glowColor: {r: 0.8, g: 0.4, b: 1, a: 1}
+  activationSFX: 

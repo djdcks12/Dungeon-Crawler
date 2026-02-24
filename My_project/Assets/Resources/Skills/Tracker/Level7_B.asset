@@ -1,0 +1,60 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4759a9d92f8e8704ea8b349c78f693f8, type: 3}
+  m_Name: Level7_B
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.SkillData
+  skillName: "\uC0AC\uB0E5\uAFBC\uC758 \uD45C\uC2DD"
+  skillId: Tracker_Level7_B
+  description: "\uC801\uC5D0\uAC8C \uD45C\uC2DD\uC744 \uB0A8\uACA8 \uBC1B\uB294 \uD53C\uD574\uB97C
+    \uC99D\uAC00\uC2DC\uD0A8\uB2E4."
+  skillIcon: {fileID: 0}
+  requiredLevel: 7
+  goldCost: 500
+  requiredRace: 1
+  category: 23
+  skillTier: 4
+  prerequisiteSkills: []
+  skillType: 0
+  damageType: 0
+  cooldown: 15
+  manaCost: 25
+  castTime: 0.5
+  range: 8
+  baseDamage: 50
+  damageScaling: 1
+  minDamagePercent: 80
+  maxDamagePercent: 120
+  statBonus:
+    strength: 0
+    agility: 0
+    vitality: 0
+    intelligence: 0
+    defense: 0
+    magicDefense: 0
+    luck: 0
+    stability: 0
+  healthBonus: 0
+  manaBonus: 0
+  moveSpeedBonus: 0
+  attackSpeedBonus: 0
+  statusEffects:
+  - type: 6
+    value: 25
+    duration: 8
+    tickInterval: 0
+    stackable: 0
+  statusDuration: 8
+  statusChance: 100
+  behaviorType: 0
+  skillEffect: {fileID: 0}
+  castSound: {fileID: 0}
+  hitSound: {fileID: 0}

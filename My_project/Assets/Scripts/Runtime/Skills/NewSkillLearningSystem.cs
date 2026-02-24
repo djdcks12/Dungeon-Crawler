@@ -26,7 +26,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         
         // 네트워크 동기화
         private NetworkVariable<LearnedSkillsData> networkLearnedSkills = new NetworkVariable<LearnedSkillsData>(
-            new LearnedSkillsData(), NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
+            new LearnedSkillsData(), NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
         
         // 이벤트
         public System.Action<int, SkillChoice> OnSkillChoicesAvailable;        // 레벨, 선택지들
@@ -53,7 +53,19 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             // 현재 직업 데이터 로드
             LoadCurrentJobData();
         }
-        
+
+        public override void OnNetworkDespawn()
+        {
+            base.OnNetworkDespawn();
+
+            networkLearnedSkills.OnValueChanged -= OnNetworkSkillsChanged;
+
+            if (statsManager != null)
+            {
+                statsManager.OnLevelUp -= OnPlayerLevelUp;
+            }
+        }
+
         private void OnPlayerLevelUp(int newLevel)
         {
             // 스킬 학습 가능 레벨인지 확인
@@ -97,7 +109,14 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         public void AttemptSkillLearning(int level, int choiceIndex, SkillMasterNPC npc)
         {
             if (!IsOwner) return;
-            
+
+            // NPC null 체크
+            if (npc == null)
+            {
+                OnSkillLearningError?.Invoke("NPC를 찾을 수 없습니다.");
+                return;
+            }
+
             // NPC 거리 확인
             float distance = Vector3.Distance(transform.position, npc.transform.position);
             if (distance > npcInteractionRange)
@@ -160,47 +179,85 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         [ServerRpc]
         private void LearnSkillServerRpc(int level, int choiceIndex, long goldCost)
         {
-            // 서버에서도 동일한 검증 수행
-            if (learnedSkills.ContainsKey(level)) return;
-            if (statsManager.CurrentStats.CurrentGold < goldCost) return;
-            
+            // 서버에서 독립적으로 검증 수행 (클라이언트 데이터 불신)
+            if (learnedSkills.ContainsKey(level))
+            {
+                OnSkillLearningFailedClientRpc("이미 이 레벨의 스킬을 배웠습니다.");
+                return;
+            }
+
             SkillChoice skillChoice = GetSkillChoiceForLevel(level);
-            if (skillChoice == null) return;
-            
+            if (skillChoice == null)
+            {
+                OnSkillLearningFailedClientRpc("유효하지 않은 스킬 레벨입니다.");
+                return;
+            }
+
+            if (choiceIndex < 0 || choiceIndex > 2)
+            {
+                OnSkillLearningFailedClientRpc("유효하지 않은 선택입니다.");
+                return;
+            }
+
             SkillData selectedSkill = GetSkillFromChoice(skillChoice, choiceIndex);
-            if (selectedSkill == null) return;
-            
-            // 골드 차감
-            statsManager.ChangeGold(-goldCost);
-            
-            // 스킬 학습
+            if (selectedSkill == null)
+            {
+                OnSkillLearningFailedClientRpc("스킬 데이터를 찾을 수 없습니다.");
+                return;
+            }
+
+            // 서버가 직접 골드 비용 계산 (클라이언트 값 불신)
+            long serverGoldCost = GetGoldCostFromChoice(skillChoice, choiceIndex);
+            if (statsManager.CurrentStats.CurrentGold < serverGoldCost)
+            {
+                OnSkillLearningFailedClientRpc($"골드가 부족합니다. 필요: {serverGoldCost}");
+                return;
+            }
+
+            // 원자적 실행: 골드 차감 + 스킬 학습
+            statsManager.ChangeGold(-serverGoldCost);
             learnedSkills[level] = selectedSkill;
             skillChoices[level] = choiceIndex;
-            
+
             // 네트워크 동기화
             SyncSkillsToNetwork();
-            
-            // 클라이언트에 결과 전송
+
+            // 클라이언트에 성공 결과 전송
             OnSkillLearnedClientRpc(level, selectedSkill.skillId);
-            
-            Debug.Log($"스킬 학습 완료: {selectedSkill.skillName} (레벨 {level}, 선택 {choiceIndex})");
+
+            Debug.Log($"스킬 학습 완료: {selectedSkill.skillName} (레벨 {level}, 선택 {choiceIndex}, 비용 {serverGoldCost})");
         }
         
         [ClientRpc]
         private void OnSkillLearnedClientRpc(int level, string skillId)
         {
-            // 클라이언트에서 스킬 학습 완료 이벤트 발생
+            // 클라이언트 로컬 딕셔너리도 갱신 (네트워크 동기화 보완)
+            if (!learnedSkills.ContainsKey(level))
+            {
+                var skill = Resources.Load<SkillData>($"Skills/{skillId}");
+                if (skill != null)
+                {
+                    learnedSkills[level] = skill;
+                }
+            }
+
             if (learnedSkills.ContainsKey(level))
             {
                 OnSkillLearned?.Invoke(level, learnedSkills[level]);
                 OnSkillsUpdated?.Invoke();
             }
         }
+
+        [ClientRpc]
+        private void OnSkillLearningFailedClientRpc(string errorMessage)
+        {
+            OnSkillLearningError?.Invoke(errorMessage);
+        }
         
         /// <summary>
         /// 레벨에 따른 스킬 선택지 반환
         /// </summary>
-        private SkillChoice GetSkillChoiceForLevel(int level)
+        public SkillChoice GetSkillChoiceForLevel(int level)
         {
             if (currentJobData?.skillSet == null) return null;
             
@@ -264,7 +321,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         private void SyncSkillsToNetwork()
         {
-            if (!IsOwner) return;
+            if (!IsServer) return;
             
             LearnedSkillsData data = new LearnedSkillsData();
             data.UpdateFromDictionaries(learnedSkills, skillChoices);

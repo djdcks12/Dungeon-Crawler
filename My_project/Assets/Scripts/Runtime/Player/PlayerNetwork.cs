@@ -30,8 +30,17 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 isAttacking.OnValueChanged += OnAttackingChanged;
             }
         }
-        
-        
+
+        public override void OnNetworkDespawn()
+        {
+            CancelInvoke();
+            if (!IsLocalPlayer)
+            {
+                isAttacking.OnValueChanged -= OnAttackingChanged;
+            }
+            base.OnNetworkDespawn();
+        }
+
         // 공격 트리거 (서버 RPC)
         [ServerRpc]
         public void TriggerAttackServerRpc()
@@ -47,22 +56,23 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         [ClientRpc]
         private void TriggerAttackClientRpc()
         {
-            // 공격 상태 설정
-            isAttacking.Value = true;
-            
-            // 애니메이션 트리거
+            // NetworkVariable은 Owner만 수정 가능 (writePerm: Owner)
+            if (IsOwner)
+                isAttacking.Value = true;
+
+            // 애니메이션 트리거 (모든 클라이언트에서 재생)
             if (animator != null)
             {
                 animator.SetTrigger("Attack");
             }
-            
+
             // 일정 시간 후 공격 상태 해제
             Invoke(nameof(ResetAttackState), 0.3f);
         }
         
         private void ResetAttackState()
         {
-            if (IsServer)
+            if (IsOwner)
             {
                 isAttacking.Value = false;
             }

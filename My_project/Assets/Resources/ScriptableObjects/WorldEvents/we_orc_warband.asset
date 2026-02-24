@@ -1,0 +1,63 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4b0881b9cf4f0ee4ebd3a22aad14bb50, type: 3}
+  m_Name: we_orc_warband
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.WorldEventData
+  eventId: we_orc_warband
+  eventName: "\uC624\uD06C \uC804\uC7C1 \uBD80\uB300"
+  description: "\uC624\uD06C \uC804\uD22C \uBD80\uB300\uAC00 \uC811\uADFC \uC911!
+    \uAC15\uB825\uD55C \uC804\uC0AC\uB4E4\uC744 \uC8FC\uC758\uD558\uB77C!"
+  eventIcon: {fileID: 0}
+  eventType: 3
+  rarity: 1
+  spawnChance: 0.08
+  checkInterval: 45
+  minPlayerLevel: 3
+  maxPlayerLevel: 99
+  requiresNight: 0
+  requiresDay: 0
+  requiredWeather: 0
+  duration: 120
+  isPermanentUntilCompleted: 0
+  eventMonsters:
+  - monsterVariantId: orc_normal
+    count: 4
+    gradeMin: 102
+    gradeMax: 108
+    isBoss: 0
+    spawnDelay: 0
+  - monsterVariantId: orc_berserker
+    count: 2
+    gradeMin: 105
+    gradeMax: 112
+    isBoss: 0
+    spawnDelay: 4
+  - monsterVariantId: orc_leader
+    count: 1
+    gradeMin: 108
+    gradeMax: 115
+    isBoss: 0
+    spawnDelay: 8
+  rewards:
+  - rewardType: 0
+    amount: 600
+    itemId: 
+    dropChance: 1
+  - rewardType: 1
+    amount: 400
+    itemId: 
+    dropChance: 1
+  dialogues: []
+  choices: []
+  spawnRadius: 12
+  announceToAll: 0
+  announceMessage: 

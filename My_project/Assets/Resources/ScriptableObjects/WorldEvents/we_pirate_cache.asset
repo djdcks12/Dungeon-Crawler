@@ -1,0 +1,58 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4b0881b9cf4f0ee4ebd3a22aad14bb50, type: 3}
+  m_Name: we_pirate_cache
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.WorldEventData
+  eventId: we_pirate_cache
+  eventName: "\uD574\uC801 \uB9E4\uC7A5\uC9C0"
+  description: "\uD48D\uD654\uB41C \uC9C0\uB3C4\uAC00 \uAC00\uB9AC\uD0A8 \uACF3!
+    \uD574\uC801\uC758 \uBCF4\uBB3C\uC774 \uBB3B\uD600\uC788\uB2E4!"
+  eventIcon: {fileID: 0}
+  eventType: 4
+  rarity: 2
+  spawnChance: 0.04
+  checkInterval: 60
+  minPlayerLevel: 3
+  maxPlayerLevel: 99
+  requiresNight: 0
+  requiresDay: 0
+  requiredWeather: 0
+  duration: 45
+  isPermanentUntilCompleted: 0
+  eventMonsters: []
+  rewards:
+  - rewardType: 0
+    amount: 1500
+    itemId: 
+    dropChance: 1
+  - rewardType: 2
+    amount: 1
+    itemId: CurvedDagger_Rare
+    dropChance: 0.35
+  dialogues: []
+  choices:
+  - choiceText: "\uC870\uC2EC\uC2A4\uB7FD\uAC8C \uBC1C\uAD74\uD55C\uB2E4"
+    resultDescription: "\uBCF4\uBB3C\uC758 \uC77C\uBD80\uB97C \uC548\uC804\uD558\uAC8C
+      \uD655\uBCF4\uD588\uB2E4!"
+    rewardType: 0
+    rewardAmount: 1000
+    riskChance: 0
+    riskDamage: 0
+  - choiceText: "\uC804\uBD80 \uD30C\uB0B8\uB2E4"
+    resultDescription: "\uB300\uB7C9\uC758 \uBCF4\uBB3C! \uD558\uC9C0\uB9CC \uD568\uC815\uC774!"
+    rewardType: 0
+    rewardAmount: 2000
+    riskChance: 0.4
+    riskDamage: 100
+  spawnRadius: 8
+  announceToAll: 0
+  announceMessage: 

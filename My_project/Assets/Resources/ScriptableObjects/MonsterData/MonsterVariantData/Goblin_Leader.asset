@@ -1,0 +1,65 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 685b515bd1b6f5e44aca2f5b06aa4829, type: 3}
+  m_Name: Goblin_Leader
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.MonsterVariantData
+  variantId: Goblin_Leader
+  variantName: "\uACE0\uBE14\uB9B0 \uB300\uC7A5"
+  description: "\uACE0\uBE14\uB9B0\uC871\uC758 \uB300\uC7A5 \uAC1C\uCCB4"
+  variantIcon: {fileID: 0}
+  prefab: {fileID: 0}
+  baseRace: {fileID: 11400000, guid: feae23d149f14fb4482d9079a411c1ac, type: 2}
+  statMinVariance:
+    strength: 1
+    agility: 1
+    vitality: 1
+    intelligence: 1
+    defense: 1
+    magicDefense: 1
+    luck: 1
+    stability: 1
+  statMaxVariance:
+    strength: 3
+    agility: 3
+    vitality: 3
+    intelligence: 3
+    defense: 3
+    magicDefense: 3
+    luck: 3
+    stability: 3
+  variantMandatorySkills: []
+  variantAvailableSkills: []
+  spawnWeight: 6
+  minFloor: 5
+  maxFloor: 10
+  preferredAIType: 3
+  aggressionMultiplier: 1.2
+  variantDrops: []
+  idleSprites:
+  - {fileID: 4723107735738678597, guid: 8ddc7edf683cfa149b7ad50506ab7642, type: 3}
+  moveSprites:
+  - {fileID: 4944230376442633554, guid: 8c85c7836c7df614d9421a89e162e84a, type: 3}
+  attackSprites:
+  - {fileID: -7008412969330441016, guid: 108f164ca7621d84d87ee7c2dfa6c8a9, type: 3}
+  attackDamageFrame: 2
+  hitSprites:
+  - {fileID: -7500690451134026123, guid: 96163d0d4e000634a89dd767d4c2156e, type: 3}
+  castingSprites: []
+  deathSprites:
+  - {fileID: 6991849013916550155, guid: b33c72e5f079eb445aca7ecb57ee6e30, type: 3}
+  idleFrameRate: 6
+  moveFrameRate: 8
+  attackFrameRate: 12
+  castingFrameRate: 10
+  hitFrameRate: 10
+  deathFrameRate: 6
+  attackEffect: {fileID: 0}

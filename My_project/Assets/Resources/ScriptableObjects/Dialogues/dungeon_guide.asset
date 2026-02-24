@@ -1,0 +1,327 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 83d2f19ed21e61f469acd8e16a311cb7, type: 3}
+  m_Name: dungeon_guide
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.DialogueData
+  dialogueId: dungeon_guide
+  npcName: "\uB358\uC804 \uAC00\uC774\uB4DC \uD53C\uC624\uB098"
+  npcPortrait: {fileID: 0}
+  nodes:
+  - nodeId: n1
+    speakerName: "\uD53C\uC624\uB098"
+    text: "\uB358\uC804\uC5D0 \uB300\uD574 \uC54C\uACE0 \uC2F6\uB098\uC694? \uC81C\uAC00
+      \uC548\uB0B4\uD574 \uB4DC\uB9B4\uAC8C\uC694!"
+    choices: []
+    nextNodeId: n2
+    effect:
+      effectType: 0
+      intValue: 0
+      stringValue: 
+  - nodeId: n2
+    speakerName: "\uD53C\uC624\uB098"
+    text: "\uC5B4\uB5A4 \uC815\uBCF4\uAC00 \uD544\uC694\uD558\uC138\uC694?"
+    choices:
+    - choiceText: "\uCD08\uBCF4\uC790 \uB358\uC804\uC740?"
+      nextNodeId: n3
+      condition:
+        conditionType: 0
+        requiredValue: 0
+        requiredStringValue: 
+        requiredRace: 0
+        requiredJob: 0
+      effect:
+        effectType: 0
+        intValue: 0
+        stringValue: 
+    - choiceText: "\uCD5C\uACE0\uAE09 \uB358\uC804\uC740?"
+      nextNodeId: n4
+      condition:
+        conditionType: 0
+        requiredValue: 0
+        requiredStringValue: 
+        requiredRace: 0
+        requiredJob: 0
+      effect:
+        effectType: 0
+        intValue: 0
+        stringValue: 
+    - choiceText: "\uC6D4\uB4DC\uBCF4\uC2A4\uB294 \uBB54\uAC00\uC694?"
+      nextNodeId: n5
+      condition:
+        conditionType: 0
+        requiredValue: 0
+        requiredStringValue: 
+        requiredRace: 0
+        requiredJob: 0
+      effect:
+        effectType: 0
+        intValue: 0
+        stringValue: 
+    - choiceText: "\uB410\uC5B4\uC694"
+      nextNodeId: n6
+      condition:
+        conditionType: 0
+        requiredValue: 0
+        requiredStringValue: 
+        requiredRace: 0
+        requiredJob: 0
+      effect:
+        effectType: 0
+        intValue: 0
+        stringValue: 
+    nextNodeId: 
+    effect:
+      effectType: 0
+      intValue: 0
+      stringValue: 
+  - nodeId: n3
+    speakerName: "\uD53C\uC624\uB098"
+    text: "\uACE0\uBE14\uB9B0 \uB3D9\uAD74\uC774 \uC88B\uC544\uC694! \uB808\uBCA8
+      1~5 \uBAA8\uD5D8\uAC00\uC5D0\uAC8C \uB531\uC774\uC5D0\uC694. 10\uCE35\uC73C\uB85C
+      \uB418\uC5B4\uC788\uACE0, 5\uCE35\uACFC 10\uCE35\uC5D0 \uBCF4\uC2A4\uAC00 \uC788\uC5B4\uC694."
+    choices:
+    - choiceText: "\uCD08\uBCF4\uC790 \uB358\uC804\uC740?"
+      nextNodeId: n3
+      condition:
+        conditionType: 0
+        requiredValue: 0
+        requiredStringValue: 
+        requiredRace: 0
+        requiredJob: 0
+      effect:
+        effectType: 0
+        intValue: 0
+        stringValue: 
+    - choiceText: "\uCD5C\uACE0\uAE09 \uB358\uC804\uC740?"
+      nextNodeId: n4
+      condition:
+        conditionType: 0
+        requiredValue: 0
+        requiredStringValue: 
+        requiredRace: 0
+        requiredJob: 0
+      effect:
+        effectType: 0
+        intValue: 0
+        stringValue: 
+    - choiceText: "\uC6D4\uB4DC\uBCF4\uC2A4\uB294 \uBB54\uAC00\uC694?"
+      nextNodeId: n5
+      condition:
+        conditionType: 0
+        requiredValue: 0
+        requiredStringValue: 
+        requiredRace: 0
+        requiredJob: 0
+      effect:
+        effectType: 0
+        intValue: 0
+        stringValue: 
+    - choiceText: "\uB410\uC5B4\uC694"
+      nextNodeId: n6
+      condition:
+        conditionType: 0
+        requiredValue: 0
+        requiredStringValue: 
+        requiredRace: 0
+        requiredJob: 0
+      effect:
+        effectType: 0
+        intValue: 0
+        stringValue: 
+    nextNodeId: 
+    effect:
+      effectType: 0
+      intValue: 0
+      stringValue: 
+  - nodeId: n4
+    speakerName: "\uD53C\uC624\uB098"
+    text: "\uB9C8\uC655\uC758 \uC601\uC5ED\uC740 \uB808\uBCA8 10 \uC774\uC0C1 \uC804\uC6A9\uC774\uC5D0\uC694.
+      \uBD80\uD65C\uB3C4 \uBD88\uAC00\uB2A5\uD558\uB2C8 \uCD5C\uACE0\uC758 \uC7A5\uBE44\uB97C
+      \uAC16\uCD94\uACE0 \uAC00\uC138\uC694!"
+    choices:
+    - choiceText: "\uCD08\uBCF4\uC790 \uB358\uC804\uC740?"
+      nextNodeId: n3
+      condition:
+        conditionType: 0
+        requiredValue: 0
+        requiredStringValue: 
+        requiredRace: 0
+        requiredJob: 0
+      effect:
+        effectType: 0
+        intValue: 0
+        stringValue: 
+    - choiceText: "\uCD5C\uACE0\uAE09 \uB358\uC804\uC740?"
+      nextNodeId: n4
+      condition:
+        conditionType: 0
+        requiredValue: 0
+        requiredStringValue: 
+        requiredRace: 0
+        requiredJob: 0
+      effect:
+        effectType: 0
+        intValue: 0
+        stringValue: 
+    - choiceText: "\uC6D4\uB4DC\uBCF4\uC2A4\uB294 \uBB54\uAC00\uC694?"
+      nextNodeId: n5
+      condition:
+        conditionType: 0
+        requiredValue: 0
+        requiredStringValue: 
+        requiredRace: 0
+        requiredJob: 0
+      effect:
+        effectType: 0
+        intValue: 0
+        stringValue: 
+    - choiceText: "\uB410\uC5B4\uC694"
+      nextNodeId: n6
+      condition:
+        conditionType: 0
+        requiredValue: 0
+        requiredStringValue: 
+        requiredRace: 0
+        requiredJob: 0
+      effect:
+        effectType: 0
+        intValue: 0
+        stringValue: 
+    nextNodeId: 
+    effect:
+      effectType: 0
+      intValue: 0
+      stringValue: 
+  - nodeId: n5
+    speakerName: "\uD53C\uC624\uB098"
+    text: "\uC6D4\uB4DC\uBCF4\uC2A4\uB294 30\uBD84\uB9C8\uB2E4 \uCD9C\uD604\uD574\uC694.
+      \uC11C\uBC84\uC758 \uBAA8\uB4E0 \uD50C\uB808\uC774\uC5B4\uAC00 \uD568\uAED8
+      \uC2F8\uC6B8 \uC218 \uC788\uACE0, \uAE30\uC5EC\uB3C4\uC5D0 \uB530\uB77C \uBCF4\uC0C1\uC774
+      \uB2EC\uB77C\uC838\uC694!"
+    choices:
+    - choiceText: "\uCD08\uBCF4\uC790 \uB358\uC804\uC740?"
+      nextNodeId: n3
+      condition:
+        conditionType: 0
+        requiredValue: 0
+        requiredStringValue: 
+        requiredRace: 0
+        requiredJob: 0
+      effect:
+        effectType: 0
+        intValue: 0
+        stringValue: 
+    - choiceText: "\uCD5C\uACE0\uAE09 \uB358\uC804\uC740?"
+      nextNodeId: n4
+      condition:
+        conditionType: 0
+        requiredValue: 0
+        requiredStringValue: 
+        requiredRace: 0
+        requiredJob: 0
+      effect:
+        effectType: 0
+        intValue: 0
+        stringValue: 
+    - choiceText: "\uC6D4\uB4DC\uBCF4\uC2A4\uB294 \uBB54\uAC00\uC694?"
+      nextNodeId: n5
+      condition:
+        conditionType: 0
+        requiredValue: 0
+        requiredStringValue: 
+        requiredRace: 0
+        requiredJob: 0
+      effect:
+        effectType: 0
+        intValue: 0
+        stringValue: 
+    - choiceText: "\uB410\uC5B4\uC694"
+      nextNodeId: n6
+      condition:
+        conditionType: 0
+        requiredValue: 0
+        requiredStringValue: 
+        requiredRace: 0
+        requiredJob: 0
+      effect:
+        effectType: 0
+        intValue: 0
+        stringValue: 
+    nextNodeId: 
+    effect:
+      effectType: 0
+      intValue: 0
+      stringValue: 
+  - nodeId: n6
+    speakerName: "\uD53C\uC624\uB098"
+    text: "\uC5B8\uC81C\uB4E0 \uBB3C\uC5B4\uBCF4\uC138\uC694!"
+    choices:
+    - choiceText: "\uCD08\uBCF4\uC790 \uB358\uC804\uC740?"
+      nextNodeId: n3
+      condition:
+        conditionType: 0
+        requiredValue: 0
+        requiredStringValue: 
+        requiredRace: 0
+        requiredJob: 0
+      effect:
+        effectType: 0
+        intValue: 0
+        stringValue: 
+    - choiceText: "\uCD5C\uACE0\uAE09 \uB358\uC804\uC740?"
+      nextNodeId: n4
+      condition:
+        conditionType: 0
+        requiredValue: 0
+        requiredStringValue: 
+        requiredRace: 0
+        requiredJob: 0
+      effect:
+        effectType: 0
+        intValue: 0
+        stringValue: 
+    - choiceText: "\uC6D4\uB4DC\uBCF4\uC2A4\uB294 \uBB54\uAC00\uC694?"
+      nextNodeId: n5
+      condition:
+        conditionType: 0
+        requiredValue: 0
+        requiredStringValue: 
+        requiredRace: 0
+        requiredJob: 0
+      effect:
+        effectType: 0
+        intValue: 0
+        stringValue: 
+    - choiceText: "\uB410\uC5B4\uC694"
+      nextNodeId: n6
+      condition:
+        conditionType: 0
+        requiredValue: 0
+        requiredStringValue: 
+        requiredRace: 0
+        requiredJob: 0
+      effect:
+        effectType: 0
+        intValue: 0
+        stringValue: 
+    nextNodeId: 
+    effect:
+      effectType: 0
+      intValue: 0
+      stringValue: 
+  condition:
+    conditionType: 0
+    requiredValue: 0
+    requiredStringValue: 
+    requiredRace: 0
+    requiredJob: 0
+  priority: 0

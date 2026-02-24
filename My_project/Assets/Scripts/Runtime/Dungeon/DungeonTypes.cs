@@ -1,7 +1,5 @@
 using UnityEngine;
 using Unity.Netcode;
-using Unity.Collections;
-using Unity.Collections.LowLevel.Unsafe;
 using System.Collections.Generic;
 
 namespace Unity.Template.Multiplayer.NGO.Runtime

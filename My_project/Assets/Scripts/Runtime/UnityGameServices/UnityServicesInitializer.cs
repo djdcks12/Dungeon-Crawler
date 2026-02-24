@@ -26,6 +26,13 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             CustomNetworkManager.OnConfigurationLoaded += OnConfigurationLoaded;
         }
 
+        private void OnDestroy()
+        {
+            CustomNetworkManager.OnConfigurationLoaded -= OnConfigurationLoaded;
+            if (Instance == this)
+                Instance = null;
+        }
+
         void OnConfigurationLoaded()
         {
             CustomNetworkManager.OnConfigurationLoaded -= OnConfigurationLoaded;
@@ -34,9 +41,16 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
 
         async void OnConfigurationLoaded(ConfigurationManager configuration)
         {
-            Debug.Log($"Configuration loaded: {configuration}");
-            await Initialize(configuration.GetMultiplayerRole() == Unity.Multiplayer.MultiplayerRoleFlags.Server ? k_ServerID
-                                                                                                                 : string.Empty);
+            try
+            {
+                Debug.Log($"Configuration loaded: {configuration}");
+                await Initialize(configuration.GetMultiplayerRole() == Unity.Multiplayer.MultiplayerRoleFlags.Server ? k_ServerID
+                                                                                                                     : string.Empty);
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"[UnityServicesInitializer] OnConfigurationLoaded failed: {e.Message}");
+            }
         }
 
         async public Task Initialize(string externalPlayerID)

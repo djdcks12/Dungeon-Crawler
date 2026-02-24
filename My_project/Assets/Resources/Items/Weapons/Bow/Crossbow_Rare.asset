@@ -1,0 +1,46 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: df3982322dfc5c54c9f7a692a8fef638, type: 3}
+  m_Name: Crossbow_Rare
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.ItemData
+  itemId: weapon_crossbow_rare
+  itemName: "\uD76C\uADC0\uD55C \uC11D\uAD81"
+  description: "\uAE30\uACC4\uC2DD \uC11D\uAD81"
+  itemIcon: {fileID: 0}
+  itemType: 0
+  grade: 3
+  equipmentSlot: 9
+  weaponType: 18
+  stackSize: 1
+  sellPrice: 600
+  isDroppable: 1
+  isDestroyable: 1
+  statBonuses:
+    strength: 2
+    agility: 2
+    vitality: 0
+    intelligence: 0
+    defense: 0
+    magicDefense: 0
+    luck: 0
+    stability: 0
+  weaponDamageRange:
+    minDamage: 27
+    maxDamage: 41
+    stability: 5.1000004
+  criticalBonus: 0.085
+  weaponDamageType: 0
+  hitEffect: {fileID: 0}
+  healAmount: 0
+  manaAmount: 0
+  consumableEffects: []
+  gradeColor: {r: 0.3, g: 0.3, b: 1, a: 1}

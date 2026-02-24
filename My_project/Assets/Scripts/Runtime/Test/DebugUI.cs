@@ -293,7 +293,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         private PlayerController GetLocalPlayer()
         {
-            var players = FindObjectsOfType<PlayerController>();
+            var players = FindObjectsByType<PlayerController>(FindObjectsSortMode.None);
             foreach (var player in players)
             {
                 var networkBehaviour = player.GetComponent<NetworkBehaviour>();

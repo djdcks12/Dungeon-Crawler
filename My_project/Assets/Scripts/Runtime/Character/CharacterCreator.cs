@@ -59,7 +59,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         private void CheckAndShowSoulInheritanceOption()
         {
             // SoulInheritance 시스템에서 보존된 영혼 확인
-            var soulInheritance = FindObjectOfType<SoulInheritance>();
+            var soulInheritance = FindFirstObjectByType<SoulInheritance>();
             if (soulInheritance == null)
             {
                 Debug.LogError("SoulInheritance system not found! Creating fresh character.");
@@ -84,7 +84,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         private void ShowSoulInheritanceUI(SoulData availableSoul)
         {
-            var soulInheritanceUI = FindObjectOfType<SoulInheritanceUI>();
+            var soulInheritanceUI = FindFirstObjectByType<SoulInheritanceUI>();
             if (soulInheritanceUI == null)
             {
                 Debug.LogError("SoulInheritanceUI not found! Creating fallback decision...");
@@ -117,7 +117,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             {
                 Debug.Log($"❌ User declined soul inheritance: {availableSoul.soulName}");
                 // 영혼을 거부하면 완전히 삭제
-                var soulInheritance = FindObjectOfType<SoulInheritance>();
+                var soulInheritance = FindFirstObjectByType<SoulInheritance>();
                 soulInheritance?.ConsumePreservedSoul();
                 
                 ShowRaceSelection();
@@ -287,7 +287,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             var characterData = CreateNewCharacterData(characterName, selectedRace, clientId ?? 0, inheritedSoul);
             
             // SoulInheritance 시스템에 영혼 적용
-            var soulInheritance = FindObjectOfType<SoulInheritance>();
+            var soulInheritance = FindFirstObjectByType<SoulInheritance>();
             if (soulInheritance != null && inheritedSoul.soulId != 0)
             {
                 soulInheritance.ApplyPreservedSoulToCharacter(characterData.characterId, inheritedSoul);
@@ -466,7 +466,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         {
             // 실제로는 데이터베이스나 서버 저장소에서 확인
             // 지금은 간단히 현재 접속한 플레이어들만 확인
-            var allCharacters = FindObjectsOfType<PlayerController>();
+            var allCharacters = FindObjectsByType<PlayerController>(FindObjectsSortMode.None);
             foreach (var character in allCharacters)
             {
                 if (character.name == characterName)
@@ -570,7 +570,13 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             
             Debug.Log($"Character {characterId} deleted for client {clientId}");
         }
-        
+
+        public override void OnDestroy()
+        {
+            OnCharacterCreated = null;
+            OnCharacterCreationFailed = null;
+            base.OnDestroy();
+        }
     }
     
     /// <summary>

@@ -1,0 +1,60 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d70bb1618049f314c82decbdeb4530d2, type: 3}
+  m_Name: spec_cleric_b
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.JobSpecializationData
+  specId: spec_cleric_b
+  specName: "\uC2EC\uD310 \uC0AC\uC81C"
+  description: "\uC2E0\uC131\uD55C \uD798\uC73C\uB85C \uC9C1\uC811 \uC804\uD22C\uD558\uB294
+    \uC804\uD22C\uD615 \uC0AC\uC81C."
+  specIcon: {fileID: 0}
+  parentJob: 13
+  specIndex: 1
+  requiredLevel: 10
+  resetGoldCost: 50000
+  statBonus:
+    strength: 3
+    agility: 1
+    vitality: 2
+    intelligence: 4
+    defense: 1
+    magicDefense: 2
+    luck: 0
+    stability: 0
+  hpBonusPercent: 5
+  mpBonusPercent: 10
+  critRateBonusPercent: 5
+  critDamageBonusPercent: 15
+  attackSpeedBonusPercent: 5
+  cooldownReductionPercent: 0
+  lifestealPercent: 2
+  passive1:
+    passiveName: "\uC2E0\uC131 \uB370\uBBF8\uC9C0"
+    passiveDescription: "\uC2E0\uC131 \uB370\uBBF8\uC9C0: 15%"
+    passiveType: 8
+    value: 15
+  passive2:
+    passiveName: "\uC2E0\uC131\uD55C \uBD84\uB178"
+    passiveDescription: "\uC2E0\uC131\uD55C \uBD84\uB178: 10%"
+    passiveType: 0
+    value: 10
+  passive3:
+    passiveName: "\uC751\uBCF4"
+    passiveDescription: "\uC751\uBCF4: 8%"
+    passiveType: 15
+    value: 8
+  specSkillName: "\uC2E0\uC131 \uD3ED\uD48D"
+  specSkillDescription: "\uC2E0\uC131\uD55C \uBE5B\uC73C\uB85C \uAD11\uC5ED \uB370\uBBF8\uC9C0
+    + \uC544\uAD70 \uCE58\uC720."
+  specSkillDamageMultiplier: 2.5
+  specSkillCooldown: 60
+  specSkillManaCost: 40

@@ -1,0 +1,60 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4759a9d92f8e8704ea8b349c78f693f8, type: 3}
+  m_Name: Level1_B
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.SkillData
+  skillName: "\uC815\uD654\uC758 \uBE5B"
+  skillId: Templar_Level1_B
+  description: "\uBE5B\uC758 \uD798\uC73C\uB85C \uC801\uC5D0\uAC8C \uD53C\uD574\uB97C
+    \uC8FC\uACE0 \uC790\uC2E0\uC744 \uCE58\uC720\uD55C\uB2E4."
+  skillIcon: {fileID: 0}
+  requiredLevel: 1
+  goldCost: 50
+  requiredRace: 1
+  category: 1
+  skillTier: 1
+  prerequisiteSkills: []
+  skillType: 0
+  damageType: 7
+  cooldown: 5
+  manaCost: 12
+  castTime: 0.8
+  range: 3
+  baseDamage: 12
+  damageScaling: 0.7
+  minDamagePercent: 80
+  maxDamagePercent: 120
+  statBonus:
+    strength: 0
+    agility: 0
+    vitality: 0
+    intelligence: 0
+    defense: 0
+    magicDefense: 0
+    luck: 0
+    stability: 0
+  healthBonus: 0
+  manaBonus: 0
+  moveSpeedBonus: 0
+  attackSpeedBonus: 0
+  statusEffects:
+  - type: 9
+    value: 5
+    duration: 3
+    tickInterval: 1
+    stackable: 0
+  statusDuration: 3
+  statusChance: 100
+  behaviorType: 0
+  skillEffect: {fileID: 0}
+  castSound: {fileID: 0}
+  hitSound: {fileID: 0}

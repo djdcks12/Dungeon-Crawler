@@ -30,6 +30,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         // 환경 효과 오브젝트들
         private GameObject currentFogEffect;
         private List<GameObject> environmentEffects = new List<GameObject>();
+        private Coroutine flickeringCoroutine;
         
         // 네트워크 변수
         private NetworkVariable<int> currentFloorEnvironment = new NetworkVariable<int>(-1);
@@ -42,7 +43,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             {
                 if (instance == null)
                 {
-                    instance = FindObjectOfType<FloorEnvironmentManager>();
+                    instance = FindFirstObjectByType<FloorEnvironmentManager>();
                 }
                 return instance;
             }
@@ -107,7 +108,15 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 ambientAudioSource.playOnAwake = false;
             }
         }
-        
+
+        public override void OnDestroy()
+        {
+            StopAllCoroutines();
+            base.OnDestroy();
+            if (instance == this)
+                instance = null;
+        }
+
         /// <summary>
         /// 층 변경 이벤트 처리
         /// </summary>
@@ -256,7 +265,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 // 깜빡이는 효과
                 if (currentConfig.EnableFlickeringLights)
                 {
-                    StartCoroutine(FlickeringLightCoroutine());
+                    flickeringCoroutine = StartCoroutine(FlickeringLightCoroutine());
                 }
             }
             
@@ -332,7 +341,8 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             {
                 yield return new WaitForSeconds(currentConfig.DamageInterval);
                 
-                var playerObject = NetworkManager.Singleton.ConnectedClients[clientId].PlayerObject;
+                if (!NetworkManager.Singleton.ConnectedClients.TryGetValue(clientId, out var envClient)) yield break;
+                var playerObject = envClient.PlayerObject;
                 if (playerObject != null)
                 {
                     var statsManager = playerObject.GetComponent<PlayerStatsManager>();
@@ -474,6 +484,13 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             }
             playerEnvironmentCoroutines.Clear();
             
+            // 깜빡이는 조명 코루틴 정지
+            if (flickeringCoroutine != null)
+            {
+                StopCoroutine(flickeringCoroutine);
+                flickeringCoroutine = null;
+            }
+
             // 환경 오브젝트들 정리
             foreach (var effect in environmentEffects)
             {

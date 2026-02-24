@@ -1,0 +1,46 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 69720ba5637a68e4ea25f77fe61a9920, type: 3}
+  m_Name: fountain_youth
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.DungeonEventData
+  eventId: fountain_youth
+  eventName: "\uC0DD\uBA85\uC758 \uC0D8"
+  description: "\uAE08\uBE5B \uBB3C\uC774 \uBE5B\uB098\uB294 \uD76C\uADC0\uD55C \uC0D8.
+    HP/MP \uBAA8\uB450 \uD68C\uBCF5."
+  eventIcon: {fileID: 0}
+  eventType: 1
+  rarity: 2
+  triggerType: 1
+  spawnChance: 0.04
+  minFloor: 3
+  maxFloor: 10
+  minDifficulty: 1
+  oncePerDungeon: 0
+  interactionText: "\uB450 \uC190\uC73C\uB85C \uB9C8\uC2E0\uB2E4"
+  interactionTime: 1
+  requiresChoice: 0
+  bareHandOutcomes:
+  - description: "\uC0DD\uBA85\uB825\uC774 \uB118\uCE5C\uB2E4! HP/MP \uC804\uCCB4
+      \uD68C\uBCF5!"
+    chance: 1
+    effectType: 20
+    effectValue: 0
+    duration: 0
+    statusEffect: 0
+    isNegative: 0
+  itemInteractions: []
+  choices: []
+  combatWaves: []
+  combatTimeLimit: 0
+  shopItems: []
+  glowColor: {r: 0.3, g: 0.6, b: 1, a: 1}
+  activationSFX: 

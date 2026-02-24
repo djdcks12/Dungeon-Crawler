@@ -31,46 +31,43 @@ MonoBehaviour:
     requiredWeaponGroup: 0
   skillSet:
     level1Skills:
-      choiceA: {fileID: 0}
-      choiceB: {fileID: 0}
-      choiceC: {fileID: 0}
-      goldCostA: 100
-      goldCostB: 100
-      goldCostC: 100
-      conceptA: "\uBBF8\uB2C8\uB9F5\uC5D0 \uB2E4\uC74C \uCE35\uC73C\uB85C \uAC00\uB294
-        \uBC29\uD5A5\uC744 \uD56D\uC0C1 \uD45C\uC2DC\uD55C\uB2E4. "
-      conceptB: "(\uD328\uC2DC\uBE0C) \uD30C\uD2F0\uC758 \uBE44\uC804\uD22C \uC2DC
-        \uC774\uB3D9 \uC18D\uB3C4\uAC00 10% \uC99D\uAC00\uD55C\uB2E4. "
-      conceptC: ": 5\uCD08\uAC04 \uC790\uC2E0\uC758 \uC774\uB3D9 \uC18D\uB3C4\uB97C
-        30%  \uC99D\uAC00\uC2DC\uD0A8\uB2E4."
+      choiceA: {fileID: 11400000, guid: 2b66a0ad8bda04f459f2b78a52c9c81d, type: 2}
+      choiceB: {fileID: 11400000, guid: 0a5371a605ec7834b80b052fb618a102, type: 2}
+      choiceC: {fileID: 11400000, guid: 237d2332e6c0fc943a2f708691f9fd66, type: 2}
+      goldCostA: 50
+      goldCostB: 50
+      goldCostC: 50
+      conceptA: 
+      conceptB: 
+      conceptC: 
     level3Skills:
-      choiceA: {fileID: 0}
-      choiceB: {fileID: 0}
-      choiceC: {fileID: 0}
-      goldCostA: 100
-      goldCostB: 100
-      goldCostC: 100
+      choiceA: {fileID: 11400000, guid: 558e6c700d086fb4fbb84b2b96006dfe, type: 2}
+      choiceB: {fileID: 11400000, guid: 862da9e9888738d409506881e475f01e, type: 2}
+      choiceC: {fileID: 11400000, guid: 3222e6bd08ec28e46903da41c2087cf1, type: 2}
+      goldCostA: 150
+      goldCostB: 150
+      goldCostC: 150
       conceptA: 
       conceptB: 
       conceptC: 
     level5Skills:
-      choiceA: {fileID: 0}
-      choiceB: {fileID: 0}
-      choiceC: {fileID: 0}
-      goldCostA: 100
-      goldCostB: 100
-      goldCostC: 100
+      choiceA: {fileID: 11400000, guid: c69d76ade3a22e342b9d6b611c4aa06f, type: 2}
+      choiceB: {fileID: 11400000, guid: c49765e8bab2b22468e1697b1ce9986b, type: 2}
+      choiceC: {fileID: 11400000, guid: 6977e7140dc992a4ca4cbd74b33efa24, type: 2}
+      goldCostA: 300
+      goldCostB: 300
+      goldCostC: 300
       conceptA: 
       conceptB: 
       conceptC: 
     level7Skills:
-      choiceA: {fileID: 0}
-      choiceB: {fileID: 0}
-      choiceC: {fileID: 0}
-      goldCostA: 100
-      goldCostB: 100
-      goldCostC: 100
+      choiceA: {fileID: 11400000, guid: 46736b097dec33e44bc54f42f1d55afa, type: 2}
+      choiceB: {fileID: 11400000, guid: 56137e9b776e32e4293870be408e81de, type: 2}
+      choiceC: {fileID: 11400000, guid: bf13ed5dde586f749bb791e76fa91dfa, type: 2}
+      goldCostA: 500
+      goldCostB: 500
+      goldCostC: 500
       conceptA: 
       conceptB: 
       conceptC: 
-    ultimateSkill: {fileID: 0}
+    ultimateSkill: {fileID: 11400000, guid: d6d6854ae174c044882505cdd864f52e, type: 2}

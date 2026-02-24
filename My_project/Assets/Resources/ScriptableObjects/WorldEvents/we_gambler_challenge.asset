@@ -1,0 +1,63 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4b0881b9cf4f0ee4ebd3a22aad14bb50, type: 3}
+  m_Name: we_gambler_challenge
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.WorldEventData
+  eventId: we_gambler_challenge
+  eventName: "\uB3C4\uBC15\uC0AC\uC758 \uB3C4\uC804"
+  description: "\uB3C4\uBC15\uC0AC\uAC00 \uB098\uD0C0\uB098 \uB0B4\uAE30\uB97C \uC81C\uC548\uD55C\uB2E4.
+    \uC6B4\uC774 \uC88B\uC73C\uBA74 \uD070\uB3C8, \uB098\uC058\uBA74 \uC190\uC2E4!"
+  eventIcon: {fileID: 0}
+  eventType: 7
+  rarity: 1
+  spawnChance: 0.09
+  checkInterval: 40
+  minPlayerLevel: 2
+  maxPlayerLevel: 99
+  requiresNight: 0
+  requiresDay: 0
+  requiredWeather: 0
+  duration: 60
+  isPermanentUntilCompleted: 0
+  eventMonsters: []
+  rewards: []
+  dialogues:
+  - speakerName: "\uB3C4\uBC15\uC0AC"
+    dialogue: "\uD558\uD558! \uC6B4\uC744 \uC2DC\uD5D8\uD574\uBCF4\uC9C0 \uC54A\uACA0\uB098?
+      \uB0B4\uAE30 \uD55C\uD310 \uC5B4\uB54C?"
+    order: 0
+  - speakerName: "\uB3C4\uBC15\uC0AC"
+    dialogue: "\uC790, \uACB0\uACFC\uB97C \uBCF4\uC790\uACE0!"
+    order: 1
+  choices:
+  - choiceText: "100\uACE8\uB4DC\uB97C \uAC74\uB2E4"
+    resultDescription: "\uC6B4\uC774 \uC88B\uC73C\uBA74 3\uBC30! \uB098\uC058\uBA74
+      \uC804\uC561 \uC190\uC2E4!"
+    rewardType: 0
+    rewardAmount: 300
+    riskChance: 0.5
+    riskDamage: 0
+  - choiceText: "500\uACE8\uB4DC\uB97C \uAC74\uB2E4"
+    resultDescription: "\uB300\uBC15 \uC544\uB2C8\uBA74 \uCABD\uBC15!"
+    rewardType: 0
+    rewardAmount: 1500
+    riskChance: 0.6
+    riskDamage: 0
+  - choiceText: "\uAC70\uC808\uD55C\uB2E4"
+    resultDescription: "\uD604\uBA85\uD55C \uC120\uD0DD\uC774\uC57C."
+    rewardType: 0
+    rewardAmount: 0
+    riskChance: 0
+    riskDamage: 0
+  spawnRadius: 5
+  announceToAll: 0
+  announceMessage: 

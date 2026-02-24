@@ -28,6 +28,9 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         
         // 상호작용 상태
         private Dictionary<ulong, bool> playerInteractions = new Dictionary<ulong, bool>();
+
+        // GC 최적화: 재사용 버퍼
+        private static readonly Collider2D[] s_OverlapBuffer = new Collider2D[8];
         private PlayerController currentInteractingPlayer;
         
         // UI 관련 (추후 UI 시스템에서 구현)
@@ -186,23 +189,23 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         private void CheckPlayerInteractions()
         {
-            Collider2D[] nearbyPlayers = Physics2D.OverlapCircleAll(transform.position, interactionRange);
+            int count = Physics2D.OverlapCircleNonAlloc(transform.position, interactionRange, s_OverlapBuffer);
             var currentPlayerIds = new HashSet<ulong>();
-            
-            foreach (var collider in nearbyPlayers)
+
+            for (int i = 0; i < count; i++)
             {
-                var player = collider.GetComponent<PlayerController>();
+                var player = s_OverlapBuffer[i].GetComponent<PlayerController>();
                 if (player != null && player.IsOwner)
                 {
                     var playerId = player.OwnerClientId;
                     currentPlayerIds.Add(playerId);
-                    
+
                     // 새로운 플레이어 상호작용
                     if (!playerInteractions.ContainsKey(playerId))
                     {
                         OnPlayerEnterRange(player);
                     }
-                    
+
                     playerInteractions[playerId] = true;
                 }
             }
@@ -328,7 +331,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// <summary>
         /// 학습 실패 이유 메시지
         /// </summary>
-        private string GetLearnFailureReason(SkillData skillData, PlayerStatsData playerStats, List<string> learnedSkills)
+        private string GetLearnFailureReason(SkillData skillData, PlayerStatsData playerStats, IReadOnlyList<string> learnedSkills)
         {
             if (playerStats.CurrentLevel < skillData.requiredLevel)
             {

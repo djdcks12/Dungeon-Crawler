@@ -453,7 +453,12 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                     }
                     break;
                 default:
-                    AddSystemMessage($"알 수 없는 명령어: {cmd}");
+                    // ChatCommandSystem에 위임
+                    if (ChatCommandSystem.Instance == null ||
+                        !ChatCommandSystem.Instance.TryProcessCommand(command, NetworkManager.Singleton.LocalClientId))
+                    {
+                        AddSystemMessage($"알 수 없는 명령어: {cmd}");
+                    }
                     break;
             }
         }
@@ -519,12 +524,9 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         private PlayerController FindLocalPlayer()
         {
-            var players = FindObjectsOfType<PlayerController>();
-            foreach (var player in players)
-            {
-                if (player.IsLocalPlayer)
-                    return player;
-            }
+            var netManager = Unity.Netcode.NetworkManager.Singleton;
+            if (netManager != null && netManager.LocalClient != null && netManager.LocalClient.PlayerObject != null)
+                return netManager.LocalClient.PlayerObject.GetComponent<PlayerController>();
             return null;
         }
         
@@ -593,11 +595,38 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             }
         }
         
-        private void OnDestroy()
+        public override void OnDestroy()
         {
+            OnMessageReceived = null;
+            OnChatToggled = null;
+            StopAllCoroutines();
+            base.OnDestroy();
             if (autoHideCoroutine != null)
             {
-                StopCoroutine(autoHideCoroutine);
+                autoHideCoroutine = null;
+            }
+
+            // Button listener cleanup
+            if (sendButton != null)
+                sendButton.onClick.RemoveAllListeners();
+
+            if (toggleChatButton != null)
+                toggleChatButton.onClick.RemoveAllListeners();
+
+            if (allChannelButton != null)
+                allChannelButton.onClick.RemoveAllListeners();
+
+            if (partyChannelButton != null)
+                partyChannelButton.onClick.RemoveAllListeners();
+
+            if (systemChannelButton != null)
+                systemChannelButton.onClick.RemoveAllListeners();
+
+            // InputField listener cleanup
+            if (chatInputField != null)
+            {
+                chatInputField.onEndEdit.RemoveAllListeners();
+                chatInputField.onValueChanged.RemoveAllListeners();
             }
         }
     }

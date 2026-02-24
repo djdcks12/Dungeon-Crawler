@@ -37,7 +37,9 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             if (CustomNetworkManager.Singleton.IsServer)
             {
                 matchDataSynchronizer = Instantiate(matchDataSnchronizerPrefab);
-                matchDataSynchronizer.GetComponent<NetworkObject>().Spawn();
+                var netObj = matchDataSynchronizer.GetComponent<NetworkObject>();
+                if (netObj != null) netObj.Spawn();
+                else Debug.LogError("matchDataSynchronizer prefab missing NetworkObject");
             }
         }
     }

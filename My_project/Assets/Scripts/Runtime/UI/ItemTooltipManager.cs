@@ -39,11 +39,17 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             
             tooltipRect = tooltipPanel.GetComponent<RectTransform>();
             canvas = GetComponentInParent<Canvas>();
-            
+
             // 초기에는 숨김
             tooltipPanel.SetActive(false);
         }
-        
+
+        private void OnDestroy()
+        {
+            if (Instance == this)
+                Instance = null;
+        }
+
         /// <summary>
         /// 툴팁 표시
         /// </summary>
@@ -136,7 +142,25 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                     statsText += $"\nMP 회복: +{itemData.ManaAmount:F0}";
                 }
             }
-            
+
+            // 인챈트 정보 표시
+            if (itemInstance.Enchantments != null && itemInstance.Enchantments.Length > 0)
+            {
+                statsText += "\n\n인챈트:";
+                foreach (string enchantJson in itemInstance.Enchantments)
+                {
+                    try
+                    {
+                        var enchant = JsonUtility.FromJson<EnchantData>(enchantJson);
+                        statsText += $"\n  {enchant.GetEnchantName()} - {enchant.GetEffectDescription()}";
+                    }
+                    catch
+                    {
+                        statsText += $"\n  {enchantJson}";
+                    }
+                }
+            }
+
             itemStatsText.text = statsText.TrimEnd();
         }
         

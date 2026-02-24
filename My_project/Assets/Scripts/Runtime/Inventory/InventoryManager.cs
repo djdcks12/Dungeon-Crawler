@@ -78,12 +78,16 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 inventory.OnItemRemoved -= OnInventoryItemRemoved;
                 inventory.OnInventoryChanged -= OnInventoryDataChanged;
             }
-            
+
             if (!IsOwner)
             {
                 networkInventory.OnValueChanged -= OnNetworkInventoryChanged;
             }
-            
+
+            OnItemAdded = null;
+            OnItemRemoved = null;
+            OnInventoryUpdated = null;
+
             base.OnNetworkDespawn();
         }
         
@@ -342,7 +346,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         [ServerRpc]
         private void DropItemServerRpc(ItemInstance item, Vector3 position)
         {
-            var itemDropSystem = FindObjectOfType<ItemDropSystem>();
+            var itemDropSystem = FindFirstObjectByType<ItemDropSystem>();
             if (itemDropSystem != null)
             {
                 // 플레이어 주변에 랜덤하게 드롭
@@ -370,6 +374,14 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             networkInventory.Value = inventory;
         }
         
+        /// <summary>
+        /// 특정 슬롯의 아이템 가져오기
+        /// </summary>
+        public ItemInstance GetItemAtSlot(int slotIndex)
+        {
+            return inventory?.GetItem(slotIndex);
+        }
+
         /// <summary>
         /// 특정 아이템 개수 확인
         /// </summary>

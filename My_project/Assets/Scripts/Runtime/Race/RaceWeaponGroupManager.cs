@@ -28,6 +28,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             
             foreach (var combination in allCombinations)
             {
+                if (combination == null) continue;
                 if (combination.IsValidCombination())
                 {
                     string key = combination.GetCombinationKey();

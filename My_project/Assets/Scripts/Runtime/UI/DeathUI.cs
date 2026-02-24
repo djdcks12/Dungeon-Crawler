@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using Unity.Netcode;
 
 namespace Unity.Template.Multiplayer.NGO.Runtime
 {
@@ -154,15 +155,14 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         private void OnRespawnClicked()
         {
             if (!isRespawnReady) return;
-            
+
             // DeathManager를 통해 부활 처리
-            var deathManager = FindObjectOfType<DeathManager>();
+            var deathManager = FindFirstObjectByType<DeathManager>();
             if (deathManager != null)
             {
-                // TODO: 부활 로직 연동
-                Debug.Log("Respawn requested");
+                deathManager.RespawnPlayer();
             }
-            
+
             HideDeathUI();
         }
         
@@ -171,13 +171,25 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         private void OnQuitClicked()
         {
-            // 메인 메뉴로 돌아가기 또는 게임 종료
             Debug.Log("Quit to main menu requested");
-            
-            // TODO: 메인 메뉴 이동 로직
             HideDeathUI();
+
+            // 네트워크 정리
+            if (NetworkManager.Singleton != null)
+            {
+                NetworkManager.Singleton.Shutdown();
+            }
+
+            // 메인 메뉴 씬으로 이동
+            UnityEngine.SceneManagement.SceneManager.LoadScene("MetagameScene");
         }
         
+        private void OnDestroy()
+        {
+            if (respawnButton != null) respawnButton.onClick.RemoveAllListeners();
+            if (quitButton != null) quitButton.onClick.RemoveAllListeners();
+        }
+
         /// <summary>
         /// 사망 메시지 설정
         /// </summary>

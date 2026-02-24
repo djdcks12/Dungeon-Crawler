@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 90005bb3089040640aedb90ac658bc76, type: 3}
+  m_Name: daily_goblin
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.QuestData
+  questId: daily_goblin
+  questName: "[\uC77C\uC77C] \uACE0\uBE14\uB9B0 \uC18C\uD0D5"
+  description: "\uACE0\uBE14\uB9B0 15\uB9C8\uB9AC\uB97C \uCC98\uCE58\uD558\uC138\uC694."
+  difficulty: 0
+  requiredLevel: 1
+  isRepeatable: 1
+  isDaily: 1
+  objectives:
+  - objectiveType: 0
+    targetId: Goblin
+    targetName: "\uACE0\uBE14\uB9B0 \uCC98\uCE58"
+    requiredCount: 15
+  reward:
+    experienceReward: 300
+    goldReward: 150
+    itemRewardId: 
+    itemRewardCount: 0
+  prerequisiteQuestId: 

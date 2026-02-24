@@ -1,0 +1,46 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: df3982322dfc5c54c9f7a692a8fef638, type: 3}
+  m_Name: Knuckles_Common
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.ItemData
+  itemId: weapon_knuckles_common
+  itemName: "\uB108\uD074"
+  description: "\uAC15\uCCA0 \uB108\uD074"
+  itemIcon: {fileID: 0}
+  itemType: 0
+  grade: 1
+  equipmentSlot: 7
+  weaponType: 31
+  stackSize: 1
+  sellPrice: 120
+  isDroppable: 1
+  isDestroyable: 1
+  statBonuses:
+    strength: 1
+    agility: 1
+    vitality: 0
+    intelligence: 0
+    defense: 0
+    magicDefense: 0
+    luck: 0
+    stability: 0
+  weaponDamageRange:
+    minDamage: 10
+    maxDamage: 14
+    stability: 1
+  criticalBonus: 0.1
+  weaponDamageType: 0
+  hitEffect: {fileID: 0}
+  healAmount: 0
+  manaAmount: 0
+  consumableEffects: []
+  gradeColor: {r: 0.8, g: 0.8, b: 0.8, a: 1}

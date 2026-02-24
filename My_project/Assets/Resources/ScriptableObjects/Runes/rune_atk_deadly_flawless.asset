@@ -1,0 +1,47 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 83bf213b717bc9344b16ba745c099e7d, type: 3}
+  m_Name: rune_atk_deadly_flawless
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.RuneData
+  runeId: rune_atk_deadly_flawless
+  runeName: "\uC644\uBCBD\uD55C \uCE58\uBA85\uC758 \uB8EC"
+  description: "\uCE58\uBA85\uD0C0 \uB370\uBBF8\uC9C0\uB97C \uB192\uC774\uB294 \uB8EC"
+  runeIcon: {fileID: 0}
+  runeType: 0
+  runeGrade: 4
+  socketColor: 0
+  buyPrice: 1500
+  sellPrice: 375
+  statBonus:
+    strength: 0
+    agility: 3
+    vitality: 0
+    intelligence: 0
+    defense: 0
+    magicDefense: 0
+    luck: 0
+    stability: 0
+  hpBonus: 0
+  mpBonus: 0
+  critChanceBonus: 6
+  critDamageBonus: 24
+  attackSpeedBonus: 0
+  moveSpeedBonus: 0
+  cooldownReduction: 0
+  lifestealPercent: 0
+  expBonusPercent: 0
+  goldBonusPercent: 0
+  elementalType: 0
+  elementalDamageBonus: 0
+  comboRuneId: rune_atk_precision_flawless
+  comboEffectDesc: "\uC870\uD569 \uC2DC \uD6A8\uACFC 1.2\uBC30 \uC99D\uD3ED"
+  comboBonusMultiplier: 0.2

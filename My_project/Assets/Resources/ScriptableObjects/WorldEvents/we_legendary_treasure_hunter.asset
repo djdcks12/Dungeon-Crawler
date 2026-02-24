@@ -1,0 +1,64 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4b0881b9cf4f0ee4ebd3a22aad14bb50, type: 3}
+  m_Name: we_legendary_treasure_hunter
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.WorldEventData
+  eventId: we_legendary_treasure_hunter
+  eventName: "\uC804\uC124\uC758 \uBCF4\uBB3C \uC0AC\uB0E5\uAFBC"
+  description: "\uACE0\uB300\uC758 \uBCF4\uBB3C \uC0AC\uB0E5\uAFBC \uC720\uB839\uC774
+    \uB098\uD0C0\uB0AC\uB2E4! \uC2DC\uB828\uC744 \uD1B5\uACFC\uD558\uBA74 \uC804\uC124\uC801\uC778
+    \uBCF4\uBB3C\uC744 \uC900\uB2E4!"
+  eventIcon: {fileID: 0}
+  eventType: 0
+  rarity: 4
+  spawnChance: 0.01
+  checkInterval: 180
+  minPlayerLevel: 10
+  maxPlayerLevel: 99
+  requiresNight: 1
+  requiresDay: 0
+  requiredWeather: 0
+  duration: 120
+  isPermanentUntilCompleted: 1
+  eventMonsters:
+  - monsterVariantId: demon_boss
+    count: 1
+    gradeMin: 115
+    gradeMax: 120
+    isBoss: 1
+    spawnDelay: 0
+  rewards:
+  - rewardType: 0
+    amount: 10000
+    itemId: 
+    dropChance: 1
+  - rewardType: 1
+    amount: 3000
+    itemId: 
+    dropChance: 1
+  - rewardType: 4
+    amount: 1
+    itemId: 
+    dropChance: 1
+  dialogues:
+  - speakerName: "\uBCF4\uBB3C \uC0AC\uB0E5\uAFBC"
+    dialogue: "\uB098\uC758 \uC2DC\uB828\uC744 \uD1B5\uACFC\uD558\uB77C... \uADF8\uB7EC\uBA74
+      \uC804\uC124\uC758 \uBCF4\uBB3C\uC744 \uC8FC\uACA0\uB2E4."
+    order: 0
+  - speakerName: "\uBCF4\uBB3C \uC0AC\uB0E5\uAFBC"
+    dialogue: "\uB124 \uC2E4\uB825\uC774 \uC778\uC815\uBC1B\uC558\uB2E4. \uC774\uAC83\uC744
+      \uBC1B\uC544\uB77C."
+    order: 1
+  choices: []
+  spawnRadius: 20
+  announceToAll: 1
+  announceMessage: "\uC804\uC124\uC758 \uBCF4\uBB3C \uC0AC\uB0E5\uAFBC\uC774 \uCD9C\uD604\uD588\uC2B5\uB2C8\uB2E4!"

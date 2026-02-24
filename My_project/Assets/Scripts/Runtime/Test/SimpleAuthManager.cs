@@ -44,12 +44,25 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 return;
             }
         }
-        
+
+        private void OnDestroy()
+        {
+            if (Instance == this)
+                Instance = null;
+        }
+
         private async void Start()
         {
-            if (autoSignIn)
+            try
             {
-                await InitializeAuth();
+                if (autoSignIn)
+                {
+                    await InitializeAuth();
+                }
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"[SimpleAuthManager] Start failed: {e.Message}");
             }
         }
         
@@ -261,16 +274,23 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         [ContextMenu("Reset Authentication")]
         public async void ResetAuthentication()
         {
-            await SignOut();
-            
-            // 로컬 데이터 삭제
-            PlayerPrefs.DeleteKey("LocalPlayerId");
-            PlayerPrefs.DeleteKey($"PlayerName_{PlayerId}");
-            
-            // 재인증
-            await InitializeAuth();
+            try
+            {
+                await SignOut();
+
+                // 로컬 데이터 삭제
+                PlayerPrefs.DeleteKey("LocalPlayerId");
+                PlayerPrefs.DeleteKey($"PlayerName_{PlayerId}");
+
+                // 재인증
+                await InitializeAuth();
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"[SimpleAuthManager] ResetAuthentication failed: {e.Message}");
+            }
         }
-        
+
         [ContextMenu("Generate New Development ID")]
         public void GenerateNewDevelopmentId()
         {

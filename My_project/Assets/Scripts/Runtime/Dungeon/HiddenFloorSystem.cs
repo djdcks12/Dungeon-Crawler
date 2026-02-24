@@ -57,7 +57,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             {
                 if (instance == null)
                 {
-                    instance = FindObjectOfType<HiddenFloorSystem>();
+                    instance = FindFirstObjectByType<HiddenFloorSystem>();
                 }
                 return instance;
             }
@@ -112,9 +112,18 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 Destroy(gameObject);
             }
         }
-        
+
+        public override void OnDestroy()
+        {
+            CancelInvoke();
+            base.OnDestroy();
+            if (instance == this)
+                instance = null;
+        }
+
         private void Update()
         {
+            if (!IsSpawned) return;
             if (IsServer && hiddenFloorActive.Value)
             {
                 UpdateHiddenFloorTimer();
@@ -129,7 +138,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             if (!IsServer || !enableHiddenFloor) return;
             
             // 10층 클리어 체크
-            if (DungeonManager.Instance.CurrentFloor >= requiredFloorClear)
+            if (DungeonManager.Instance != null && DungeonManager.Instance.CurrentFloor >= requiredFloorClear)
             {
                 CheckHiddenFloorEligibility();
             }
@@ -408,12 +417,13 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         private void GrantHiddenFloorRewards(ulong playerId, HiddenFloorResult result)
         {
-            var playerObject = NetworkManager.Singleton.ConnectedClients[playerId].PlayerObject;
+            if (!NetworkManager.Singleton.ConnectedClients.TryGetValue(playerId, out var rewardClient)) return;
+            var playerObject = rewardClient.PlayerObject;
             if (playerObject == null) return;
-            
+
             var statsManager = playerObject.GetComponent<PlayerStatsManager>();
             if (statsManager == null) return;
-            
+
             // 기본 보상 계산
             long baseExpReward = 10000; // 기본 1만 경험치
             long baseGoldReward = 50000; // 기본 5만 골드
@@ -457,8 +467,9 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
                 {
                     var selectedItem = legendaryItems[Random.Range(0, legendaryItems.Count)];
                     
-                    var playerObject = NetworkManager.Singleton.ConnectedClients[playerId].PlayerObject;
-                    var inventoryManager = playerObject?.GetComponent<InventoryManager>();
+                    NetworkManager.Singleton.ConnectedClients.TryGetValue(playerId, out var legendClient);
+                    var playerObject2 = legendClient?.PlayerObject;
+                    var inventoryManager = playerObject2?.GetComponent<InventoryManager>();
                     
                     if (inventoryManager != null)
                     {
@@ -474,8 +485,8 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         private int GetPlayerLevel(ulong playerId)
         {
-            var playerObject = NetworkManager.Singleton.ConnectedClients[playerId].PlayerObject;
-            var statsManager = playerObject?.GetComponent<PlayerStatsManager>();
+            if (!NetworkManager.Singleton.ConnectedClients.TryGetValue(playerId, out var client)) return 1;
+            var statsManager = client.PlayerObject?.GetComponent<PlayerStatsManager>();
             return statsManager?.CurrentStats?.CurrentLevel ?? 1;
         }
         
@@ -484,8 +495,8 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         private long GetPlayerGold(ulong playerId)
         {
-            var playerObject = NetworkManager.Singleton.ConnectedClients[playerId].PlayerObject;
-            var statsManager = playerObject?.GetComponent<PlayerStatsManager>();
+            if (!NetworkManager.Singleton.ConnectedClients.TryGetValue(playerId, out var client)) return 0;
+            var statsManager = client.PlayerObject?.GetComponent<PlayerStatsManager>();
             return statsManager?.CurrentStats?.Gold ?? 0;
         }
         
@@ -511,7 +522,8 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             int survivors = 0;
             foreach (ulong participantId in hiddenFloorParticipants)
             {
-                var playerObject = NetworkManager.Singleton.ConnectedClients[participantId].PlayerObject;
+                if (!NetworkManager.Singleton.ConnectedClients.TryGetValue(participantId, out var survClient)) continue;
+                var playerObject = survClient.PlayerObject;
                 var statsManager = playerObject?.GetComponent<PlayerStatsManager>();
                 
                 if (statsManager != null && !statsManager.IsDead)
@@ -543,7 +555,8 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             }
             
             // 11층으로 이동
-            var playerObject = NetworkManager.Singleton.ConnectedClients[playerId].PlayerObject;
+            if (!NetworkManager.Singleton.ConnectedClients.TryGetValue(playerId, out var enterClient)) return;
+            var playerObject = enterClient.PlayerObject;
             if (playerObject != null)
             {
                 // 플레이어를 11층으로 텔레포트

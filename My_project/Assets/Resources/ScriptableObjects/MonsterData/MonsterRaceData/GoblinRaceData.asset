@@ -67,8 +67,8 @@ MonoBehaviour:
     minGrade: 80
     maxGrade: 120
     isMandatory: 0
-  baseExperience: 50
-  baseGold: 10
+  baseExperience: 4
+  baseGold: 5
   soulDropRate: 0.001
   commonDrops: []
   rareDrops: []

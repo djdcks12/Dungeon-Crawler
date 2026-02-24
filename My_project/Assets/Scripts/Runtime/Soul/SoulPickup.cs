@@ -29,6 +29,9 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         // 시각적 효과
         private float pulseTimer = 0f;
         private Vector3 originalScale;
+
+        // GC 최적화: 재사용 버퍼
+        private static readonly Collider2D[] s_OverlapBuffer = new Collider2D[8];
         
         public override void OnNetworkSpawn()
         {
@@ -102,11 +105,11 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         private void CheckAutoPickup()
         {
-            Collider2D[] nearbyPlayers = Physics2D.OverlapCircleAll(transform.position, autoPickupRange);
-            
-            foreach (var collider in nearbyPlayers)
+            int count = Physics2D.OverlapCircleNonAlloc(transform.position, autoPickupRange, s_OverlapBuffer);
+
+            for (int i = 0; i < count; i++)
             {
-                var playerController = collider.GetComponent<PlayerController>();
+                var playerController = s_OverlapBuffer[i].GetComponent<PlayerController>();
                 if (playerController != null && playerController.IsOwner)
                 {
                     CollectSoul(playerController);
@@ -161,7 +164,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// </summary>
         private void AddSoulToPlayer(PlayerController player)
         {
-            var soulInheritance = FindObjectOfType<SoulInheritance>();
+            var soulInheritance = FindFirstObjectByType<SoulInheritance>();
             if (soulInheritance != null)
             {
                 // 플레이어 캐릭터 ID 가져오기
@@ -375,12 +378,19 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// <summary>
         /// 기즈모 그리기 (에디터용)
         /// </summary>
+        public override void OnDestroy()
+        {
+            CancelInvoke();
+            StopAllCoroutines();
+            base.OnDestroy();
+        }
+
         private void OnDrawGizmosSelected()
         {
             // 픽업 범위 시각화
             Gizmos.color = Color.cyan;
             Gizmos.DrawWireSphere(transform.position, pickupRange);
-            
+
             // 자동 픽업 범위 시각화
             Gizmos.color = Color.yellow;
             Gizmos.DrawWireSphere(transform.position, autoPickupRange);

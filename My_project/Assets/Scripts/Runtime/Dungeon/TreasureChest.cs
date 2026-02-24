@@ -264,12 +264,13 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         {
             if (!IsServer || isOpened.Value) return;
             
-            var playerObject = NetworkManager.Singleton.ConnectedClients[playerId].PlayerObject;
+            if (!NetworkManager.Singleton.ConnectedClients.TryGetValue(playerId, out var chestClient)) return;
+            var playerObject = chestClient.PlayerObject;
             if (playerObject == null) return;
-            
+
             var playerController = playerObject.GetComponent<PlayerController>();
             if (playerController == null) return;
-            
+
             // 거리 체크
             float distance = Vector3.Distance(transform.position, playerController.transform.position);
             if (distance > openRadius) return;

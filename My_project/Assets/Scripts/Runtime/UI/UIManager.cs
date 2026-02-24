@@ -20,7 +20,9 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         [SerializeField] private string dungeonUIPrefabPath = "UI/DungeonUI";
         [SerializeField] private string deathUIPrefabPath = "UI/DeathUI";
         [SerializeField] private string shopUIPrefabPath = "UI/ShopUI";
-        
+        [SerializeField] private string dungeonEntryUIPrefabPath = "UI/DungeonEntryUI";
+        [SerializeField] private string skillLearningUIPrefabPath = "UI/SkillLearningUI";
+
         [Header("UI 설정")]
         [SerializeField] private Canvas mainCanvas;
         [SerializeField] private bool loadUIOnStart = true;
@@ -37,7 +39,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             {
                 if (instance == null)
                 {
-                    instance = FindObjectOfType<UIManager>();
+                    instance = FindFirstObjectByType<UIManager>();
                     if (instance == null)
                     {
                         GameObject go = new GameObject("UIManager");
@@ -76,7 +78,7 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             // Canvas 찾기
             if (mainCanvas == null)
             {
-                mainCanvas = FindObjectOfType<Canvas>();
+                mainCanvas = FindFirstObjectByType<Canvas>();
                 if (mainCanvas == null)
                 {
                     CreateMainCanvas();
@@ -84,6 +86,13 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             }
         }
         
+        public override void OnDestroy()
+        {
+            base.OnDestroy();
+            if (instance == this)
+                instance = null;
+        }
+
         private void Start()
         {
             if (loadUIOnStart && IsOwner)
@@ -127,7 +136,13 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             LoadUI<StatsUI>(statsUIPrefabPath);
             LoadUI<UnifiedInventoryUI>(inventoryUIPrefabPath);
             LoadUI<PartyUI>(partyUIPrefabPath);
-            
+
+            // NPC 상호작용 UI 미리 로드 (패널은 숨김 상태)
+            LoadUI<ShopUI>(shopUIPrefabPath);
+            LoadUI<DungeonEntryUI>(dungeonEntryUIPrefabPath);
+            LoadUI<SkillLearningUI>(skillLearningUIPrefabPath);
+            LoadUI<DeathUI>(deathUIPrefabPath);
+
             Debug.Log("🎨 Core UI systems loaded");
         }
         
@@ -244,6 +259,14 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             }
         }
         
+        /// <summary>
+        /// 던전 입장 UI 로드 (포탈 상호작용 시)
+        /// </summary>
+        public DungeonEntryUI LoadDungeonEntryUI()
+        {
+            return LoadUI<DungeonEntryUI>(dungeonEntryUIPrefabPath);
+        }
+
         /// <summary>
         /// 던전 진입 시 던전 UI 로드
         /// </summary>

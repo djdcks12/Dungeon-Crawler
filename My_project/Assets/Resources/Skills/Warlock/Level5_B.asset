@@ -1,0 +1,60 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4759a9d92f8e8704ea8b349c78f693f8, type: 3}
+  m_Name: Level5_B
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.SkillData
+  skillName: "\uC601\uD63C \uC18D\uBC15"
+  skillId: Warlock_Level5_B
+  description: "\uC801\uC758 \uC601\uD63C\uC744 \uC18D\uBC15\uD558\uC5EC \uD589\uB3D9\uC744
+    \uBD09\uC778\uD55C\uB2E4."
+  skillIcon: {fileID: 0}
+  requiredLevel: 5
+  goldCost: 300
+  requiredRace: 1
+  category: 7
+  skillTier: 3
+  prerequisiteSkills: []
+  skillType: 0
+  damageType: 6
+  cooldown: 10
+  manaCost: 25
+  castTime: 1.2
+  range: 6
+  baseDamage: 30
+  damageScaling: 0.8
+  minDamagePercent: 80
+  maxDamagePercent: 120
+  statBonus:
+    strength: 0
+    agility: 0
+    vitality: 0
+    intelligence: 0
+    defense: 0
+    magicDefense: 0
+    luck: 0
+    stability: 0
+  healthBonus: 0
+  manaBonus: 0
+  moveSpeedBonus: 0
+  attackSpeedBonus: 0
+  statusEffects:
+  - type: 14
+    value: 1
+    duration: 4
+    tickInterval: 0
+    stackable: 0
+  statusDuration: 4
+  statusChance: 75
+  behaviorType: 0
+  skillEffect: {fileID: 0}
+  castSound: {fileID: 0}
+  hitSound: {fileID: 0}

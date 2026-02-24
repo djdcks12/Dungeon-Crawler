@@ -202,5 +202,10 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         {
             return isVisible;
         }
+
+        private void OnDestroy()
+        {
+            StopAllCoroutines();
+        }
     }
 }

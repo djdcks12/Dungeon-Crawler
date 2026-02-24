@@ -1,0 +1,60 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4759a9d92f8e8704ea8b349c78f693f8, type: 3}
+  m_Name: Level5_B
+  m_EditorClassIdentifier: com.unity.template.multiplayer-ngo.runtime::Unity.Template.Multiplayer.NGO.Runtime.SkillData
+  skillName: "\uB1CC\uC2E0 \uAC15\uD0C0"
+  skillId: ElementalBruiser_Level5_B
+  description: "\uBC88\uAC1C\uC758 \uC2E0\uC774 \uB0B4\uB9B0 \uB4EF\uD55C \uAC15\uB825\uD55C
+    \uC77C\uACA9\uC744 \uAC00\uD55C\uB2E4."
+  skillIcon: {fileID: 0}
+  requiredLevel: 5
+  goldCost: 300
+  requiredRace: 1
+  category: 24
+  skillTier: 3
+  prerequisiteSkills: []
+  skillType: 0
+  damageType: 4
+  cooldown: 8
+  manaCost: 28
+  castTime: 0.7
+  range: 3
+  baseDamage: 48
+  damageScaling: 1.3
+  minDamagePercent: 80
+  maxDamagePercent: 120
+  statBonus:
+    strength: 0
+    agility: 0
+    vitality: 0
+    intelligence: 0
+    defense: 0
+    magicDefense: 0
+    luck: 0
+    stability: 0
+  healthBonus: 0
+  manaBonus: 0
+  moveSpeedBonus: 0
+  attackSpeedBonus: 0
+  statusEffects:
+  - type: 4
+    value: 1
+    duration: 2
+    tickInterval: 0
+    stackable: 0
+  statusDuration: 2
+  statusChance: 55
+  behaviorType: 0
+  skillEffect: {fileID: 0}
+  castSound: {fileID: 0}
+  hitSound: {fileID: 0}

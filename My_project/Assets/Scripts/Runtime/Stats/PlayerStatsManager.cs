@@ -274,9 +274,18 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             UpdateNetworkVariables();
         }
         
-        // 데미지 받기 (Server 전용 - NetworkVariable 기반)
+        // 데미지 받기 (Server 처리 - NetworkVariable 기반)
         public float TakeDamage(float damage, DamageType damageType = DamageType.Physical)
         {
+            if (IsDead) return 0f;
+
+            // 클라이언트에서 호출 시 서버로 전달
+            if (!IsServer)
+            {
+                TakeDamageServerRpc(damage, (int)damageType);
+                return damage;
+            }
+
             float finalDamage = CalculateDamage(damage, damageType);
             float oldHP = networkCurrentHP.Value;
             
@@ -354,6 +363,12 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             Debug.Log($"💚 {name} healed: {oldHP} → {newHP} (+{amount})");
         }
         
+        [ServerRpc(RequireOwnership = false)]
+        private void TakeDamageServerRpc(float damage, int damageTypeInt)
+        {
+            TakeDamage(damage, (DamageType)damageTypeInt);
+        }
+
         [ServerRpc(RequireOwnership = false)]
         private void HealServerRpc(float amount)
         {
@@ -498,43 +513,38 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         
         private void OnNetworkHPChanged(float previousValue, float newValue)
         {
-            // Client에서 NetworkVariable 변경을 currentStats에 반영
-            if (!IsServer && currentStats != null)
+            // 서버/클라이언트 모두에서 currentStats 동기화
+            if (currentStats != null)
                 currentStats.SetCurrentHP(newValue);
-            
+
             OnHealthChanged?.Invoke(newValue, networkMaxHP.Value);
         }
-        
+
         private void OnNetworkMaxHPChanged(float previousValue, float newValue)
         {
-            // Client에서 NetworkVariable 변경을 currentStats에 반영
-            if (!IsServer && currentStats != null)
-            {
+            // 서버/클라이언트 모두에서 currentStats 동기화
+            if (currentStats != null)
                 currentStats.SetMaxHP(newValue);
-            }
+
             OnHealthChanged?.Invoke(networkCurrentHP.Value, newValue);
         }
-        
+
         private void OnNetworkMPChanged(float previousValue, float newValue)
         {
-            // Client에서 NetworkVariable 변경을 currentStats에 반영
-            if (!IsServer && currentStats != null)
-            {
+            // 서버/클라이언트 모두에서 currentStats 동기화
+            if (currentStats != null)
                 currentStats.SetCurrentMP(newValue);
-            }
-            
+
             // 모든 클라이언트에서 마나 변경 이벤트 호출
             OnManaChanged?.Invoke(newValue, networkMaxMP.Value);
         }
-        
+
         private void OnNetworkMaxMPChanged(float previousValue, float newValue)
         {
-            // Client에서 NetworkVariable 변경을 currentStats에 반영
-            if (!IsServer && currentStats != null)
-            {
+            // 서버/클라이언트 모두에서 currentStats 동기화
+            if (currentStats != null)
                 currentStats.SetMaxMP(newValue);
-            }
-            
+
             // 모든 클라이언트에서 마나 변경 이벤트 호출
             OnManaChanged?.Invoke(networkCurrentMP.Value, newValue);
         }
@@ -738,8 +748,8 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
             // 장비 스탯을 플레이어 스탯에 적용
             currentStats.SetEquipmentBonusStats(equipmentStats);
             
-            // 네트워크 변수 업데이트
-            if (IsOwner)
+            // 네트워크 변수 업데이트 (Server만 쓰기 가능)
+            if (IsServer)
             {
                 networkCurrentHP.Value = currentStats.CurrentHP;
                 networkMaxHP.Value = currentStats.MaxHP;

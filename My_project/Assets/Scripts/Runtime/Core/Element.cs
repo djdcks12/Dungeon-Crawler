@@ -34,8 +34,9 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// <returns></returns>
         internal T Find<T>(T p_var, bool searchGlobally = false) where T : Object => p_var == null ? (searchGlobally ? GameObject.FindFirstObjectByType<T>()
                                                                                                                    : transform.GetComponentInChildren<T>(true)) : p_var;
-        T FindInParent<T>(T p_var) where T : Object => p_var == null ? transform.GetComponentInParent<T>()
-                                                                            : p_var;
+        T FindInParent<T>(T p_var) where T : Object => p_var == null
+            ? (transform.GetComponentInParent<T>() ?? FindFirstObjectByType<T>())
+            : p_var;
 
         /// <summary>
         /// Notifies to the listening controllers the event
@@ -44,7 +45,8 @@ namespace Unity.Template.Multiplayer.NGO.Runtime
         /// <param name="data">The parameters to pass to the listening controllers</param>
         internal void Broadcast(AppEvent evt)
         {
-            App.Broadcast(evt);
+            if (App != null)
+                App.Broadcast(evt);
         }
     }
 }
